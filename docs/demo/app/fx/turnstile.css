@@ -1,0 +1,17 @@
+/* Turnstile: green arrow, push back (resists), a third of a turn with an overshoot, lock and click at
+   --pfx-hit (56 %), cross again. */
+.pfx-turnstile { --pfx-at: 0.75; }
+.pfx-turnstile .pfx-arms { animation-name: pfx-ts-arms; transform-box: view-box; transform-origin: 78px 44px; }
+.pfx-turnstile .pfx-go { animation-name: pfx-ts-go; }
+.pfx-turnstile .pfx-stop { --lag: var(--pfx-hit); animation-name: pfx-pop-in; animation-duration: 240ms; }
+.pfx-turnstile .pfx-click { --lag: var(--pfx-hit); animation-name: pfx-ts-click; animation-duration: 240ms; }
+@keyframes pfx-ts-arms {
+  0%, 12% { transform: none; animation-timing-function: ease-out; }
+  22% { transform: rotate(-10deg); animation-timing-function: cubic-bezier(0.5, 0, 0.4, 1); }
+  50% { transform: rotate(132deg); animation-timing-function: ease-in; }
+  56% { transform: rotate(120deg); animation-timing-function: ease-out; }
+  60% { transform: rotate(124deg); }
+  66%, 100% { transform: rotate(120deg); }
+}
+@keyframes pfx-ts-go { 0% { opacity: 0; } 6%, 54% { opacity: 1; } 57%, 100% { opacity: 0; } }
+@keyframes pfx-ts-click { 0% { opacity: 0; transform: scale(0.6); } 30% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0; transform: scale(1.3); } }

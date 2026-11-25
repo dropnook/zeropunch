@@ -1,0 +1,18 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  // zeropunch.dropnook.app: the product site. A Worker with static assets only (no script);
+  // headers from _headers, files listed in .assetsignore are not served.
+  "name": "zeropunch-site",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": ".",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "zeropunch.dropnook.app", "custom_domain": true }
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "observability": { "enabled": false }
+}

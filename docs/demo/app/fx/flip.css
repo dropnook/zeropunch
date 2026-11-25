@@ -1,0 +1,14 @@
+/* Flip clock: each upper flap falls (110 ms), the lower half of the new digit swings down and bounces
+   (150 ms); one card after the other, 80 ms apart; the first lands at --pfx-hit (320 ms). */
+.pfx-flip { --pfx-at: 0.8; }
+.pfx-flip .pfx-fa { --lag: calc(120ms + var(--i) * 80ms); animation-name: pfx-flip-fold; animation-duration: 110ms; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+.pfx-flip .pfx-fb { --lag: calc(230ms + var(--i) * 80ms); animation-name: pfx-flip-unfold; animation-duration: 150ms; animation-timing-function: linear; }
+.pfx-flip .pfx-cell { --lag: calc(300ms + var(--i) * 80ms); animation-name: pfx-flip-tick; animation-duration: 120ms; }
+@keyframes pfx-flip-fold { 0% { transform: none; } 100% { transform: scaleY(0); } }
+@keyframes pfx-flip-unfold {
+  0% { transform: scaleY(0); animation-timing-function: cubic-bezier(0.5, 0, 1, 0.6); }
+  60% { transform: none; animation-timing-function: ease-out; }
+  78% { transform: scaleY(0.84); animation-timing-function: ease-in; }
+  100% { transform: none; }
+}
+@keyframes pfx-flip-tick { 0%, 100% { transform: none; } 40% { transform: translateY(1px) scale(1.02, 0.98); } }

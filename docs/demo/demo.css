@@ -1,0 +1,144 @@
+/* The live phone in the hero (demo.js): the app's start screen, drawn at the app's sizes for a
+   390 px wide phone and scaled with the column (--u = one app pixel). Colours are the app's theme
+   values (public/app.css); they follow the site's ☀/☾ switch, not only the system. The phone keeps
+   the screenshot's aspect ratio (780 × 1688), so swapping it in shifts nothing. */
+
+.zd {
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#15181d; --muted:#5d6673; --line:#d9dde3;
+  --accent:#1f6feb; --accent-fg:#ffffff; --in:#1a7f47; --focus:#1f6feb;
+  --coral:#ff6b4a; --slate:#2b3238;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .zd {
+    --bg:#111418; --surface:#1a1e24; --fg:#e9edf2; --muted:#9aa4b1; --line:#2f3640;
+    --accent:#5b9dff; --accent-fg:#0b1220; --in:#2ea56a; --focus:#8ab8ff;
+  }
+}
+:root[data-theme="dark"] .zd {
+  --bg:#111418; --surface:#1a1e24; --fg:#e9edf2; --muted:#9aa4b1; --line:#2f3640;
+  --accent:#5b9dff; --accent-fg:#0b1220; --in:#2ea56a; --focus:#8ab8ff;
+}
+
+/* the grid item: the same box as the screenshot it replaces */
+.zd-wrap { position: relative; min-width: 0; }
+.hero .zd-wrap > .phone { margin: 0; max-width: none; }
+@media (max-width:720px){ .zd-wrap { width: 100%; max-width: 270px; margin: 8px auto 0; } }
+.zd { aspect-ratio: 780 / 1688; container-type: inline-size; background: var(--bg); }
+.zd [hidden] { display: none !important; }
+/* the caption sits in the hero's bottom padding: it adds no height */
+.zd-cap { position: absolute; left: -8px; right: -8px; top: calc(100% + 18px); margin: 0;
+  font-size: 13px; line-height: 1.4; color: var(--muted); text-align: center; }
+.hero .zd-cap { color: var(--muted); }
+
+.zd-screen {
+  --u: calc(100cqw / 390);
+  position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--bg); color: var(--fg);
+  font: calc(17 * var(--u)) / 1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: normal; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+}
+:where(.zd-screen) p { margin: 0; }
+:where(.zd-screen) button { font: inherit; letter-spacing: inherit; }
+.zd-screen :focus-visible { outline: calc(3 * var(--u)) solid var(--focus); outline-offset: calc(2 * var(--u)); }
+
+/* top bar: the wordmark and, where the app says «Synced», a plain «Demo» */
+.zd-top { flex: none; height: calc(56 * var(--u)); display: flex; align-items: center; justify-content: space-between;
+  padding: 0 calc(16 * var(--u)); border-bottom: 1px solid var(--line); }
+.zd-wm { font-weight: 700; letter-spacing: -0.01em; font-size: calc(17 * var(--u)); }
+.zd-wm span:first-child { color: var(--muted); }
+.zd-wm span:last-child { color: var(--coral); }
+.zd-pill { display: inline-flex; align-items: center; gap: calc(6 * var(--u)); font-size: calc(14.5 * var(--u)); color: var(--muted); }
+.zd-dot { width: calc(9 * var(--u)); height: calc(9 * var(--u)); border-radius: 50%; background: var(--coral); }
+
+.zd-main { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: calc(12 * var(--u)) calc(16 * var(--u)) 0; }
+
+/* the day view */
+.zd-dayview { touch-action: pan-y; overscroll-behavior-x: none; border-radius: calc(12 * var(--u)); }
+.zd-dayview:focus-visible { outline-offset: calc(4 * var(--u)); }
+.zd-head { display: flex; align-items: center; gap: calc(4 * var(--u)); margin-bottom: calc(6 * var(--u)); min-height: calc(44 * var(--u)); }
+.zd-nav { flex: none; width: calc(44 * var(--u)); height: calc(44 * var(--u)); padding: 0 0 calc(3 * var(--u));
+  font-size: calc(30.6 * var(--u)); line-height: 1; color: var(--accent); background: transparent; border: 0;
+  border-radius: calc(10 * var(--u)); cursor: pointer; }
+.zd-nav:disabled { color: var(--line); cursor: default; }
+.zd-title { flex: 1; min-width: 0; font-weight: 600; font-size: calc(16.7 * var(--u)); }
+.zd-title-in { display: flex; justify-content: center; align-items: baseline; gap: 0.3em; line-height: 1.2; white-space: nowrap; }
+.zd-title-in > span { overflow: hidden; text-overflow: ellipsis; }
+.zd-sep { color: var(--muted); }
+.zd-sum { flex: none; font-variant-numeric: tabular-nums; }
+/* on another day the «Today» button takes room: day and total on two lines, as the app on a narrow phone */
+.zd-away .zd-title-in { flex-direction: column; align-items: center; gap: 0; }
+.zd-away .zd-sep { display: none; }
+.zd-away .zd-sum { font-size: calc(14.5 * var(--u)); font-weight: 500; color: var(--muted); }
+.zd-todaybtn { flex: none; min-height: calc(36 * var(--u)); padding: calc(4 * var(--u)) calc(10 * var(--u));
+  font-size: calc(14.5 * var(--u)); font-weight: 600; color: var(--fg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: calc(12 * var(--u)); cursor: pointer; }
+
+.zd-chips { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(8 * var(--u)); align-content: start; min-height: calc(148 * var(--u)); }
+.zd-chips.zd-dense { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: calc(5 * var(--u)); }
+.zd-chip { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  height: calc(54 * var(--u)); padding: calc(4 * var(--u)); color: var(--fg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: calc(12 * var(--u)); }
+.zd-dense .zd-chip { height: calc(46 * var(--u)); padding: calc(2 * var(--u)); border-radius: calc(10 * var(--u)); }
+.zd-time { font-size: calc(19.5 * var(--u)); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.zd-dense .zd-time { font-size: calc(17.3 * var(--u)); }
+.zd-dir { font-size: calc(12.2 * var(--u)); line-height: 1.2; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.zd-in .zd-dir { color: var(--in); }
+/* the 3 Jan punch has no partner: a quiet mark next to «in», not the app's yellow notice */
+.zd-badge { display: inline-block; margin-left: calc(4 * var(--u)); padding: 0 calc(5 * var(--u)); font-size: calc(10.5 * var(--u));
+  font-weight: 650; line-height: 1.35; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; vertical-align: 0.05em; }
+.zd-empty { grid-column: 1 / -1; height: calc(54 * var(--u)); display: flex; align-items: center; justify-content: center;
+  color: var(--muted); border: 1px dashed var(--line); border-radius: calc(12 * var(--u)); }
+/* swiping and sliding in: CSS only, driven by custom properties */
+.zd-chips.zd-drag { transform: translateX(var(--zd-dx, 0)); }
+.zd-chips.zd-in { animation: zd-slide-in 180ms ease-out; }
+.zd-chips.zd-back { animation: zd-slide-back 150ms ease-out; }
+@keyframes zd-slide-in { from { transform: translateX(var(--zd-from, 0)); opacity: 0.3; } to { transform: none; opacity: 1; } }
+@keyframes zd-slide-back { from { transform: translateX(var(--zd-from, 0)); } to { transform: none; } }
+
+/* state, clock, today */
+.zd-status { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: calc(12 * var(--u)) 0; }
+.zd-state { font-size: calc(17.9 * var(--u)); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zd-state-dot { display: inline-block; width: calc(10 * var(--u)); height: calc(10 * var(--u)); border-radius: 50%;
+  margin-right: calc(8 * var(--u)); vertical-align: 0.05em; border: calc(2 * var(--u)) solid var(--muted); }
+.zd-is-in .zd-state-dot { background: var(--in); border-color: var(--in); }
+.zd-clock { font-size: calc(58.5 * var(--u)); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+  line-height: 1.2; margin: calc(3 * var(--u)) 0; }
+.zd-today { font-size: calc(19.5 * var(--u)); }
+.zd-today strong { font-variant-numeric: tabular-nums; font-size: calc(23.8 * var(--u)); }
+
+/* the button: the app's coral with dark text; the animation layer is placed against this area */
+.zd-punch-area { flex: none; position: relative; padding-bottom: calc(6 * var(--u)); }
+.zd .punch { display: block; width: 100%; min-height: calc(143 * var(--u)); border: 0; border-radius: calc(28 * var(--u));
+  font-size: calc(29.6 * var(--u)); font-weight: 800; background: var(--coral); color: var(--slate);
+  cursor: pointer; touch-action: manipulation; box-shadow: 0 calc(6 * var(--u)) calc(18 * var(--u)) rgb(0 0 0 / 0.15);
+  transition: transform 0.08s ease; }
+.zd .punch:active { transform: scale(0.98); }
+.zd .punch:disabled { opacity: 0.55; cursor: default; }
+.zd .punch:disabled:active { transform: none; }
+.zd-hints { min-height: calc(92 * var(--u)); display: flex; flex-direction: column; align-items: center; gap: calc(6 * var(--u)); padding-top: calc(6 * var(--u)); }
+.zd-hint { font-size: calc(14.5 * var(--u)); line-height: 1.35; color: var(--muted); text-align: center; }
+.zd-again { min-height: calc(36 * var(--u)); padding: calc(4 * var(--u)) calc(14 * var(--u)); font-size: calc(15 * var(--u));
+  font-weight: 650; color: var(--accent-fg); background: var(--accent); border: 0; border-radius: calc(12 * var(--u)); cursor: pointer; }
+
+/* the tab bar, as a picture: not interactive */
+.zd-tabs { flex: none; display: flex; height: calc(64 * var(--u)); padding: 0 calc(14 * var(--u)) calc(4 * var(--u)); background: var(--surface); border-top: 1px solid var(--line); }
+.zd-tab { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(2 * var(--u));
+  font-size: calc(11.6 * var(--u)); letter-spacing: -0.02em; color: var(--muted); overflow: hidden; white-space: nowrap; }
+.zd-tab.zd-on { color: var(--accent); font-weight: 700; }
+.zd-ico { font-size: calc(21 * var(--u)); line-height: 1; }
+
+.zd-vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+/* the punch just made glows once */
+.zd-chip.zd-new { animation: zd-glow 1.6s ease-out 1; }
+@keyframes zd-glow {
+  0% { border-color: #ff6b4a; background: color-mix(in srgb, #ff6b4a 34%, var(--surface)); box-shadow: 0 0 0 0 rgb(255 107 74 / 0.75), 0 0 0 rgb(255 107 74 / 0); transform: scale(0.94); }
+  18% { transform: scale(1.05); box-shadow: 0 0 0 calc(3 * var(--u)) rgb(255 107 74 / 0.55), 0 0 calc(20 * var(--u)) rgb(255 107 74 / 0.6); }
+  40% { transform: none; }
+  100% { border-color: var(--line); background: var(--surface); box-shadow: 0 0 0 calc(3 * var(--u)) rgb(255 107 74 / 0), 0 0 calc(20 * var(--u)) rgb(255 107 74 / 0); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .zd-chips.zd-in, .zd-chips.zd-back, .zd-chip.zd-new { animation: none; }
+  .zd .punch { transition: none; }
+}

@@ -1,0 +1,23 @@
+# Headers for every response of zeropunch.dropnook.app (static files).
+# Nothing is loaded from other origins; inline JSON-LD is data, not script.
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+  X-Frame-Options: DENY
+
+# Screenshots keep their names when re-shot: revalidate on every use (an unchanged picture costs a
+# 304), never a long cache. Every other file gets the same default (max-age=0, must-revalidate).
+/screenshots/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+# The live demo in the hero (demo/*, incl. the copies of the app's animation code): revalidate on every
+# use like everything else, so a new release of the demo is never held back by a cache.
+/demo/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8

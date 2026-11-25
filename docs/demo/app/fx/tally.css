@@ -1,0 +1,20 @@
+/* Tally stick: wind-up, cut, chips, the knife pulls out. Impact at --pfx-hit (42 %). */
+.pfx-tally { --pfx-at: 0.5; }
+.pfx-tally .pfx-knife { animation-name: pfx-tally-knife; transform-origin: 50% 100%; }
+.pfx-tally .pfx-stick { animation-name: pfx-tally-stick; transform-origin: 50% 100%; }
+.pfx-tally .pfx-notch { --lag: var(--pfx-hit); animation-name: pfx-pop-in; animation-duration: 260ms; transform-origin: 50% 0%; }
+@keyframes pfx-tally-knife {
+  0% { opacity: 0; transform: translate(-4px, -40px) rotate(-8deg); animation-timing-function: cubic-bezier(0.3, 0.7, 0.4, 1); }
+  10% { opacity: 1; }
+  30% { opacity: 1; transform: translate(-10px, -52px) rotate(-24deg); animation-timing-function: cubic-bezier(0.7, 0, 1, 0.6); }
+  42% { transform: none; animation-timing-function: ease-out; }
+  47% { transform: translateY(-3px) rotate(3deg); }
+  53%, 60% { opacity: 1; transform: none; animation-timing-function: cubic-bezier(0.4, 0, 0.7, 1); }
+  86%, 100% { opacity: 0; transform: translate(16px, -50px) rotate(18deg); }
+}
+@keyframes pfx-tally-stick {
+  0%, 41% { transform: none; }
+  44% { transform: scale(1.01, 0.88); animation-timing-function: ease-out; }
+  52% { transform: scale(0.995, 1.04); }
+  60%, 100% { transform: none; }
+}

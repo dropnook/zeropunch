@@ -1,0 +1,21 @@
+/* Sundial: the sun rises, the shadow sweeps from the morning edge and settles on the hour at
+   --pfx-hit (62 %) with a small overshoot; the hour lights up. No shake: a sundial is quiet. */
+.pfx-sundial { --pfx-at: 0.85; }
+.pfx-sundial .pfx-shadow { animation-name: pfx-sd-shadow; transform-origin: 50% 100%; }
+.pfx-sundial .pfx-sun { animation-name: pfx-sd-sun; }
+.pfx-sundial .pfx-mark { --lag: var(--pfx-hit); animation-name: pfx-pop-in; animation-duration: 280ms; }
+.pfx-sundial .pfx-time { --lag: calc(var(--pfx-hit) + 60ms); animation-name: pfx-show; animation-duration: 200ms; }
+@keyframes pfx-sd-shadow {
+  0% { opacity: 0; transform: rotate(-96deg); }
+  12% { opacity: 1; transform: rotate(-92deg); animation-timing-function: cubic-bezier(0.55, 0, 0.35, 1); }
+  56% { transform: rotate(calc(var(--to) + 7deg)); animation-timing-function: ease-in-out; }
+  62% { transform: rotate(calc(var(--to) - 2deg)); }
+  68%, 100% { opacity: 1; transform: rotate(var(--to)); }
+}
+@keyframes pfx-sd-sun {
+  0% { opacity: 0; transform: translateY(16px) scale(0.6); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.3); }
+  22% { opacity: 1; transform: none; }
+  60% { transform: none; }
+  64% { transform: scale(1.18); }
+  72%, 100% { opacity: 1; transform: none; }
+}

@@ -1,0 +1,17 @@
+/* In the button: the button loads (compresses), the punch lands at 30 % and it recoils; the hole pops in
+   with a ring, the piece flies off. */
+.pfx-button { --pfx-at: 0.45; }
+.punch.pfx-recoil { animation: pfx-recoil 700ms linear both; will-change: transform; }
+.pfx-button .pfx-mini { animation-name: pfx-recoil; animation-timing-function: linear; transform-origin: 50% 50%; }
+.pfx-button .pfx-hole { --lag: var(--pfx-hit); animation-name: pfx-pop-in; animation-duration: 260ms; }
+.pfx-button .pfx-fade { animation-name: pfx-button-fade; }
+.pfx-button .pfx-ring1 { --lag: var(--pfx-hit); animation-name: pfx-ring; animation-duration: 420ms; }
+@keyframes pfx-recoil {
+  0% { transform: none; animation-timing-function: cubic-bezier(0.4, 0, 0.8, 0.6); }
+  24% { transform: scale(0.95, 0.91); animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1); }
+  31% { transform: translateY(2px) scale(1.035, 0.97); animation-timing-function: ease-in-out; }
+  42% { transform: scale(0.99, 1.025); }
+  54% { transform: scale(1.006, 0.995); }
+  66%, 100% { transform: none; }
+}
+@keyframes pfx-button-fade { 0%, 82% { opacity: 1; } 100% { opacity: 0; } }

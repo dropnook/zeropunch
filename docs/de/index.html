@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Zeropunch — eine Stempeluhr, die nichts über dich weiss</title>
+<meta name="description" content="Zeropunch ist eine Stempeluhr fürs Handy: ein Knopf, «Punch in/out», und eine Liste deiner Zeiten. Jeder Punch wird im Browser verschlüsselt; der Server sieht nie eine Arbeitszeit. Keine Mail, kein echter Name. Frei und quelloffen.">
+<link rel="canonical" href="https://zeropunch.dropnook.app/de/">
+<link rel="alternate" hreflang="en" href="https://zeropunch.dropnook.app/">
+<link rel="alternate" hreflang="de" href="https://zeropunch.dropnook.app/de/">
+<link rel="alternate" hreflang="x-default" href="https://zeropunch.dropnook.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Zeropunch">
+<meta property="og:locale" content="de_CH">
+<meta property="og:title" content="Zeropunch — eine Stempeluhr, die nichts über dich weiss">
+<meta property="og:description" content="Ein Knopf, «Punch in/out», und eine Liste deiner Zeiten. Im Browser verschlüsselt; der Server sieht nie eine Arbeitszeit. Keine Mail, kein echter Name.">
+<meta property="og:url" content="https://zeropunch.dropnook.app/de/">
+<meta property="og:image" content="https://zeropunch.dropnook.app/social-preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Zeropunch — a punch clock that knows nothing about you">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon.png">
+<script src="../lang.js"></script>
+<script src="../theme.js"></script>
+<link rel="stylesheet" href="../site.css">
+<script src="../reveal.js" defer></script>
+<script type="module" src="../demo/boot.js"></script>
+<script type="application/ld+json">{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "WebApplication",
+   "@id": "https://zeropunch.dropnook.app/de/#software",
+   "name": "Zeropunch",
+   "description": "Zeropunch ist eine Zero-Knowledge-Stempeluhr fürs Handy: ein Knopf, «Punch in/out», und eine Liste deiner Zeiten. Jeder Punch wird im Browser verschlüsselt, bevor er das Gerät verlässt; der Server lagert verschlüsselte Pakete fester Grösse und sieht nie eine Arbeitszeit. Keine Mail-Adresse, kein echter Name.",
+   "url": "https://zeropunch.app/",
+   "sameAs": "https://zeropunch.dropnook.app/de/",
+   "inLanguage": ["de", "en"],
+   "applicationCategory": "BusinessApplication",
+   "applicationSubCategory": "Zeiterfassung",
+   "operatingSystem": "Beliebig (Webbrowser); als Progressive Web App installierbar",
+   "browserRequirements": "Ein aktueller Browser mit JavaScript und WebCrypto",
+   "isAccessibleForFree": true,
+   "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "CHF"
+   },
+   "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+   "codeRepository": "https://github.com/dropnook/zeropunch",
+   "image": "https://zeropunch.dropnook.app/social-preview.png",
+   "screenshot": [
+    "https://zeropunch.dropnook.app/screenshots/start-de-light.webp?v=252",
+    "https://zeropunch.dropnook.app/screenshots/list-de-light.webp?v=252",
+    "https://zeropunch.dropnook.app/screenshots/edit-de-light.webp?v=252",
+    "https://zeropunch.dropnook.app/screenshots/nerd-de-light.webp?v=252",
+    "https://zeropunch.dropnook.app/screenshots/settings-fx-de-light.webp?v=260",
+    "https://zeropunch.dropnook.app/screenshots/register-de-light.webp?v=252"
+   ],
+   "featureList": [
+    "Ein Knopf, «Punch in/out»: die Punches eines Tages bilden der Reihe nach Paare (1. drin, 2. draussen, …)",
+    "Eine kurze Animation beim Punchen, Stempeln durch die Zeiten von der Sonnenuhr bis zum Funk-Chip, sechzehn davon (zufällig als Vorgabe, aus einem Raster von Bildern wählbar, abschaltbar), mit einem kurzen Vibrieren beim Aufprall, wo das Handy das kann",
+    "Der Start zeigt einen Tag auf einmal mit seinen Punches und der Summe; wischen für frühere Tage",
+    "Liste mit Tages- und Wochensummen; jeder Punch lässt sich direkt in der Liste ändern oder löschen, ein ganzer Tag auf einmal",
+    "Zeitwahl mit einem Rad für Stunden und Minuten",
+    "Nachtschichten als Einstellung: der Tag wechselt zu einer Zeit, die du wählst",
+    "Abwesenheiten (Ferien, krank, Feiertag, anderes; ganzer oder halber Tag), die an die Sollzeit zählen, und ein Wochen- oder Monatsblatt zum Drucken oder als PDF",
+    "Punchen mit NFC-Kleber: Handy an den Kleber an Spind, Pult, Notebook oder Tasche halten; sofort, oder auf Wunsch mit Rückfrage",
+    "Badge-Erinnerung als Einstellung: frühestens alle 25 Kalendertage (wählbar) einmal ein Hinweis beim ersten Punch des Tages, den Badge beim Empfang zu validieren",
+    "Nerd-Modus: Saldo, Stunden pro Woche (13 Wochen) und pro Monat (13 Monate), Durchschnitte, Pausen, Heatmap",
+    "Geht offline und lässt sich als App installieren; wie, zeigen die Einstellungen für iPhone, iPad und Android",
+    "Im Browser verschlüsselt (AES-256-GCM); der Server sieht nie Zeiten, Notizen oder Einstellungen",
+    "Keine Mail, kein echter Name: nur Benutzername und Passphrase"
+   ]
+  },
+  {
+   "@type": "FAQPage",
+   "@id": "https://zeropunch.dropnook.app/de/#faq",
+   "inLanguage": "de",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "Kann jemand meine Arbeitszeiten sehen?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Auf dem Server nicht. Jeder Punch wird in deinem Browser verschlüsselt, bevor er das Gerät verlässt; der Server lagert Pakete fester Grösse. Er sieht aber, wann ein verschlüsseltes Paket ankommt. Wer ohne Netz puncht, verwischt das: das Paket geht dann erst, wenn du wieder online bist."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Was, wenn ich meine Passphrase vergesse?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Dann kann niemand mehr deine Punches lesen. Eine Passphrase kann niemand zurücksetzen: keine Hintertür, kein Zurücksetzen per Mail, kein Wiederherstellungs-Code. Das Konto wird nach 61 Tagen ohne Nutzung automatisch gelöscht; bis dahin bleibt der Benutzername vergeben. Solange du angemeldet bist, kannst du die Passphrase in den Einstellungen ändern (dafür braucht es die aktuelle)."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Ich habe falsch gestempelt. Kann ich das korrigieren?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Ja, direkt in der Liste: jeder Punch hat einen Stift zum Ändern und einen Eimer zum Löschen, nach einer Rückfrage. Ein ganzer Tag falsch? Der Eimer im Kopf des Tages fragt einmal nach und löscht alle seine Punches. Die Zeit stellst du an einem Rad für Stunden und Minuten ein. Einen Punch vergessen? Mit «+» nachtragen, bis 13 Monate zurück. Der Tag paart sich dann neu."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Muss ich eine App installieren?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Nein. Zeropunch läuft im Browser. Du kannst es auf den Home-Bildschirm legen (wie das auf iPhone, iPad und Android geht, steht in den Einstellungen), und es stempelt auch ohne Netz weiter; die Punches gehen raus, sobald du wieder online bist."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Wie lange bleiben meine Punches?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "13 Monate, dann sind sie endgültig gelöscht. Exportiere vorher, was du behalten willst: als CSV oder JSON. Ein Konto, das 61 Tage nicht benutzt wird, wird samt Inhalt gelöscht."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Kann ich mit einem NFC-Kleber punchen?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Ja. Kleb einen NFC-Kleber an deinen Spind, dein Pult, dein Notebook oder deine Tasche und halt das Handy daran. Der Punch ist sofort gemacht; auf Wunsch fragt die App zuerst «Jetzt punchen?». Der Kleber öffnet nur einen Link, der für alle gleich ist und nichts über dich enthält. Auf dem iPhone geht oft sogar dein Firmenbadge, wenn er einen NFC-Chip hat: Badge ans Handy halten statt Handy an den Kleber. Am Badge wird dabei nichts verändert. Die Anleitung für iPhone und Android steht in den Einstellungen."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Kann ich Ferien und Krankheit erfassen und meine Zeiten ausdrucken?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Ja. Ferien, Krankheit, Feiertage und andere Abwesenheiten erfasst du als ganzen oder halben Tag, höchstens 31 Tage im Voraus; sie zählen wie Arbeitszeit an deine Sollzeit. Für jede Woche und jeden Monat gibt es ein Blatt zum Drucken oder als PDF."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Ich arbeite Nachtschicht. Geht das?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Ja. Schalte in den Einstellungen die Nachtschichten ein und wähle, wann dein Tag wechselt, zum Beispiel um 04:00. Punches vor dieser Zeit zählen zum Vortag; eine Schicht über Mitternacht bleibt ein Tag."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Ist es gratis? Kann ich es selbst betreiben?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Ja. Zeropunch ist freie, quelloffene Software unter der AGPL-3.0. Für eine eigene Kopie brauchst du ein kleines Serverless-Backend mit einer SQL-Datenbank. Wie es geht, steht im README auf GitHub."
+     }
+    }
+   ]
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://zeropunch.dropnook.app/#site",
+   "name": "Zeropunch",
+   "url": "https://zeropunch.dropnook.app/",
+   "inLanguage": ["en", "de"]
+  }
+ ]
+}</script>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a href="https://zeropunch.dropnook.app/de/" class="brand" aria-label="Zeropunch">
+      <img class="mark" src="../icon.svg" width="30" height="30" alt="">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="../title-dark.svg">
+        <img src="../title-light.svg" width="252" height="60" alt="Zeropunch">
+      </picture>
+    </a>
+    <nav class="links" aria-label="Abschnitte">
+      <a href="#how">So geht’s</a>
+      <a href="#privacy">Datenschutz</a>
+      <a href="#limits">Grenzen</a>
+      <a href="#self-hosting">Selbst betreiben</a>
+      <a href="#faq">Fragen</a>
+    </nav>
+    <div class="top-right">
+      <nav class="langs" aria-label="Sprache">
+        <a href="https://zeropunch.dropnook.app/" hreflang="en" lang="en">EN</a><a href="https://zeropunch.dropnook.app/de/" hreflang="de" lang="de" aria-current="page">DE</a>
+      </nav>
+      <div class="theme-switch" id="theme-switch" role="group" hidden data-auto="Darstellung: automatisch" data-again="nochmals klicken für automatisch">
+        <button type="button" data-mode="light" data-label="Darstellung: hell"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button><button type="button" data-mode="dark" data-label="Darstellung: dunkel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></button>
+      </div>
+      <a class="btn small ghost" href="https://github.com/dropnook/zeropunch">GitHub</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap hero-in">
+    <div class="hero-text">
+      <p class="kicker">Frei &amp; quelloffen · Zero Knowledge</p>
+      <h1>Eine Stempeluhr, die <em>nichts</em> über dich weiss.</h1>
+      <p class="lead">Ein Knopf, «Punch in/out», und eine Liste deiner Zeiten. Jeder Punch wird auf deinem Handy verschlüsselt, bevor er es verlässt — der Server lagert nur unlesbare Pakete und sieht nie eine Arbeitszeit. Keine Mail-Adresse, kein echter Name.</p>
+      <div class="ctas">
+        <a class="btn" href="https://zeropunch.app/">Zeropunch öffnen</a>
+        <a class="btn ghost" href="https://github.com/dropnook/zeropunch">Quelltext auf GitHub</a>
+      </div>
+      <p class="note">Läuft im Browser · installierbar · geht offline · per NFC-Kleber auslösbar · Deutsch und Englisch · AGPL-3.0</p>
+    </div>
+    <picture class="phone">
+      <source media="(prefers-color-scheme: dark)" srcset="../screenshots/start-de-dark.webp?v=252">
+      <img src="../screenshots/start-de-light.webp?v=252" width="780" height="1688" alt="Zeropunch auf dem Handy: oben die Punches von heute unter «Heute · 6:52 h», «Drin seit 12:41 · 6:52 h», die Uhrzeit, «Heute 6:52 h» und der grosse Knopf «Punch in/out»">
+    </picture>
+  </div>
+</section>
+
+<section id="how" class="band">
+  <div class="wrap">
+    <h2>Ein Knopf. <em>Mehr nicht.</em></h2>
+    <p class="sub">Es gibt nur eine Art Stempel: einen Zeitpunkt. Was er bedeutet, ergibt sich aus der Reihenfolge.</p>
+    <div class="grid">
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7z"/><path d="M10.5 9.5a3.5 3.5 0 0 1 0 5M19.5 8a7 7 0 0 1 0 8"/></svg>
+        <h3>Punchen mit NFC-Kleber</h3>
+        <p>Kleb einen NFC-Kleber an deinen Spind, dein Pult, dein Notebook oder deine Tasche, halt das Handy daran, und der Punch ist gemacht. Auf dem iPhone geht oft sogar dein Firmenbadge, wenn er einen NFC-Chip hat: Badge ans Handy halten statt Handy an den Kleber. Am Badge wird dabei nichts verändert. Der Kleber öffnet nur einen Link, der für alle gleich ist und nichts über dich enthält; er wirkt nur auf einem Gerät, auf dem du angemeldet bist. Der Punch ist sofort gemacht; auf Wunsch fragt die App zuerst «Jetzt punchen?». Die Anleitung für iPhone und Android steht Schritt für Schritt in den Einstellungen.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M9.5 11.2a1.7 1.7 0 1 0-3.4 0 1.7 1.7 0 0 0 3.4 0zM5.5 15.5c.6-1.2 4-1.2 4.6 0M13 10h4.5M13 13.5l1.5 1.5 3-3"/></svg>
+        <h3>Badge-Erinnerung</h3>
+        <p>Muss dein Badge regelmässig beim Empfang validiert werden? Schalte die Erinnerung ein: frühestens alle 25 Kalendertage (oder so viele, wie du wählst) erscheint beim ersten Punch des Tages einmal ein Hinweis. Die Zählung beginnt mit dem Einschalten, der erste Hinweis kommt also nach 25 Tagen. Punchst du an dem Tag nicht, kommt er beim nächsten ersten Punch.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/></svg>
+        <h3>Ein Knopf: «Punch in/out»</h3>
+        <p>Antippen, wenn du anfängst, antippen, wenn du aufhörst. Der Start zeigt, wo du stehst: drin seit wann oder draussen, und die Summe von heute. Darüber stehen die Punches eines Tages mit seiner Summe — heute, oder zur Seite wischen für frühere Tage. Praktisch zum Abtippen in ein anderes System.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h12m0 0-3-3m3 3-3 3M20 16H8m0 0 3-3m-3 3 3 3"/></svg>
+        <h3>Paare nach Reihenfolge</h3>
+        <p>Innerhalb eines Tages ist der 1. Punch drin, der 2. draussen, der 3. wieder drin und so weiter: <span class="eg">08:02 – 12:01</span>, <span class="eg">12:48 – 17:10</span>. Fügst du einen hinzu, änderst oder löschst ihn, paart sich der Tag neu, sichtbar.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10M17 19.5h3"/></svg>
+        <h3>Tages- und Wochensummen</h3>
+        <p>Die Liste zeigt jeden Tag mit seinen Paaren und seiner Summe, jede Woche mit ihrer Summe gegen deine Sollzeit. Jeder Punch hat eine eigene Zeile, mit einem Stift zum Ändern und einem Eimer zum Löschen; der Eimer im Kopf eines Tages löscht den ganzen Tag, nach einer Rückfrage. Einen vergessen? Mit «+» nachtragen; die Zeit stellst du an einem Rad für Stunden und Minuten ein.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+        <h3>Nachtschichten, wenn nötig</h3>
+        <p>Eine Einstellung verschiebt den Tageswechsel auf eine Zeit deiner Wahl, z. B. 04:00. Eine Schicht über Mitternacht bleibt dann ein Tag.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h4"/><path d="M15.5 16.5l1.5 1.5 2.5-3"/></svg>
+        <h3>Abwesenheiten und ein Blatt zum Drucken</h3>
+        <p>Ferien, krank, ein Feiertag oder etwas anderes: in der Liste einen ganzen oder halben Tag erfassen, oder von–bis, ein Eintrag pro Werktag. Eine Abwesenheit zählt an deine Sollzeit (ein ganzer Tag ist ein Fünftel deiner Wochenstunden), so stimmen Wochensummen und Saldo; sie ist verschlüsselt und wird abgeglichen wie ein Punch. Für den Arbeitgeber oder die eigenen Akten gibt es ein Wochen- oder Monatsblatt: eine Zeile pro Tag mit den Zeiten drin–draussen, Abwesenheiten und Summen, dazu Gearbeitet, Gutschrift, Soll und Saldo. Drucken oder als PDF sichern, schwarz auf weiss, A4.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/></svg>
+        <h3>Nerd-Modus</h3>
+        <p>Saldo für Woche, Monat und die letzten 12 Monate, Stunden pro Woche (13 Wochen) und pro Monat (13 Monate), Ø erster und letzter Punch, Pausen und eine Heatmap deiner Punches nach Wochentag und Stunde, über 90 Tage oder alle 13 Monate.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>
+        <h3>Offline, und wie eine App</h3>
+        <p>Leg es auf den Home-Bildschirm; wie das auf iPhone, iPad und Android geht, steht in den Einstellungen. Ohne Netz stempelst du weiter; die Punches warten auf dem Handy und gehen raus, sobald du wieder online bist.</p>
+      </article>
+    </div>
+
+    <!-- Screenshots carry ?v=252 (the release they were taken for) on every URL: img src, srcset and the
+         JSON-LD list. They keep their names when re-shot, so bump the value in both pages with every new set. -->
+    <div class="shots">
+      <figure>
+        <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="../screenshots/start-de-dark.webp?v=252"><img src="../screenshots/start-de-light.webp?v=252" width="780" height="1688" loading="lazy" alt="Start: die Kopfzeile «‹ Heute · 6:52 h ›» über den Punches von heute (07:52 drin, 12:04 draussen, 12:41 drin), drin seit 12:41, die Uhrzeit, heute 6:52 h und der Knopf «Punch in/out»"></picture>
+        <figcaption>Start<small>Punches von heute und «Punch in/out»</small></figcaption>
+      </figure>
+      <figure>
+        <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="../screenshots/start-prev-de-dark.webp?v=252"><img src="../screenshots/start-prev-de-light.webp?v=252" width="780" height="1688" loading="lazy" alt="Start, einen Tag zurückgewischt: «‹ Gestern · 8:48 h ›» mit den vier Punches von gestern (07:47 drin, 12:06 draussen, 12:43 drin, 17:12 draussen) und dem Knopf «Heute» zum Zurückspringen; darunter weiterhin heute: drin seit 12:41, die Uhrzeit, heute 6:52 h und der Knopf «Punch in/out»"></picture>
+        <figcaption>Frühere Tage<small>Tag für Tag zurückwischen</small></figcaption>
+      </figure>
+      <figure>
+        <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="../screenshots/list-de-dark.webp?v=252"><img src="../screenshots/list-de-light.webp?v=252" width="780" height="1688" loading="lazy" alt="Liste: KW 48 mit 15:40 h von 42 h, heute und gestern mit einer Zeile pro Punch (drin 07:52, draussen 12:04, …), auf jeder Zeile ein Stift und ein Eimer, die Dauer jedes Paars und neben jeder Tagessumme ein Eimer, der den ganzen Tag löscht"></picture>
+        <figcaption>Liste<small>Summen; Punch ändern, Punch oder Tag löschen</small></figcaption>
+      </figure>
+      <figure>
+        <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="../screenshots/edit-de-dark.webp?v=252"><img src="../screenshots/edit-de-light.webp?v=252" width="780" height="1688" loading="lazy" alt="Punch bearbeiten: das Datum, je ein Rad für Stunden und Minuten auf 17:12, ein Feld für die Notiz, und Speichern, Löschen und Abbrechen"></picture>
+        <figcaption>Bearbeiten<small>Die Zeit am Rad</small></figcaption>
+      </figure>
+      <figure>
+        <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="../screenshots/nerd-de-dark.webp?v=252"><img src="../screenshots/nerd-de-light.webp?v=252" width="780" height="1688" loading="lazy" alt="Nerd-Modus: Saldo gegen die Sollzeit für Woche, Monat und 12 Monate, die Wochenstunden der letzten 13 Wochen und die Monatsstunden der letzten 13 Monate, je mit der Sollzeit als gestrichelter Linie"></picture>
+        <figcaption>Nerd-Modus<small>Saldo, Wochen und Monate</small></figcaption>
+      </figure>
+      <figure>
+        <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="../screenshots/settings-fx-de-dark.webp?v=260"><img src="../screenshots/settings-fx-de-light.webp?v=260" width="780" height="1688" loading="lazy" alt="Einstellungen, Animation: eine Vorschau mit der Stempeluhr nach ihrem Punch, 15:21 auf der Karte, darunter ein Raster von Kacheln mit je einem kleinen Bild: Zufällig, Aus und die sechzehn Animationen von der Sonnenuhr bis «Im Knopf», die Stempeluhr ausgewählt"></picture>
+        <figcaption>Animation<small>Fünfzehn zur Wahl</small></figcaption>
+      </figure>
+      <figure>
+        <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="../screenshots/register-de-dark.webp?v=252"><img src="../screenshots/register-de-light.webp?v=252" width="780" height="1688" loading="lazy" alt="Registrieren: ein Benutzername (kein echter Name nötig), zweimal die Passphrase mit mindestens 6 Zeichen, und der Hinweis, dass weniger als 10 Zeichen leicht zu erraten sind"></picture>
+        <figcaption>Registrieren<small>Benutzername und Passphrase</small></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap">
+    <h2>Was der Server <em>weiss</em></h2>
+    <p class="sub wide">Dein Browser leitet die Schlüssel aus deiner Passphrase ab und verschlüsselt jeden Punch (AES-256-GCM, auf feste Grösse aufgefüllt), bevor er ihn schickt. Der Server behält, was er fürs Anmelden und den Abgleich braucht — und nichts, was er lesen könnte.</p>
+    <div class="seen" role="table" aria-label="Was der Server sieht und was er nie sieht">
+      <div class="seen-head" role="row"><span role="columnheader">Der Server sieht</span><span role="columnheader">Der Server sieht nie</span></div>
+      <ul role="rowgroup">
+        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">Der Server sieht</span>einen HMAC deines Benutzernamens (den Namen selbst nur im Durchgang, beim Registrieren und Anmelden)</p><p class="never" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 4l16 16"/></svg></svg><span class="lab">Der Server sieht nie</span>deinen Benutzernamen gespeichert</p></li>
+        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">Der Server sieht</span>HMACs der Anmelde-Schlüssel und deinen Hauptschlüssel, verpackt</p><p class="never" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 4l16 16"/></svg></svg><span class="lab">Der Server sieht nie</span>deine Passphrase, den unverpackten Hauptschlüssel</p></li>
+        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">Der Server sieht</span>verschlüsselte Pakete fester Grösse, eines pro Punch</p><p class="never" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 4l16 16"/></svg></svg><span class="lab">Der Server sieht nie</span>Zeiten, Notizen, Einstellungen</p></li>
+        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">Der Server sieht</span>wann ein Paket ankommt; gespeichert werden nur Tage, nie eine Uhrzeit: der UTC-Tag des letzten Schreibens eines Pakets, deiner letzten Nutzung und der letzten Nutzung einer Sitzung</p><p class="never" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 4l16 16"/></svg></svg><span class="lab">Der Server sieht nie</span>den Inhalt des Pakets</p></li>
+        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">Der Server sieht</span>deine IP-Adresse, nur kurz: als HMAC in Limit-Zählern, die nach spätestens zwei Tagen weg sind</p><p class="never none" role="cell"></p></li>
+      </ul>
+    </div>
+
+    <h3 class="mid">Ehrliche Grenzen</h3>
+    <ul class="checks">
+      <li><b>Du musst dem JavaScript trauen, das der Server ausliefert.</b> Wie bei jeder Web-App, die im Browser verschlüsselt, könnte ein bösartiger oder gekaperter Server Code schicken, der deine Passphrase verrät. Was hilft: kein Fremdcode, eine strenge Content Security Policy, kein Build-Schritt (was im Repository steht, läuft), Quelltext öffentlich.</li>
+      <li><b>Die Ankunftszeit ist sichtbar.</b> Wer live stempelt, schickt in dem Moment ein Paket; der Betreiber könnte so deine Zeiten erraten. Wer ohne Netz puncht, verwischt das: das Paket geht dann erst, wenn du wieder online bist.</li>
+      <li><b>Eine verlorene Passphrase ist verloren.</b> Keine Hintertür, kein Zurücksetzen per Mail, kein Support, der deine Daten zurückholt. Die Punches bleiben unlesbar, und das Konto wird nach 61 Tagen ohne Nutzung gelöscht.</li>
+      <li><b>Benutzernamen sind nicht geheim.</b> Beim Registrieren erfährt man, ob ein Name vergeben ist. Wähle einen, der dich nicht verrät.</li>
+      <li><b>Eine lange Passphrase zählt.</b> Wer Datenbank und Server-Geheimnis hätte, könnte Passphrasen offline raten, mit 600 000 PBKDF2-Runden pro Versuch.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="account" class="band">
+  <div class="wrap">
+    <h2>Keine Mail, <em>kein echter Name</em></h2>
+    <p class="sub">Ein Konto besteht aus zwei Dingen — das zweite kennst nur du.</p>
+    <ol class="steps">
+      <li><h3>Ein Benutzername</h3><p>3–32 Zeichen, <code>a–z 0–9 . _ -</code>. Kein echter Name nötig — besser keiner. Auf einem neuen Gerät brauchst du ausser ihm nur die Passphrase.</p></li>
+      <li><h3>Eine Passphrase</h3><p>Mindestens 6 Zeichen, besser 10 oder mehr; mehrere Wörter sind gut. Sie verlässt dein Gerät nie: der Browser macht daraus einen Schlüssel zum Anmelden und einen, der deine Daten aufschliesst. Änderst du sie in den Einstellungen, werden deine anderen Geräte abgemeldet.</p></li>
+      <li class="warn"><h3>Kein Zurücksetzen</h3><p>Niemand kann deine Passphrase zurücksetzen — auch wir nicht. Geht sie verloren, sind die Punches nicht mehr lesbar, und das Konto wird nach 61 Tagen ohne Nutzung automatisch gelöscht; bis dahin bleibt der Benutzername vergeben. Wähle also eine, die du dir merkst.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <h2>Grenzen, <em>klar gesagt</em></h2>
+    <p class="sub">Zeropunch behält so wenig wie möglich, so kurz wie möglich.</p>
+    <div class="limits">
+      <div class="limit"><span class="num">13</span><span class="unit">Monate pro Punch</span><p>Ein Punch bleibt 13 Monate, dann ist er endgültig gelöscht — auf deinem Gerät und auf dem Server. Exportiere vorher, was du behalten willst: CSV oder JSON. Eine falsche Uhr auf dem Gerät löscht nichts.</p></div>
+      <div class="limit"><span class="num">12</span><span class="unit">Punches pro Tag</span><p>12 Punches pro Tag in der App; hat ein Tag 12, wartet der Knopf auf den nächsten Tag. Der Server nimmt höchstens 100 Schreibvorgänge pro Konto und Tag an – so lassen sich auch mehrere vergangene Tage in einem Zug nachtragen oder korrigieren.</p></div>
+      <div class="limit"><span class="num">61</span><span class="unit">Tage ohne Nutzung</span><p>Ein Konto, das 61 Tage nicht benutzt wird, wird gelöscht, samt allen Punches und Sitzungen. Die App sagt das, bevor es so weit ist, und meldet sich, wenn du nach langer Pause zurückkommst.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="self-hosting" class="band">
+  <div class="wrap">
+    <h2>Frei und <em>quelloffen</em></h2>
+    <p class="sub wide">Zeropunch ist freie Software unter der <span class="nw">AGPL-3.0</span>: keine Tracker, keine Cookies ausser der Anmelde-Sitzung. Jede Zeile steht auf GitHub. Du kannst auch eine eigene Kopie betreiben: ein kleines Serverless-Backend mit einer SQL-Datenbank, ohne Build-Schritt. Das README erklärt jeden Schritt.</p>
+    <p class="ctas center"><a class="btn" href="https://github.com/dropnook/zeropunch#self-hosting">Anleitung zum Selbst-Betreiben</a></p>
+    <p class="sub center">Die Anleitung im README ist auf Englisch.</p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap narrow">
+    <h2><em>Fragen</em></h2>
+    <details><summary>Kann jemand meine Arbeitszeiten sehen?</summary><p>Auf dem Server nicht. Jeder Punch wird in deinem Browser verschlüsselt, bevor er das Gerät verlässt; der Server lagert Pakete fester Grösse. Er sieht aber, wann ein verschlüsseltes Paket ankommt. Wer ohne Netz puncht, verwischt das: das Paket geht dann erst, wenn du wieder online bist.</p></details>
+    <details><summary>Was, wenn ich meine Passphrase vergesse?</summary><p>Dann kann niemand mehr deine Punches lesen. Eine Passphrase kann niemand zurücksetzen: keine Hintertür, kein Zurücksetzen per Mail, kein Wiederherstellungs-Code. Das Konto wird nach 61 Tagen ohne Nutzung automatisch gelöscht; bis dahin bleibt der Benutzername vergeben. Solange du angemeldet bist, kannst du die Passphrase in den Einstellungen ändern (dafür braucht es die aktuelle).</p></details>
+    <details><summary>Ich habe falsch gestempelt. Kann ich das korrigieren?</summary><p>Ja, direkt in der Liste: jeder Punch hat einen Stift zum Ändern und einen Eimer zum Löschen, nach einer Rückfrage. Ein ganzer Tag falsch? Der Eimer im Kopf des Tages fragt einmal nach und löscht alle seine Punches. Die Zeit stellst du an einem Rad für Stunden und Minuten ein. Einen Punch vergessen? Mit «+» nachtragen, bis 13 Monate zurück. Der Tag paart sich dann neu.</p></details>
+    <details><summary>Muss ich eine App installieren?</summary><p>Nein. Zeropunch läuft im Browser. Du kannst es auf den Home-Bildschirm legen (wie das auf iPhone, iPad und Android geht, steht in den Einstellungen), und es stempelt auch ohne Netz weiter; die Punches gehen raus, sobald du wieder online bist.</p></details>
+    <details><summary>Wie lange bleiben meine Punches?</summary><p>13 Monate, dann sind sie endgültig gelöscht. Exportiere vorher, was du behalten willst: als CSV oder JSON. Ein Konto, das 61 Tage nicht benutzt wird, wird samt Inhalt gelöscht.</p></details>
+    <details><summary>Kann ich mit einem NFC-Kleber punchen?</summary><p>Ja. Kleb einen NFC-Kleber an deinen Spind, dein Pult, dein Notebook oder deine Tasche und halt das Handy daran. Der Punch ist sofort gemacht; auf Wunsch fragt die App zuerst «Jetzt punchen?». Der Kleber öffnet nur einen Link, der für alle gleich ist und nichts über dich enthält. Auf dem iPhone geht oft sogar dein Firmenbadge, wenn er einen NFC-Chip hat: Badge ans Handy halten statt Handy an den Kleber. Am Badge wird dabei nichts verändert. Die Anleitung für iPhone und Android steht in den Einstellungen.</p></details>
+    <details><summary>Kann ich Ferien und Krankheit erfassen und meine Zeiten ausdrucken?</summary><p>Ja. Ferien, Krankheit, Feiertage und andere Abwesenheiten erfasst du als ganzen oder halben Tag, höchstens 31 Tage im Voraus; sie zählen wie Arbeitszeit an deine Sollzeit. Für jede Woche und jeden Monat gibt es ein Blatt zum Drucken oder als PDF.</p></details>
+    <details><summary>Ich arbeite Nachtschicht. Geht das?</summary><p>Ja. Schalte in den Einstellungen die Nachtschichten ein und wähle, wann dein Tag wechselt, zum Beispiel um 04:00. Punches vor dieser Zeit zählen zum Vortag; eine Schicht über Mitternacht bleibt ein Tag.</p></details>
+    <details><summary>Ist es gratis? Kann ich es selbst betreiben?</summary><p>Ja. Zeropunch ist freie, quelloffene Software unter der AGPL-3.0. Für eine eigene Kopie brauchst du ein kleines Serverless-Backend mit einer SQL-Datenbank. Wie es geht, steht im <a href="https://github.com/dropnook/zeropunch#self-hosting">README auf GitHub</a>.</p></details>
+    <p class="ctas center"><a class="btn" href="https://zeropunch.app/">Zeropunch öffnen</a></p>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p><b><span class="zp">Zero<span>punch</span></span>™</b> von <a href="https://dropnook.app/"><span class="dn">Drop<span>nook</span></span>™</a> · freie Software unter der <a href="https://github.com/dropnook/zeropunch/blob/main/LICENSE">AGPL-3.0</a>
+      · <a href="https://github.com/dropnook/zeropunch/blob/main/TRADEMARKS.md">zu den Namen</a>
+      · <a href="https://github.com/dropnook/zeropunch">GitHub</a></p>
+    <p class="fine">Diese Seite setzt keine Cookies und lädt nichts von Dritten.</p>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,26 @@
+/* Fingerprint: press, lift, ridges drawn, scan sweep, accept at 58 % (pulse, ripple, check). */
+.pfx-finger { --pfx-at: 0.85; }
+.pfx-finger .pfx-pad { animation-name: pfx-finger-pad; }
+.pfx-finger .pfx-ridge { stroke-dasharray: 1; animation-name: pfx-finger-ridge; }
+.pfx-finger .pfx-print { animation-name: pfx-finger-dim; }
+.pfx-finger .pfx-scan { animation-name: pfx-finger-scan; }
+.pfx-finger .pfx-frame { --lag: var(--pfx-hit); animation-name: pfx-finger-pulse; animation-duration: 260ms; }
+.pfx-finger .pfx-ring1 { --lag: var(--pfx-hit); animation-name: pfx-ring; animation-duration: 460ms; }
+.pfx-finger .pfx-check { --lag: calc(var(--pfx-hit) + 80ms); animation-duration: 240ms; }
+@keyframes pfx-finger-pad {
+  0% { opacity: 0; transform: translateY(-46px); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+  8% { opacity: 1; }
+  20% { transform: none; animation-timing-function: ease-out; }
+  24% { transform: scale(1.06, 0.95); }
+  30% { opacity: 1; transform: none; animation-timing-function: cubic-bezier(0.4, 0, 0.8, 0.6); }
+  40%, 100% { opacity: 0; transform: translateY(-40px); }
+}
+@keyframes pfx-finger-ridge { 0%, 26% { stroke-dashoffset: 1; } 40%, 100% { stroke-dashoffset: 0; } }
+@keyframes pfx-finger-dim { 0%, 58% { opacity: 1; } 70%, 100% { opacity: 0.3; } }
+@keyframes pfx-finger-scan {
+  0%, 32% { opacity: 0; transform: none; }
+  35% { opacity: 1; transform: none; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  56% { opacity: 1; transform: translateY(62px); }
+  62%, 100% { opacity: 0; transform: translateY(62px); }
+}
+@keyframes pfx-finger-pulse { 0%, 100% { transform: none; } 35% { transform: scale(1.05); } }

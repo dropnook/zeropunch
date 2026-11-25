@@ -1,0 +1,3 @@
+# Everyone is welcome to read this site — search engines and AI assistants alike.
+User-agent: *
+Allow: /

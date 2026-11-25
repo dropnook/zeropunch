@@ -1,0 +1,28 @@
+/* Wax seal: the wax bulges, the seal comes down (impact 40 %), squashes the wax, lifts with a tilt,
+   a sheen runs over the imprint. */
+.pfx-seal { --pfx-at: 0.66; }
+.pfx-seal .pfx-sealer { animation-name: pfx-seal-down; transform-origin: 50% 100%; }
+.pfx-seal .pfx-wax { animation-name: pfx-seal-wax; transform-origin: 50% 100%; }
+.pfx-seal .pfx-imprint { --lag: calc(var(--pfx-hit) + 120ms); animation-name: pfx-show; animation-duration: 90ms; }
+.pfx-seal .pfx-sheen { --lag: calc(var(--pfx-hit) + 260ms); animation-name: pfx-seal-sheen; animation-duration: 300ms; animation-timing-function: ease-in-out; }
+.pfx-seal .pfx-bx, .pfx-seal .pfx-by, .pfx-seal .pfx-br { animation-duration: 260ms; }
+@keyframes pfx-seal-down {
+  0% { opacity: 0; transform: translateY(-30px); animation-timing-function: cubic-bezier(0.2, 0.8, 0.4, 1); }
+  14% { opacity: 1; transform: translateY(-12px); }
+  30% { transform: translateY(-19px) scaleY(1.04); animation-timing-function: cubic-bezier(0.7, 0, 1, 0.5); }
+  40% { transform: translateY(5px); animation-timing-function: ease-out; }
+  44% { transform: translateY(6px) scale(1.04, 0.9); }
+  52%, 56% { opacity: 1; transform: translateY(5px); animation-timing-function: cubic-bezier(0.3, 0, 0.3, 1); }
+  74% { opacity: 1; transform: translate(4px, -30px) rotate(-8deg); }
+  90%, 100% { opacity: 0; transform: translate(8px, -46px) rotate(-12deg); }
+}
+@keyframes pfx-seal-wax {
+  0% { transform: scale(0.9, 0.86); animation-timing-function: cubic-bezier(0.3, 0.6, 0.4, 1.4); }
+  16% { transform: none; }
+  26% { transform: scale(1.05, 1.07); }
+  38% { transform: scale(1.02, 1.03); animation-timing-function: ease-out; }
+  42% { transform: scale(1.26, 0.76); animation-timing-function: cubic-bezier(0.3, 0.7, 0.4, 1.5); }
+  54% { transform: scale(1.1, 0.95); }
+  64%, 100% { transform: scale(1.15, 0.9); }
+}
+@keyframes pfx-seal-sheen { 0% { opacity: 0; transform: translateX(-26px); } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(48px); } }

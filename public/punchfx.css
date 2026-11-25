@@ -1,0 +1,83 @@
+/* Punch animations (js/punchfx.js): the layer, the stage, the preview, the still and what all scenes
+   share. Each scene's keyframes are in /fx/<name>.css, loaded with its module. Decoration only.
+   Timing: --pfx-d is the scene's duration, --pfx-hit the moment of the impact. A part that runs the
+   whole scene uses keyframe percentages; a part that starts at or after the impact sets
+   --lag: var(--pfx-hit) (or calc(var(--pfx-hit) + …)) and its own short duration. Scene rules use
+   animation-name / -duration / -timing-function only, never the shorthand (it would undo --lag and
+   the paused stills). Only transform, opacity and stroke-dashoffset are animated. */
+
+.pfx-layer { position: absolute; z-index: 2; pointer-events: none; overflow: hidden; border-radius: 28px;
+  display: flex; align-items: center; justify-content: center; contain: layout paint; }
+.pfx-on-button { justify-content: flex-end; }
+.pfx-stage { width: min(260px, 88%); height: calc(100% - 12px); max-height: 132px; border-radius: 18px;
+  background: #fbf8f1; border: 2px solid #2b3238; box-shadow: 0 6px 18px rgb(0 0 0 / 0.2); overflow: hidden;
+  animation: pfx-pop var(--pfx-d) linear both; }
+.pfx-shake { width: 100%; height: 100%; animation: pfx-shake 280ms linear var(--pfx-hit) both; }
+.pfx-calm { animation: none; }
+.pfx-run .pfx-shake, .pfx-run.pfx-layer .pfx-stage { will-change: transform; }
+.pfx-svg { display: block; width: 100%; height: 100%; overflow: hidden; }
+.pfx-on-button .pfx-svg { width: auto; aspect-ratio: 2 / 1; }
+/* the larger preview in the settings: same panel, no fade at the end (its last frame stays) */
+.pfx-preview { width: 100%; height: 100%; border-radius: 14px; background: #fbf8f1; border: 2px solid #2b3238;
+  overflow: hidden; pointer-events: none; }
+
+.pfx-svg g, .pfx-svg .pfx-a { transform-box: fill-box; transform-origin: center; animation-duration: var(--pfx-d);
+  animation-fill-mode: both; animation-timing-function: ease-in-out; animation-delay: var(--lag, 0ms); }
+/* a still: every part frozen at --pfx-at of the scene (each scene sets its best frame) */
+.pfx-still g, .pfx-still .pfx-a { animation-play-state: paused; animation-delay: calc(var(--lag, 0ms) - var(--pfx-d) * var(--pfx-at, 0.7)); }
+
+/* the stage: springs in (anticipation), holds, lifts off (settle) */
+@keyframes pfx-pop {
+  0% { opacity: 0; transform: translateY(10px) scale(0.84); animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.35); }
+  13% { opacity: 1; transform: none; }
+  86% { opacity: 1; transform: none; animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5); }
+  100% { opacity: 0; transform: translateY(-6px) scale(0.95); }
+}
+/* the impact: a tiny screen-space shake of the stage only */
+@keyframes pfx-shake {
+  0%, 100% { transform: none; }
+  12% { transform: translate(-3px, 2px) rotate(-0.7deg); }
+  28% { transform: translate(3px, -2px) rotate(0.5deg); }
+  46% { transform: translate(-2px, 1px) rotate(-0.2deg); }
+  66% { transform: translate(1.5px, -0.5px); }
+  84% { transform: translate(-0.5px, 0); }
+}
+
+/* shared parts */
+/* a check mark drawn after the impact */
+.pfx-svg .pfx-check { stroke-dasharray: 1; animation-name: pfx-draw; }
+@keyframes pfx-draw { 0% { stroke-dashoffset: 1; } 100% { stroke-dashoffset: 0; } }
+/* something that pops in with an overshoot */
+@keyframes pfx-pop-in {
+  0% { opacity: 0; transform: scale(0.2); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); }
+  55% { opacity: 1; transform: scale(1.22); animation-timing-function: ease-in-out; }
+  80% { transform: scale(0.94); }
+  100% { opacity: 1; transform: none; }
+}
+/* a ring that ripples out and fades */
+@keyframes pfx-ring {
+  0% { opacity: 0; transform: scale(0.3); animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+/* fade in from nothing, stay */
+@keyframes pfx-show { 0% { opacity: 0; } 100% { opacity: 1; } }
+/* flying bits (kit.bits): x decelerates, y rises then falls (a little parabola), the bit spins and fades */
+.pfx-svg .pfx-bx { --lag: var(--pfx-hit); animation-name: pfx-bx; animation-duration: 520ms; animation-timing-function: cubic-bezier(0.15, 0.7, 0.4, 1); }
+.pfx-svg .pfx-by { --lag: var(--pfx-hit); animation-name: pfx-by; animation-duration: 520ms; animation-timing-function: linear; }
+.pfx-svg .pfx-br { --lag: var(--pfx-hit); animation-name: pfx-br; animation-duration: 520ms; animation-timing-function: ease-out; }
+@keyframes pfx-bx { 0% { transform: none; } 100% { transform: translateX(var(--dx)); } }
+@keyframes pfx-by {
+  0% { transform: none; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+  38% { transform: translateY(var(--rise)); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+  100% { transform: translateY(var(--fall)); }
+}
+@keyframes pfx-br { 0% { opacity: 0; transform: none; } 6% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--turn)); } }
+/* bits that land and stay (ink, wax): no fade */
+.pfx-svg .pfx-stay .pfx-br { animation-name: pfx-br-stay; }
+@keyframes pfx-br-stay { 0% { opacity: 0; transform: none; } 6%, 100% { opacity: 1; transform: rotate(var(--turn)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pfx-layer, .pfx-preview { display: none; }
+  .punch.pfx-recoil { animation: none; }
+}

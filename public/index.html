@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#2B3238" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Zeropunch is a punch clock for your phone: one button, «Punch in/out», and a list of your times. Every punch is encrypted in the browser; the server never sees a working time. No e-mail, no real name. Free and open source.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Zeropunch">
+  <meta property="og:title" content="Zeropunch — a punch clock that knows nothing about you">
+  <meta property="og:description" content="One button, «Punch in/out», and a list of your times. Encrypted in the browser; the server never sees a working time. No e-mail, no real name.">
+  <meta property="og:image" content="/social-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Zeropunch — a punch clock that knows nothing about you">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="referrer" content="no-referrer">
+  <title>Zeropunch — a punch clock that knows nothing about you</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/icon-180.png">
+  <link rel="stylesheet" href="/app.css">
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <div id="app" class="app" data-view="boot">
+
+    <!-- Loading (before JavaScript runs, so no language yet) -->
+    <section id="v-boot" class="view center" aria-busy="true">
+      <p class="muted">Zeropunch …</p>
+      <noscript>
+        <p>Zeropunch is a punch clock for your phone: one button, «Punch in/out», and a list of your times. Every punch is encrypted in the browser before it leaves the device. The app needs JavaScript. <a href="/about">About Zeropunch</a></p>
+        <p>Zeropunch ist eine Stempeluhr fürs Handy: ein Knopf, «Punch in/out», und eine Liste deiner Zeiten. Jeder Punch wird im Browser verschlüsselt, bevor er das Gerät verlässt. Die App braucht JavaScript. <a href="/about">Über Zeropunch</a></p>
+      </noscript>
+    </section>
+
+    <!-- Start screen: log in / register -->
+    <section id="v-login" class="view narrow" hidden>
+      <div class="brand-block">
+        <img class="mark" src="/icons/icon.svg" alt="" width="72" height="72">
+        <h1 class="brand wordmark" data-wordmark></h1>
+      </div>
+      <p class="lead" data-i18n="lead"></p>
+
+      <div id="login-intro" class="stack">
+        <p class="error" id="e-intro" role="alert" hidden></p>
+        <p class="warn-line" id="o-gone" role="status" hidden></p>
+        <button class="btn primary big" type="button" id="b-show-login" data-i18n="login"></button>
+        <p class="hint center" data-i18n="login_sub"></p>
+        <button class="btn big" type="button" id="b-show-register" data-i18n="register"></button>
+        <p class="hint center" data-i18n="register_sub"></p>
+        <p class="hint" data-i18n="intro_hint"></p>
+        <p class="hint" data-i18n="idle_note"></p>
+        <p class="hint center"><a href="/about" data-i18n="about_site"></a></p>
+      </div>
+
+      <form id="f-login" class="stack" novalidate hidden>
+        <h2 data-i18n="login"></h2>
+        <p class="hint" id="o-reauth" hidden></p>
+        <div class="stack" id="login-user-box">
+          <label for="i-login-user" data-i18n="username"></label>
+          <input id="i-login-user" type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="32">
+        </div>
+        <label for="i-login-pass" data-i18n="passphrase"></label>
+        <input id="i-login-pass" type="password" autocomplete="current-password">
+        <p class="error" id="e-login" role="alert" hidden></p>
+        <button class="btn primary" type="submit" data-i18n="login"></button>
+        <button class="btn ghost" type="button" id="b-login-back" data-i18n="back"></button>
+        <p class="hint" data-i18n="pass_lost_note"></p>
+      </form>
+
+      <form id="f-register" class="stack" novalidate hidden>
+        <h2 data-i18n="register"></h2>
+        <label for="i-reg-user" data-i18n="username"></label>
+        <input id="i-reg-user" type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="32">
+        <p class="hint" data-i18n="username_hint"></p>
+        <p class="hint" data-i18n="passphrase_why"></p>
+        <label for="i-reg-pass1" data-i18n="passphrase_min"></label>
+        <input id="i-reg-pass1" type="password" autocomplete="new-password">
+        <p class="warn-line" id="w-reg-pass" role="status" hidden data-i18n="pass_weak"></p>
+        <label for="i-reg-pass2" data-i18n="passphrase_repeat"></label>
+        <input id="i-reg-pass2" type="password" autocomplete="new-password">
+        <p class="hint" data-i18n="passphrase_tip"></p>
+        <p class="error" id="e-register" role="alert" hidden></p>
+        <button class="btn primary" type="submit" data-i18n="create_account"></button>
+        <button class="btn ghost" type="button" id="b-register-back" data-i18n="back"></button>
+        <p class="hint" data-i18n="pass_lost_note"></p>
+      </form>
+
+      <div id="login-working" class="stack center" hidden aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="o-working"></p>
+      </div>
+    </section>
+
+    <!-- Main part -->
+    <header class="topbar" id="topbar" hidden>
+      <span class="title wordmark" data-wordmark></span>
+      <button class="sync" type="button" id="b-sync" data-i18n-aria="sync_aria"><span class="dot" id="o-syncdot"></span><span id="o-sync">…</span></button>
+    </header>
+
+    <div class="banner" id="banner-auth" hidden>
+      <span data-i18n="banner_auth"></span>
+      <button class="btn small" type="button" id="b-reauth" data-i18n="login"></button>
+    </div>
+    <div class="banner" id="banner-clock" role="alert" hidden>
+      <span data-i18n="clock_wrong"></span>
+    </div>
+    <!-- Writes the server refused for good (js/store.js «rejected»): plain message, try again or discard -->
+    <div class="banner" id="banner-rejected" role="status" hidden>
+      <span id="o-rejected"></span>
+      <span class="banner-buttons">
+        <button class="btn small" type="button" id="b-rej-retry" data-i18n="rejected_retry"></button>
+        <button class="btn small" type="button" id="b-rej-discard" data-i18n="rejected_discard"></button>
+      </span>
+    </div>
+
+    <section id="v-start" class="view main start" hidden>
+      <!-- One day at a time: swipe, arrows or arrow keys for other days (js/app.js, dayView in js/time.js) -->
+      <div class="dayview" id="dayview" role="region" tabindex="0" data-i18n-aria="dayview_aria">
+        <div class="dv-head">
+          <button class="dv-nav" type="button" id="b-dv-prev" data-i18n-aria="day_prev"><span aria-hidden="true">‹</span></button>
+          <p class="dv-title"><span class="dv-title-in"><span id="o-dv-day" aria-live="polite"></span> <span class="dv-sep" aria-hidden="true">·</span> <span id="o-dv-sum" class="dv-sum"></span> <span id="o-dv-abs" class="dv-abs" hidden></span></span></p>
+          <button class="dv-nav" type="button" id="b-dv-next" data-i18n-aria="day_next"><span aria-hidden="true">›</span></button>
+          <button class="btn small dv-today" type="button" id="b-dv-today" data-i18n="today" data-i18n-aria="back_today" hidden></button>
+        </div>
+        <div class="dv-chips" id="o-dayview"></div>
+      </div>
+      <div class="status">
+        <p class="state"><span class="state-dot" aria-hidden="true"></span><span id="o-state">–</span></p>
+        <p class="clock" id="o-clock" aria-live="off">--:--</p>
+        <p class="today"><span data-i18n="today"></span> <strong id="o-today">0:00</strong> h</p>
+        <p class="warn" id="o-openday" hidden></p>
+      </div>
+      <div class="punch-area">
+        <button class="punch" type="button" id="b-punch" data-i18n="punch"></button>
+        <div class="punch-hints">
+          <p class="hint center" id="o-dayfull" hidden></p>
+          <p class="hint center" id="o-outbox" hidden></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="v-list" class="view main" hidden>
+      <div class="list-tools">
+        <button class="btn small" type="button" id="b-absence" data-i18n="absence_add"></button>
+        <button class="btn small" type="button" id="b-sheet" data-i18n="sheet_button"></button>
+      </div>
+      <div id="o-list" class="list"></div>
+      <p class="hint center list-rule" data-i18n="pair_rule"></p>
+      <p class="hint center list-foot" data-i18n="retention_note"></p>
+      <button class="fab" type="button" id="b-add" data-i18n-aria="add_aria">+</button>
+    </section>
+
+    <!-- Week or month sheet for printing (js/sheet.js; print layout: @media print in app.css) -->
+    <section id="v-print" class="view print-view" hidden>
+      <div class="print-bar">
+        <button class="btn ghost" type="button" id="b-print-back" data-i18n="back"></button>
+        <button class="btn primary" type="button" id="b-print" data-i18n="sheet_print"></button>
+      </div>
+      <p class="hint print-hint" data-i18n="sheet_hint"></p>
+      <div class="paper-scroll" id="o-print"></div>
+    </section>
+
+    <section id="v-nerd" class="view main" hidden>
+      <div id="o-nerd" class="stack"></div>
+    </section>
+
+    <section id="v-settings" class="view main" hidden>
+      <div class="stack">
+        <p class="whoami" id="o-whoami"></p>
+        <h2 data-i18n="h_punchlink"></h2>
+        <p class="hint" data-i18n="punchlink_intro"></p>
+        <p class="mono small break" id="o-punch-link"></p>
+        <button class="btn" type="button" id="b-copy-punch-link" data-i18n="copy_link"></button>
+        <label class="check"><input type="checkbox" id="c-linkpunch"> <span data-i18n="linkpunch_check"></span></label>
+        <p class="hint" data-i18n="linkpunch_hint"></p>
+        <details class="howto" id="d-nfc-ios27">
+          <summary data-i18n="nfc_ios27_title"></summary>
+          <ol>
+            <li data-i18n="nfc_ios_1"></li>
+            <li data-i18n="nfc_ios_2"></li>
+            <li data-i18n="nfc_ios_3"></li>
+            <li data-i18n="nfc_ios27_4"></li>
+            <li data-i18n="nfc_ios27_5"></li>
+            <li data-i18n="nfc_ios27_6"></li>
+            <li data-i18n="nfc_ios27_7"></li>
+            <li data-i18n="nfc_ios27_8"></li>
+            <li data-i18n="nfc_ios27_9"></li>
+            <li data-i18n="nfc_ios27_10"></li>
+          </ol>
+          <p class="hint" data-i18n="nfc_ios_note"></p>
+        </details>
+        <details class="howto" id="d-nfc-android">
+          <summary data-i18n="nfc_android_title"></summary>
+          <ol>
+            <li data-i18n="nfc_android_1"></li>
+            <li data-i18n="nfc_android_2"></li>
+            <li data-i18n="nfc_android_3"></li>
+            <li data-i18n="nfc_android_4"></li>
+            <li data-i18n="nfc_android_5"></li>
+            <li data-i18n="nfc_android_6"></li>
+          </ol>
+          <p class="hint" data-i18n="nfc_android_note"></p>
+        </details>
+
+        <h2 data-i18n="h_worktime"></h2>
+        <form id="f-target" class="row" novalidate>
+          <label for="i-target" data-i18n="target_label"></label>
+          <input id="i-target" type="number" inputmode="decimal" min="0" max="80" step="0.25">
+        </form>
+        <label class="check"><input type="checkbox" id="c-night"> <span data-i18n="night_shifts"></span></label>
+        <div id="night-box" class="row" hidden>
+          <label for="i-daystart" data-i18n="day_changes_at"></label>
+          <input id="i-daystart" type="time">
+          <p class="hint" data-i18n="night_hint"></p>
+        </div>
+        <label class="check"><input type="checkbox" id="c-badge"> <span data-i18n="badge_check"></span></label>
+        <div id="badge-box" class="row" hidden>
+          <label for="i-badge-days" data-i18n="badge_days_label"></label>
+          <input id="i-badge-days" type="number" inputmode="numeric" min="1" max="365" step="1">
+          <p class="hint" data-i18n="badge_hint"></p>
+          <p class="hint" id="o-badge-next"></p>
+        </div>
+
+        <h2 id="h-button" data-i18n="h_button"></h2>
+        <div class="choice" role="radiogroup" aria-labelledby="h-button">
+          <label class="check"><input type="radio" name="button-label" value="inout"> <span class="choice-sample" data-i18n="punch_inout"></span></label>
+          <label class="check"><input type="radio" name="button-label" value="punch"> <span class="choice-sample" data-i18n="punch"></span></label>
+          <label class="check"><input type="radio" name="button-label" value="now"> <span class="choice-sample" data-i18n="punch_now"></span></label>
+        </div>
+
+        <h2 id="h-fx" data-i18n="h_fx"></h2>
+        <p class="hint" data-i18n="fx_hint"></p>
+        <!-- The chosen animation plays here once; then its still stays (js/app.js showFx) -->
+        <div class="fx-show" id="fx-show" aria-hidden="true"></div>
+        <!-- Filled by js/app.js (bindFxChoice): tiles for Random, Off and every animation, as one radio group -->
+        <div class="fx-grid" id="fx-choices" role="radiogroup" aria-labelledby="h-fx"></div>
+        <p class="hint" id="o-fx-reduced" data-i18n="fx_reduced" hidden></p>
+
+        <h2 id="h-lang" data-i18n="h_language"></h2>
+        <select id="s-lang" aria-labelledby="h-lang">
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+        </select>
+
+        <h2 data-i18n="h_install"></h2>
+        <p class="hint" id="o-installed" data-i18n="install_done" hidden></p>
+        <div id="install-box" class="stack">
+          <p class="hint" data-i18n="install_intro"></p>
+          <details class="howto" id="d-install-ios">
+            <summary data-i18n="install_ios_title"></summary>
+            <ol>
+              <li data-i18n="install_ios_1"></li>
+              <li data-i18n="install_ios_2"></li>
+              <li data-i18n="install_ios_3"></li>
+              <li data-i18n="install_ios_4"></li>
+            </ol>
+            <p class="hint" data-i18n="install_ios_note"></p>
+          </details>
+          <details class="howto" id="d-install-android">
+            <summary data-i18n="install_android_title"></summary>
+            <ol>
+              <li data-i18n="install_android_1"></li>
+              <li data-i18n="install_android_2"></li>
+              <li data-i18n="install_android_3"></li>
+              <li data-i18n="install_android_4"></li>
+            </ol>
+          </details>
+        </div>
+
+        <h2 data-i18n="h_nerd"></h2>
+        <label class="check"><input type="checkbox" id="c-nerd"> <span data-i18n="nerd_check"></span></label>
+
+        <h2 data-i18n="h_retention"></h2>
+        <p class="hint" data-i18n="retention_note"></p>
+        <p class="hint" data-i18n="idle_note"></p>
+
+        <h2 data-i18n="h_export"></h2>
+        <p class="hint" data-i18n="export_hint"></p>
+        <div class="row-buttons">
+          <button class="btn" type="button" id="b-csv">CSV</button>
+          <button class="btn" type="button" id="b-json">JSON</button>
+        </div>
+
+        <h2 data-i18n="h_account"></h2>
+        <p id="o-username" class="mono"></p>
+        <p class="hint" data-i18n="other_device_hint"></p>
+        <div class="qr-box small" id="qr-login"></div>
+        <p class="mono small break" id="o-login-link"></p>
+        <button class="btn" type="button" id="b-copy-link" data-i18n="copy_link"></button>
+
+        <h2 data-i18n="h_pass"></h2>
+        <form id="f-pass" class="stack" novalidate>
+          <input type="text" name="username" autocomplete="username" id="i-pass-user" hidden>
+          <label for="i-pold" data-i18n="current_pass"></label>
+          <input id="i-pold" type="password" autocomplete="current-password">
+          <label for="i-pnew1" data-i18n="new_pass_min"></label>
+          <input id="i-pnew1" type="password" autocomplete="new-password">
+          <p class="warn-line" id="w-pnew" role="status" hidden data-i18n="pass_weak"></p>
+          <label for="i-pnew2" data-i18n="new_pass_repeat"></label>
+          <input id="i-pnew2" type="password" autocomplete="new-password">
+          <p class="error" id="e-pass" role="alert" hidden></p>
+          <button class="btn" type="submit" data-i18n="h_pass"></button>
+        </form>
+
+        <h2 data-i18n="h_devices"></h2>
+        <button class="btn" type="button" id="b-logout" data-i18n="logout"></button>
+        <button class="btn" type="button" id="b-logout-all" data-i18n="logout_all"></button>
+        <p class="hint" data-i18n="logout_hint"></p>
+
+        <h2 data-i18n="delete_account"></h2>
+        <button class="btn danger" type="button" id="b-delete" data-i18n="delete_account"></button>
+
+        <h2 data-i18n="h_privacy"></h2>
+        <p class="hint" data-i18n="privacy_text"></p>
+        <p class="hint"><span data-i18n="about_license"></span> · <a href="/about" rel="noopener" data-i18n="about_site"></a> · <a id="a-source" rel="noopener" data-i18n="source_link"></a></p>
+        <p class="hint small" id="o-about"></p>
+      </div>
+    </section>
+
+    <nav class="tabs" id="tabs" hidden data-i18n-aria="nav">
+      <button type="button" data-tab="start" aria-current="page"><span class="ico" aria-hidden="true">◷</span><span data-i18n="tab_start"></span></button>
+      <button type="button" data-tab="list"><span class="ico" aria-hidden="true">☰</span><span data-i18n="tab_list"></span></button>
+      <button type="button" data-tab="nerd" hidden><span class="ico" aria-hidden="true">∑</span><span data-i18n="tab_nerd"></span></button>
+      <button type="button" data-tab="settings"><span class="ico" aria-hidden="true">⚙</span><span data-i18n="tab_settings"></span></button>
+    </nav>
+
+    <!-- Edit one punch / add one -->
+    <dialog id="dlg-edit" class="sheet" aria-labelledby="dlg-edit-title">
+      <form id="f-edit" class="stack" method="dialog" novalidate>
+        <h2 id="dlg-edit-title"></h2>
+        <label for="i-edate" data-i18n="date"></label>
+        <input id="i-edate" type="date" required>
+        <div class="time-field" role="group" aria-labelledby="l-etime">
+          <span class="field-label" id="l-etime" data-i18n="time"></span>
+          <!-- Wheel picker (js/wheel.js); the value lives in the hidden input as "HH:MM". -->
+          <div class="wheels" id="wheel-time"></div>
+          <input id="i-etime" type="hidden">
+        </div>
+        <p class="hint" id="o-erealdate" hidden></p>
+        <label for="i-enote" data-i18n="note"></label>
+        <input id="i-enote" type="text" maxlength="120" autocomplete="off">
+        <p class="hint" data-i18n="pair_rule"></p>
+        <p class="error" id="e-edit" role="alert" hidden></p>
+        <button class="btn primary" type="submit" value="save" data-i18n="save"></button>
+        <button class="btn danger" type="button" id="b-edel"></button>
+        <button class="btn ghost" type="button" id="b-ecancel" data-i18n="cancel"></button>
+      </form>
+    </dialog>
+
+    <!-- Add an absence: one day, or one per weekday of a from–until range (js/app.js onAbsenceSubmit) -->
+    <dialog id="dlg-absence" class="sheet" aria-labelledby="dlg-absence-title">
+      <form id="f-absence" class="stack" method="dialog" novalidate>
+        <h2 id="dlg-absence-title" data-i18n="absence_title"></h2>
+        <label for="s-abs-type" data-i18n="absence_type"></label>
+        <select id="s-abs-type">
+          <option value="vacation" data-i18n="abs_vacation"></option>
+          <option value="sick" data-i18n="abs_sick"></option>
+          <option value="holiday" data-i18n="abs_holiday"></option>
+          <option value="other" data-i18n="abs_other"></option>
+        </select>
+        <label for="i-abs-from" data-i18n="absence_from"></label>
+        <input id="i-abs-from" type="date" required>
+        <label for="i-abs-to" data-i18n="absence_to"></label>
+        <input id="i-abs-to" type="date">
+        <p class="hint" id="o-abs-range"></p>
+        <label class="check"><input type="checkbox" id="c-abs-half"> <span data-i18n="absence_half"></span></label>
+        <label for="i-abs-note" data-i18n="note"></label>
+        <input id="i-abs-note" type="text" maxlength="60" autocomplete="off">
+        <p class="hint" id="o-abs-credit"></p>
+        <p class="error" id="e-absence" role="alert" hidden></p>
+        <button class="btn primary" type="submit" data-i18n="save"></button>
+        <button class="btn ghost" type="button" id="b-abs-cancel" data-i18n="cancel"></button>
+      </form>
+    </dialog>
+
+    <!-- Choose the period of a week or month sheet -->
+    <dialog id="dlg-sheet" class="sheet" aria-labelledby="dlg-sheet-title">
+      <form id="f-sheet" class="stack" method="dialog" novalidate>
+        <h2 id="dlg-sheet-title" data-i18n="sheet_title"></h2>
+        <div class="seg" role="radiogroup" aria-labelledby="dlg-sheet-title">
+          <label><input type="radio" name="sheet-kind" value="week" checked> <span data-i18n="sheet_week"></span></label>
+          <label><input type="radio" name="sheet-kind" value="month"> <span data-i18n="sheet_month"></span></label>
+        </div>
+        <label for="s-sheet-period" data-i18n="sheet_period"></label>
+        <select id="s-sheet-period"></select>
+        <button class="btn primary" type="submit" data-i18n="sheet_open"></button>
+        <button class="btn ghost" type="button" id="b-sheet-cancel" data-i18n="cancel"></button>
+      </form>
+    </dialog>
+
+    <!-- Once after a login following a long absence -->
+    <dialog id="dlg-away" class="sheet" aria-labelledby="dlg-away-title">
+      <div class="stack">
+        <h2 id="dlg-away-title" data-i18n="away_title"></h2>
+        <p id="o-away"></p>
+        <p class="hint" data-i18n="retention_note"></p>
+        <button class="btn primary" type="button" id="b-away-ok" data-i18n="ok"></button>
+      </div>
+    </dialog>
+
+    <dialog id="dlg-confirm" class="sheet" aria-labelledby="dlg-confirm-title">
+      <form id="f-confirm" class="stack" method="dialog" novalidate>
+        <h2 id="dlg-confirm-title"></h2>
+        <p id="o-confirm"></p>
+        <label for="i-confirm" id="l-confirm" hidden></label>
+        <input id="i-confirm" type="text" autocomplete="off" autocapitalize="characters" hidden>
+        <input type="text" name="username" autocomplete="username" id="i-confirm-user" hidden>
+        <label for="i-confirm-pass" id="l-confirm-pass" data-i18n="current_pass" hidden></label>
+        <input id="i-confirm-pass" type="password" autocomplete="current-password" hidden>
+        <p class="error" id="e-confirm" role="alert" hidden></p>
+        <button class="btn danger" type="submit" id="b-confirm-ok"></button>
+        <button class="btn ghost" type="button" id="b-confirm-cancel" data-i18n="cancel"></button>
+      </form>
+    </dialog>
+
+    <dialog id="dlg-linkpunch" class="sheet" aria-labelledby="dlg-linkpunch-title">
+      <form class="stack" method="dialog">
+        <h2 id="dlg-linkpunch-title" data-i18n="linkpunch_title"></h2>
+        <p id="o-linkpunch"></p>
+        <button class="btn primary" type="submit" value="punch" id="b-linkpunch-ok"></button>
+        <button class="btn ghost" type="submit" value="" data-i18n="cancel"></button>
+      </form>
+    </dialog>
+
+    <dialog id="dlg-badge" class="sheet" aria-labelledby="dlg-badge-title">
+      <form class="stack" method="dialog">
+        <h2 id="dlg-badge-title" data-i18n="badge_title"></h2>
+        <p data-i18n="badge_text"></p>
+        <button class="btn primary" type="submit" data-i18n="ok"></button>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <p class="vh" id="o-punched" role="status" aria-live="polite"></p>
+  </div>
+</body>
+</html>

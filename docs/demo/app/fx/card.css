@@ -1,0 +1,20 @@
+/* Punch card: slide in with an overshoot, the punch winds up and strikes (impact 44 %), chad + confetti. */
+.pfx-card { --pfx-at: 0.5; }
+.pfx-card .pfx-slide { animation-name: pfx-card-slide; }
+.pfx-card .pfx-plunger { animation-name: pfx-card-plunge; transform-origin: 50% 0%; }
+.pfx-card .pfx-hole { --lag: var(--pfx-hit); animation-name: pfx-show; animation-duration: 40ms; }
+@keyframes pfx-card-slide {
+  0% { transform: translateX(-130px); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.25); }
+  28% { transform: none; }
+  43% { transform: none; }
+  46% { transform: translateY(2px); animation-timing-function: ease-out; }
+  54%, 100% { transform: none; }
+}
+@keyframes pfx-card-plunge {
+  0%, 24% { transform: translateY(-30px); animation-timing-function: ease-out; }
+  36% { transform: translateY(-38px) scaleY(1.04); animation-timing-function: cubic-bezier(0.8, 0, 1, 0.6); }
+  44% { transform: none; animation-timing-function: ease-out; }
+  48% { transform: translateY(1px) scaleY(0.92); }
+  56% { transform: translateY(-6px); animation-timing-function: cubic-bezier(0.3, 0.6, 0.4, 1.5); }
+  72%, 100% { transform: translateY(-34px); }
+}

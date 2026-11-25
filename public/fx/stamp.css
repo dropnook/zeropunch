@@ -1,0 +1,17 @@
+/* Rubber stamp: wind-up with a tilt, slam (impact 40 %), squash, splatter, lift; the imprint stays. */
+.pfx-stamp { --pfx-at: 0.62; }
+.pfx-stamp .pfx-rubber { animation-name: pfx-stamp-down; transform-origin: 50% 100%; }
+.pfx-stamp .pfx-ink { --lag: calc(var(--pfx-hit) + 40ms); animation-name: pfx-stamp-ink; animation-duration: 220ms; animation-timing-function: ease-out; }
+.pfx-stamp .pfx-bx, .pfx-stamp .pfx-by, .pfx-stamp .pfx-br { animation-duration: 220ms; }
+@keyframes pfx-stamp-down {
+  0% { opacity: 0; transform: translateY(-24px) rotate(-10deg); animation-timing-function: cubic-bezier(0.2, 0.8, 0.4, 1); }
+  12% { opacity: 1; transform: translateY(-6px) rotate(-8deg); }
+  30% { transform: translateY(-14px) rotate(-16deg); animation-timing-function: cubic-bezier(0.8, 0, 1, 0.5); }
+  40% { transform: translateY(14px) rotate(-6deg); animation-timing-function: ease-out; }
+  43% { transform: translateY(16px) rotate(-6deg) scale(1.08, 0.84); }
+  50% { transform: translateY(12px) rotate(-6deg) scale(0.97, 1.04); }
+  56% { opacity: 1; transform: translateY(14px) rotate(-6deg); animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
+  74% { opacity: 1; transform: translateY(-22px) rotate(-2deg); }
+  90%, 100% { opacity: 0; transform: translateY(-46px) rotate(5deg); }
+}
+@keyframes pfx-stamp-ink { 0% { opacity: 0; transform: rotate(-6deg) scale(1.1); } 100% { opacity: 0.92; transform: rotate(-6deg); } }

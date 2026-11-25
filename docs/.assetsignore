@@ -1,0 +1,5 @@
+# Not served: the Worker config and the helper sources.
+wrangler.jsonc
+.assetsignore
+.wrangler
+social-preview.svg

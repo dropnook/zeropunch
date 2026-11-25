@@ -1,0 +1,32 @@
+/* Typewriter: five strikes 132 ms apart from --pfx-hit (176 ms), the carriage steps after each, the
+   characters appear at their strike, the bell dings at 860 ms. */
+.pfx-typewriter { --pfx-at: 0.9; }
+.pfx-typewriter .pfx-char { animation-name: pfx-show; animation-duration: 30ms; }
+.pfx-typewriter .pfx-bar { animation-name: pfx-tw-bar; transform-origin: 50% 100%; }
+.pfx-typewriter .pfx-carriage { animation-name: pfx-tw-carriage; animation-timing-function: linear; }
+.pfx-typewriter .pfx-bell { --lag: 860ms; animation-name: pfx-tw-bell; animation-duration: 240ms; transform-origin: 50% 0%; }
+.pfx-typewriter .pfx-ding { --lag: 860ms; animation-name: pfx-tw-ding; animation-duration: 240ms; }
+@keyframes pfx-tw-bar {
+  0% { transform: rotate(-72deg); }
+  8% { transform: rotate(-80deg); animation-timing-function: cubic-bezier(0.7, 0, 1, 0.6); }
+  16% { transform: none; animation-timing-function: ease-out; }
+  22%, 24% { transform: rotate(-72deg); animation-timing-function: cubic-bezier(0.7, 0, 1, 0.6); }
+  28% { transform: none; animation-timing-function: ease-out; }
+  34%, 36% { transform: rotate(-72deg); animation-timing-function: cubic-bezier(0.7, 0, 1, 0.6); }
+  40% { transform: none; animation-timing-function: ease-out; }
+  46%, 48% { transform: rotate(-72deg); animation-timing-function: cubic-bezier(0.7, 0, 1, 0.6); }
+  52% { transform: none; animation-timing-function: ease-out; }
+  58%, 60% { transform: rotate(-72deg); animation-timing-function: cubic-bezier(0.7, 0, 1, 0.6); }
+  64% { transform: none; animation-timing-function: ease-out; }
+  70%, 100% { transform: rotate(-72deg); }
+}
+@keyframes pfx-tw-carriage {
+  0%, 17% { transform: none; }
+  20%, 29% { transform: translateX(-11px); }
+  32%, 41% { transform: translateX(-22px); }
+  44%, 53% { transform: translateX(-33px); }
+  56%, 65% { transform: translateX(-44px); }
+  68%, 100% { transform: translateX(-55px); }
+}
+@keyframes pfx-tw-bell { 0%, 100% { transform: none; } 20% { transform: rotate(22deg); } 45% { transform: rotate(-18deg); } 70% { transform: rotate(9deg); } }
+@keyframes pfx-tw-ding { 0% { opacity: 0; transform: scale(0.6); } 25% { opacity: 1; transform: none; } 100% { opacity: 0; transform: scale(1.3); } }

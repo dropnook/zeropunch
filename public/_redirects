@@ -1,0 +1,3 @@
+# The product site lives on its own host; /about leads there (Workers static assets redirects).
+/about https://zeropunch.dropnook.app/ 302
+/about/* https://zeropunch.dropnook.app/ 302

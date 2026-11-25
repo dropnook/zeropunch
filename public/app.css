@@ -1,0 +1,758 @@
+/* Zeropunch – phone first. Light/dark from the system. No external fonts. */
+
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #eef0f3;
+  --fg: #15181d;
+  --muted: #5d6673;
+  --line: #d9dde3;
+  --accent: #1f6feb;
+  --accent-fg: #ffffff;
+  --in: #1a7f47;
+  --in-fg: #ffffff;
+  --out: #c2410c;
+  --out-fg: #ffffff;
+  --warn-bg: #fff4d6;
+  --warn-fg: #7a4b00;
+  --danger: #b42318;
+  --pos: #1a7f47;
+  --neg: #b42318;
+  --focus: #1f6feb;
+  --heat-0: #e7eaee;
+  --heat-1: #bfd7ff;
+  --heat-2: #86b3ff;
+  --heat-3: #4a8cf5;
+  --heat-4: #1f5fd1;
+  --radius: 14px;
+  --tabs-h: 60px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111418;
+    --surface: #1a1e24;
+    --surface-2: #232830;
+    --fg: #e9edf2;
+    --muted: #9aa4b1;
+    --line: #2f3640;
+    --accent: #5b9dff;
+    --accent-fg: #0b1220;
+    --in: #2ea56a;
+    --in-fg: #06130c;
+    --out: #f07a3e;
+    --out-fg: #1b0b02;
+    --warn-bg: #3a2e10;
+    --warn-fg: #ffd98a;
+    --danger: #ff6b5e;
+    --pos: #4cc38a;
+    --neg: #ff7b6e;
+    --focus: #8ab8ff;
+    --heat-0: #222831;
+    --heat-1: #1d3a66;
+    --heat-2: #24539a;
+    --heat-3: #3a74cf;
+    --heat-4: #6aa2ff;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2 { line-height: 1.2; }
+h2 { font-size: 1.05rem; margin: 1.4rem 0 0.4rem; }
+p { margin: 0.4rem 0; }
+small, .small { font-size: 0.85rem; }
+.muted, .hint { color: var(--muted); }
+.hint { font-size: 0.9rem; }
+.center { text-align: center; }
+.mono, .raw { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-left: var(--safe-l);
+  padding-right: var(--safe-r);
+}
+
+.view { padding: calc(16px + var(--safe-t)) 16px 24px; }
+.view.center { flex: 1; display: grid; place-items: center; }
+.view.narrow { width: 100%; max-width: 480px; margin: 0 auto; }
+.view.main {
+  flex: 1;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding-top: 12px;
+  padding-bottom: calc(var(--tabs-h) + var(--safe-b) + 24px);
+}
+
+.brand { font-size: 1.6rem; margin: 0.6rem 0 0.4rem; }
+.lead { color: var(--muted); }
+
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.stack > label { margin-top: 6px; font-weight: 600; font-size: 0.95rem; }
+
+/* Inputs: ≥ 16 px font (no zoom on iOS), ≥ 48 px high */
+input[type=text], input[type=password], input[type=number], input[type=date], input[type=time] {
+  font: inherit;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--fg);
+  min-width: 0;
+}
+input:focus { border-color: var(--accent); }
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  min-height: 48px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+.btn.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--accent); }
+.btn.big { min-height: 72px; font-size: 1.3rem; }
+.btn.small { min-height: 40px; padding: 6px 12px; font-size: 0.9rem; }
+.btn:disabled { opacity: 0.55; cursor: default; }
+
+.error { color: var(--danger); font-weight: 600; }
+
+.check { display: flex; align-items: center; gap: 12px; min-height: 48px; cursor: pointer; }
+.check input { width: 24px; height: 24px; flex: none; accent-color: var(--accent); }
+
+.row { display: flex; flex-direction: column; gap: 6px; }
+.row-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.row-buttons .btn { flex: 1 1 120px; }
+
+/* Log in / register */
+.spinner {
+  width: 40px;
+  height: 40px;
+  margin: 24px auto 8px;
+  border-radius: 50%;
+  border: 4px solid var(--line);
+  border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.break { overflow-wrap: anywhere; }
+.list-foot { margin: 8px 0 96px; }
+select {
+  font: inherit;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--fg);
+  max-width: 100%;
+}
+.warn-line { background: var(--warn-bg); color: var(--warn-fg); padding: 10px 12px; border-radius: 10px; font-weight: 600; }
+
+/* QR */
+.qr-box { display: flex; justify-content: center; margin: 8px 0; }
+.qr { width: min(280px, 80vw); height: auto; border-radius: 8px; }
+.qr-box.small .qr { width: min(200px, 60vw); }
+
+/* Top bar and navigation */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(6px + var(--safe-t)) 16px 6px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.topbar .title { font-weight: 700; }
+.sync {
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+  cursor: pointer;
+}
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+.dot.ok { background: var(--pos); }
+.dot.busy { background: var(--accent); }
+/* .warn further down is a notice box; the dot must not inherit its spacing. */
+.dot.warn { background: var(--out); margin: 0; padding: 0; border-radius: 50%; }
+
+.tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: 0 var(--safe-r) var(--safe-b) var(--safe-l);
+}
+.tabs button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: var(--tabs-h);
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  touch-action: manipulation;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tabs .ico { font-size: 1.25rem; line-height: 1; }
+.tabs button[aria-current=page] { color: var(--accent); font-weight: 700; }
+
+.banner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+  font-size: 0.9rem;
+}
+
+/* Start: state on top, big button in the lower third */
+.start { display: flex; flex-direction: column; }
+.status { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 12px 0; }
+.state { font-size: 1.05rem; color: var(--muted); }
+.clock {
+  font-size: clamp(2.6rem, 15vw, 4.5rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  margin: 0.2rem 0;
+}
+.today { font-size: 1.15rem; }
+.today strong { font-variant-numeric: tabular-nums; font-size: 1.4rem; }
+.warn {
+  margin: 14px auto 0;
+  padding: 10px 14px;
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  max-width: 420px;
+}
+/* One day on top of the start screen: header «‹ Today · 5:49 h ›», then all punches of that day.
+   Up to 6 in three columns (two rows), 7–12 in four slightly smaller columns (three rows).
+   Swiped sideways; vertical scrolling stays with the browser. */
+.dayview { touch-action: pan-y; user-select: none; -webkit-user-select: none; overscroll-behavior-x: none; border-radius: 12px; }
+.dayview:focus-visible { outline-offset: 4px; }
+.dv-head { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.dv-nav {
+  flex: none; width: 44px; height: 44px; padding: 0 0 3px;
+  font: inherit; font-size: 1.8rem; line-height: 1; color: var(--accent);
+  background: transparent; border: 0; border-radius: 10px; cursor: pointer;
+}
+.dv-nav:disabled { color: var(--line); cursor: default; }
+.dv-title { flex: 1; min-width: 0; margin: 0; container-type: inline-size; font-weight: 600; font-size: 0.98rem; }
+.dv-title-in { display: flex; justify-content: center; align-items: baseline; gap: 0.3em; line-height: 1.2; white-space: nowrap; }
+.dv-title-in > span { overflow: hidden; text-overflow: ellipsis; }
+.dv-sep { color: var(--muted); }
+.dv-sum { flex: none; font-variant-numeric: tabular-nums; }
+/* Narrow (a phone with the «Today» button showing): day and total on two lines instead of cutting off. */
+@container (max-width: 179px) {
+  .dv-title-in { flex-direction: column; align-items: center; gap: 0; }
+  .dv-title-in .dv-sep { display: none; }
+  .dv-title-in .dv-sum { font-size: 0.85rem; font-weight: 500; color: var(--muted); }
+}
+.dv-today { flex: none; min-height: 36px; padding: 4px 10px; font-size: 0.85rem; }
+/* The area always keeps the height of its fullest layout, so the clock below never jumps when a punch
+   adds a row: three dense rows (3 × 46 + 2 × 5; 3 × 44 + 2 × 5 on short phones).
+   Chips have a fixed height for the same reason. */
+.dv-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-content: start; min-height: 148px; }
+.dv-chips.dense { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.dv-chip {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  height: 54px; padding: 4px;
+  font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  cursor: pointer;
+}
+.dense .dv-chip { height: 46px; padding: 2px; border-radius: 10px; }
+.dv-chip:active { transform: scale(0.98); }
+/* The punch just made glows once, instead of a banner over the screen. */
+.dv-chip.dv-new { animation: dv-glow 1.6s ease-out 1; }
+@keyframes dv-glow {
+  0% { border-color: #ff6b4a; background: color-mix(in srgb, #ff6b4a 34%, var(--surface)); box-shadow: 0 0 0 0 rgb(255 107 74 / 0.75), 0 0 0 rgb(255 107 74 / 0); transform: scale(0.94); }
+  18% { transform: scale(1.05); box-shadow: 0 0 0 3px rgb(255 107 74 / 0.55), 0 0 20px rgb(255 107 74 / 0.6); }
+  40% { transform: none; }
+  100% { border-color: var(--line); background: var(--surface); box-shadow: 0 0 0 3px rgb(255 107 74 / 0), 0 0 20px rgb(255 107 74 / 0); }
+}
+@media (prefers-reduced-motion: reduce) { .dv-chip.dv-new { animation: none; } }
+.vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.dv-time { font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dense .dv-time { font-size: 1.02rem; }
+.dv-dir { font-size: 0.72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.dv-chip.in .dv-dir { color: var(--in); }
+/* Short phones: the clock block is always a little tighter (not only on a full day – a size change
+   on the 7th punch would make the screen jump), so three rows of chips need no scrolling at 320 × 640. */
+@media (max-height: 700px) {
+  .dv-chips { min-height: 142px; }
+  .dense .dv-chip { height: 44px; }
+  .start .punch { min-height: 96px; }
+  .start .status { padding: 2px 0; }
+  .start .clock { font-size: clamp(2.2rem, 12vw, 4.5rem); margin: 0; }
+}
+.dv-empty {
+  grid-column: 1 / -1; height: 54px; margin: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); border: 1px dashed var(--line); border-radius: 12px;
+}
+/* The line under the button («waiting to be synced», «daily maximum») keeps its place even when empty:
+   it appears for a moment on every punch with a slow network and must not push the button around. */
+.punch-hints { min-height: 2.9em; display: flex; flex-direction: column; justify-content: flex-start; }
+.punch-hints .hint { margin: 6px 0 0; }
+.punch-area { padding-bottom: 8px; position: relative; } /* the punch animation's layer is placed against it */
+.punch {
+  width: 100%;
+  min-height: max(96px, 17vh);
+  border: 0;
+  border-radius: 28px;
+  font: inherit;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.15);
+  transition: transform 0.08s ease;
+}
+.punch:active { transform: scale(0.98); }
+/* The worded label («Jetzt stempeln», «Clock in/out») on one line down to 320 px. */
+.punch.long { font-size: clamp(1.45rem, 7.6vw, 2.2rem); letter-spacing: 0; }
+.choice-sample { font-weight: 700; }
+/* Animation choice: a preview area of fixed size (playing one shifts nothing) over a grid of small
+   tiles, one radio button each (visually hidden, still focusable: arrow keys move through the group).
+   The drawings sit on the scenes' light paper in both themes. Four columns from 320 px. A name breaks
+   only between words or at its soft hyphens (i18n.js SHY), never inside a syllable: no run between two
+   break points is longer than 8 characters, which fits the narrowest tile (57 px of text, in bold too). */
+.fx-show { width: min(100%, 240px); aspect-ratio: 2 / 1; margin: 4px auto 12px; border-radius: 14px; overflow: hidden;
+  background: #fbf8f1; border: 2px solid #2b3238; display: flex; align-items: center; justify-content: center; }
+.fx-show > svg { width: 100%; height: 100%; display: block; }
+.fx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+.fx-tile { position: relative; display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 4px 3px 3px;
+  border: 2px solid var(--line); border-radius: 12px; background: var(--surface); cursor: pointer; }
+.fx-tile input { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.fx-pic { display: block; aspect-ratio: 2 / 1; border-radius: 8px; background: #fbf8f1; overflow: hidden; }
+.fx-pic > svg { display: block; width: 100%; height: 100%; }
+.fx-name { display: flex; align-items: center; justify-content: center; min-height: 2.3em; font-size: 0.72rem;
+  line-height: 1.15; text-align: center; hyphens: manual; }
+.fx-tile:has(input:checked) { border-color: #FF6B4A; box-shadow: inset 0 0 0 1px #FF6B4A; }
+.fx-tile:has(input:checked) .fx-name { font-weight: 800; }
+.fx-tile:has(input:checked)::after { content: ''; position: absolute; top: -5px; right: -5px; width: 12px; height: 12px;
+  border-radius: 50%; background: #FF6B4A; border: 2px solid var(--bg); }
+.fx-tile:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+.banner-buttons { display: flex; gap: 8px; flex: none; flex-wrap: wrap; justify-content: flex-end; }
+#banner-rejected { flex-wrap: wrap; }
+/* The punch button is the brand element: coral with dark text in both states (contrast ≈ 5:1).
+   The state is shown by the text above and a small dot, not by the button colour. */
+.punch, .punch.in, .punch.out { background: var(--brand-coral, #ff6b4a); color: var(--brand-slate, #2b3238); }
+.punch:disabled { opacity: 0.55; }
+.state-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px;
+  vertical-align: 0.05em; background: transparent; border: 2px solid var(--muted); }
+[data-punched="in"] .state-dot { background: var(--in); border-color: var(--in); }
+.list-rule { margin-top: 16px; }
+
+/* List */
+.week { margin-bottom: 18px; }
+.week-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 10px 0 6px;
+  font-size: 0.95rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.week-head .sum { color: var(--fg); font-variant-numeric: tabular-nums; text-transform: none; }
+.week-head small { color: var(--muted); font-weight: 400; }
+.day.flash { animation: day-flash 1.6s ease-out; }
+@keyframes day-flash { 0%, 30% { box-shadow: 0 0 0 3px var(--accent); } 100% { box-shadow: 0 0 0 3px transparent; } }
+@media (prefers-reduced-motion: reduce) {
+  .day.flash { animation: none; box-shadow: 0 0 0 3px var(--accent); }
+}
+.day {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+.day.open { border-color: var(--out); }
+.day header { display: flex; align-items: center; gap: 8px; min-height: 36px; }
+.day .date { font-weight: 700; }
+.day header .sum { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+.badge { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.badge.warn { background: var(--warn-bg); color: var(--warn-fg); }
+.badge.live { background: var(--in); color: var(--in-fg); }
+.pairs { list-style: none; margin: 0; padding: 0; }
+.pair { border-top: 1px solid var(--line); padding: 2px 0; }
+.pair:first-child { border-top: 0; }
+/* One pair = one block: in and out as two rows, the pair duration at the right, centred on both. */
+.pair-box { display: flex; align-items: center; gap: 4px; }
+.prows { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.prow { display: flex; align-items: center; min-width: 0; }
+.pmain {
+  font: inherit;
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  color: var(--fg);
+  cursor: pointer;
+  text-align: left;
+}
+.pmain:active { background: var(--surface-2); }
+.pdir { color: var(--muted); font-size: 0.8rem; min-width: 5.6em; flex: none; white-space: nowrap; }
+.ptime { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.pmain.missing .ptime { color: var(--out); font-weight: 700; text-decoration: underline; }
+.pair.running .pmain.missing .ptime { color: var(--in); text-decoration: none; }
+.icon-btn {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  color: var(--muted);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.icon-btn:hover, .icon-btn:active { background: var(--surface-2); color: var(--fg); }
+.icon-btn.del:hover, .icon-btn.del:active { color: var(--danger); }
+.ico-svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pair .dur { flex: none; min-width: 3.2em; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pair .note { margin: 0 0 6px 8px; font-size: 0.85rem; color: var(--muted); overflow-wrap: anywhere; }
+@media (max-width: 360px) {
+  .day { padding: 6px 6px; }
+  .pdir { min-width: 5.4em; font-size: 0.75rem; }
+  .pmain { gap: 4px; padding: 0 4px; }
+  .icon-btn { width: 44px; }
+}
+.empty { color: var(--muted); text-align: center; padding: 32px 8px; }
+
+.fab {
+  position: fixed;
+  right: calc(16px + var(--safe-r));
+  bottom: calc(var(--tabs-h) + var(--safe-b) + 16px);
+  z-index: 4;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-size: 2rem;
+  line-height: 1;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.25);
+  cursor: pointer;
+}
+
+/* Dialogs as sheets from the bottom */
+dialog.sheet {
+  width: 100%;
+  max-width: 520px;
+  margin: auto auto 0;
+  border: 0;
+  border-radius: 20px 20px 0 0;
+  padding: 18px 16px calc(18px + var(--safe-b));
+  background: var(--surface);
+  color: var(--fg);
+  max-height: 92dvh;
+  overflow-y: auto;
+}
+dialog.sheet::backdrop { background: rgb(0 0 0 / 0.45); }
+dialog h2 { margin-top: 0; }
+@media (min-width: 640px) {
+  dialog.sheet { margin: auto; border-radius: 20px; }
+}
+
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.seg label { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; cursor: pointer; font-weight: 600; }
+.seg label:has(input:checked) { background: var(--accent); color: var(--accent-fg); }
+.seg input { accent-color: var(--accent); }
+.seg-buttons { margin-top: 18px; }
+.seg-btn { font: inherit; font-weight: 600; min-height: 44px; border: 0; background: var(--surface); color: var(--fg); cursor: pointer; }
+.seg-btn[aria-pressed=true] { background: var(--accent); color: var(--accent-fg); }
+
+/* Time wheel (js/wheel.js): two columns, the selected row centred between two lines. */
+.field-label { display: block; margin-top: 6px; font-weight: 600; font-size: 0.95rem; }
+.wheels { --row: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; }
+.wheel {
+  position: relative;
+  width: 88px;
+  height: calc(var(--row) * 5);
+  border-radius: 12px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.wheel:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.wheel::before, .wheel::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 0;
+  border-top: 2px solid var(--accent);
+  pointer-events: none;
+}
+.wheel::before { top: calc(var(--row) * 2); }
+.wheel::after { top: calc(var(--row) * 3); }
+.wheel-col {
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-y;
+}
+.wheel-col::-webkit-scrollbar { display: none; }
+.wheel-pad { height: calc(var(--row) * 2); }
+.wheel-item {
+  height: var(--row);
+  display: grid;
+  place-items: center;
+  scroll-snap-align: center;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+.wheel-item.sel { color: var(--fg); font-weight: 700; }
+.wheel-colon { font-size: 1.5rem; font-weight: 700; }
+@media (max-height: 560px) {
+  .wheels { --row: 36px; }
+  .wheel { height: calc(var(--row) * 3); }
+  .wheel::before { top: var(--row); }
+  .wheel::after { top: calc(var(--row) * 2); }
+  .wheel-pad { height: var(--row); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wheel-col { scroll-behavior: auto; }
+}
+
+.toast {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  top: calc(64px + var(--safe-t)); /* on top, so the punch button stays free */
+  z-index: 20;
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--fg);
+  color: var(--bg);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+}
+.toast .btn { background: var(--bg); color: var(--fg); }
+.app[data-view=login] .toast, .app[data-view=setup] .toast, .app[data-view=unlock] .toast { top: calc(16px + var(--safe-t)); }
+
+/* Nerd mode */
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.card .label { font-size: 0.8rem; color: var(--muted); }
+.card strong {
+  /* «−123:45» must fit three cards side by side at 320 px. */
+  font-size: clamp(0.9rem, 4.4vw, 1.25rem);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  letter-spacing: -0.02em;
+}
+.card .small { color: var(--muted); font-size: 0.75rem; overflow-wrap: anywhere; }
+.pos { color: var(--pos); }
+.neg { color: var(--neg); }
+
+.chart { width: 100%; height: auto; display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 6px; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .axis { fill: var(--muted); font-size: 9px; font-family: system-ui, sans-serif; }
+.chart .bar { fill: var(--accent); opacity: 0.75; }
+.chart .bar-ok { fill: var(--pos); opacity: 0.9; }
+.chart .target { stroke: var(--out); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.chart.heat .axis { font-size: 8px; }
+.hc0 { fill: var(--heat-0); }
+.hc1 { fill: var(--heat-1); }
+.hc2 { fill: var(--heat-2); }
+.hc3 { fill: var(--heat-3); }
+.hc4 { fill: var(--heat-4); }
+
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.raw {
+  font-size: 0.72rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 0;
+}
+
+@media (min-width: 720px) {
+  .view.main { padding-left: 24px; padding-right: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  .spinner { animation-duration: 3s; }
+}
+
+@media (max-width: 360px) {
+  /* «Einstellungen» must fit a quarter of 320 px. */
+  .tabs button { font-size: 0.66rem; letter-spacing: -0.02em; text-overflow: clip; padding: 0 1px; }
+  .card { padding: 8px 6px; }
+}
+
+/* Brand: mark and two-tone wordmark. Coral is used for the logo only (the UI accent stays blue so
+   it never competes with the orange of «Gehen»/“Clock out”). */
+:root { --brand-coral: #ff6b4a; --brand-slate: #2b3238; }
+.brand-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 12px; }
+.brand-block .mark { width: 72px; height: 72px; display: block; }
+.brand-block .brand { margin: 0; }
+.wordmark { font-weight: 700; letter-spacing: -0.01em; }
+.wordmark .wm-a { color: var(--muted); }
+.wordmark .wm-b { color: var(--brand-coral); }
+
+/* Install help in the settings: two folding step lists. */
+.howto { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0 14px; }
+.howto summary { cursor: pointer; font-weight: 600; min-height: 48px; display: flex; align-items: center; list-style: none; }
+.howto summary::-webkit-details-marker { display: none; }
+.howto summary::after { content: '+'; margin-left: auto; font-size: 1.3rem; color: var(--muted); }
+.howto[open] summary::after { content: '–'; }
+.howto ol { margin: 0 0 12px; padding-left: 1.3em; display: grid; gap: 6px; }
+.howto .hint { margin: 0 0 12px; }
+
+/* Absences: a short label in the day view's header (hidden where the header is narrow, so the area keeps
+   its height) and on an otherwise empty day; in the list an own row with the credited time and a bin. */
+.dv-abs { flex: none; max-width: 40%; color: var(--accent); font-weight: 600; }
+.dv-abs::before { content: '· '; color: var(--muted); font-weight: 400; }
+@container (max-width: 179px) { .dv-title-in .dv-abs { display: none; } }
+.dv-empty.dv-absent { color: var(--accent); font-weight: 600; border-style: solid; }
+.list-tools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin: 2px 0 6px; }
+.icon-gap { flex: none; width: 44px; height: 44px; }
+.pair.absence .abs-main { cursor: default; }
+.abs-label { font-weight: 600; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Week and month sheet (js/sheet.js): on screen a white page to scroll, printed A4 portrait. */
+.print-view { width: 100%; max-width: 900px; margin: 0 auto; padding-bottom: 32px; }
+.print-bar { position: sticky; top: 0; z-index: 3; display: flex; justify-content: space-between; gap: 10px;
+  padding: calc(6px + var(--safe-t)) 0 8px; background: var(--bg); }
+.print-hint { margin: 0 0 10px; }
+.paper-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 6px; box-shadow: 0 2px 12px rgb(0 0 0 / 0.18); }
+.paper { background: #fff; color: #000; padding: 18px 16px 14px; min-width: 300px; font-size: 0.82rem; line-height: 1.35; }
+.paper h1 { font-size: 1.15rem; margin: 0 0 2px; }
+.pp-range { margin: 0; font-weight: 600; }
+.pp-meta { margin: 2px 0 10px; color: #333; }
+.pp-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.pp-table th, .pp-table td { border-bottom: 1px solid #bbb; padding: 3px 4px; text-align: left; vertical-align: top; }
+.pp-table th { border-bottom: 1.5px solid #000; font-weight: 700; white-space: nowrap; }
+.pp-date, .pp-wd { white-space: nowrap; }
+.pp-times { overflow-wrap: anywhere; }
+.pp-table .pp-num { text-align: right; white-space: nowrap; }
+.pp-we td { color: #555; background: #f2f2f2; }
+.pp-open .pp-times { font-style: italic; }
+.pp-totals { display: grid; grid-template-columns: auto auto; justify-content: end; gap: 2px 16px; margin: 10px 0 6px;
+  font-variant-numeric: tabular-nums; }
+.pp-totals dd { margin: 0; text-align: right; }
+.pp-totals .pp-bal { font-weight: 700; border-top: 1.5px solid #000; padding-top: 2px; }
+.pp-note { margin: 2px 0 0; color: #333; font-size: 0.75rem; }
+@media (min-width: 560px) { .paper { padding: 28px 32px 20px; font-size: 0.9rem; } }
+
+@media print {
+  @page { size: A4 portrait; margin: 14mm 12mm; }
+  /* Only the sheet: no top bar, tabs, banners, dialogs or toasts. */
+  .app[data-view=print] > :not(#v-print), .print-bar, .print-hint { display: none !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  .app { min-height: 0; padding: 0; }
+  .print-view { max-width: none; padding: 0; margin: 0; }
+  .paper-scroll { overflow: visible; box-shadow: none; border-radius: 0; }
+  .paper { padding: 0; min-width: 0; font-size: 10pt; }
+  .paper h1 { font-size: 15pt; }
+  .pp-table tr { break-inside: avoid; }
+  .pp-we td { background: #f2f2f2; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pp-totals, .pp-note { break-inside: avoid; }
+}
+
+/* who is logged in, at the top of the settings */
+.whoami { margin: 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-weight: 600; overflow-wrap: anywhere; }

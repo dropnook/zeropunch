@@ -1,0 +1,37 @@
+/* Time clock: card in, lever down, ka-chunk (impact 44 %, a second smaller one), print, card out. */
+.pfx-clock { --pfx-at: 0.7; }
+.pfx-clock .pfx-timecard { animation-name: pfx-clock-card; }
+.pfx-clock .pfx-body { animation-name: pfx-clock-chunk; transform-origin: 50% 100%; }
+.pfx-clock .pfx-print { --lag: var(--pfx-hit); animation-name: pfx-pop-in; animation-duration: 240ms; }
+.pfx-clock .pfx-lever { animation-name: pfx-clock-lever; transform-origin: 0% 100%; }
+.pfx-clock .pfx-hh { animation-name: none; transform: rotate(var(--a)); transform-origin: 50% 100%; }
+.pfx-clock .pfx-mh { animation-name: pfx-clock-minute; transform-origin: 50% 100%; }
+@keyframes pfx-clock-card {
+  0% { opacity: 0; transform: translateX(70px); animation-timing-function: cubic-bezier(0.2, 0.8, 0.4, 1); }
+  8% { opacity: 1; }
+  30% { transform: translateX(-4px); animation-timing-function: cubic-bezier(0.6, 0, 1, 0.6); }
+  42% { transform: translateX(-12px); }
+  54% { transform: translateX(-12px); animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1.4); }
+  70%, 100% { opacity: 1; transform: translateX(4px); }
+}
+@keyframes pfx-clock-chunk {
+  0%, 43% { transform: none; }
+  45% { transform: translateY(3px) scale(1.04, 0.93); animation-timing-function: ease-out; }
+  49% { transform: translateY(-2px) scale(0.98, 1.03); }
+  53% { transform: translateY(2px) scale(1.02, 0.96); }
+  58% { transform: translateY(-1px); }
+  64%, 100% { transform: none; }
+}
+@keyframes pfx-clock-lever {
+  0%, 12% { transform: none; }
+  32% { transform: rotate(-16deg); animation-timing-function: cubic-bezier(0.7, 0, 1, 0.5); }
+  44% { transform: rotate(40deg); animation-timing-function: ease-out; }
+  50% { transform: rotate(32deg); }
+  58% { transform: rotate(34deg); animation-timing-function: cubic-bezier(0.3, 0.6, 0.3, 1.5); }
+  76%, 100% { transform: none; }
+}
+@keyframes pfx-clock-minute {
+  0%, 43% { transform: rotate(calc(var(--a) - 18deg)); }
+  46% { transform: rotate(calc(var(--a) + 5deg)); }
+  52%, 100% { transform: rotate(var(--a)); }
+}

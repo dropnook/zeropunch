@@ -1,0 +1,2 @@
+# Copy to .dev.vars (not committed). Local development only.
+PEPPER=dev-pepper-local-only-0123456789abcdef

@@ -1,0 +1,28 @@
+# Zeropunch
+
+> Zeropunch, by dropnook, is a zero-knowledge punch clock for the phone: a web app (PWA) with one button, «Punch in/out», and a list of your times. Every punch is encrypted in the browser (AES-256-GCM, padded to a fixed size) before it leaves the device; the server stores ciphertext of one fixed size (it accepts no other) and never sees a working time, a note or the username in clear. No e-mail address, no real name: an account is a username and a passphrase. English and German. Free software under the AGPL-3.0. The app is at https://zeropunch.app/.
+
+Key facts:
+
+- Punches pair up in order within each day: 1st in, 2nd out, 3rd in, … The start screen shows the current state and one day at a time with its punches and total — today by default; swipe (or use the arrows) to earlier days. Handy for copying punches into another system. The list shows day and week totals and one row per punch, each with an edit (pencil) and a delete (bin) control, and a bin in each day's header that deletes the whole day after asking once; the add/edit dialog sets the time on a wheel for hours and minutes. An optional night-shift setting moves the change of day (e.g. to 04:00). Nerd mode adds balance (week, month, last 12 months), hours per week (13 weeks) and per month (13 months), averages, breaks and a heatmap, over 90 days or 13 months. Each punch plays a short animation, stamping through the ages (sundial, hourglass, tally stick, wax seal, rubber stamp, typewriter, time clock, punch card, turnstile, flip clock, ticket validator, badge, fingerprint, NFC tap, or a hole punched into the button), with a short vibration at the moment of impact where the device has one; random by default, any one of them or off chosen from a grid of small pictures in the settings (with a preview), never with reduced motion.
+- Absences: vacation, sick, public holiday or other, for a whole or half day (or a from–until range, one per weekday), added in the list. Each is its own encrypted record of the same fixed size, synced and kept 13 months like a punch, and credits the target time (a whole weekday = weekly hours / 5, a half day half of that, a weekend nothing), so week sums and the balance stay right. Included in the CSV and JSON export.
+- Week and month sheets: from the list, a printable sheet for an ISO week or a calendar month (one row per day with in–out times, absences and totals; worked, absence credit, target and balance), A4 black on white via the browser's print dialog, also to save as PDF; works offline, in both languages.
+- Punch with an NFC sticker: the address /#punch opens the app and punches at once (nothing within a minute of the last punch); with the setting «Punch link without asking» switched off it asks «Punch now?» first. The part after # never reaches the server; the link is the same for everyone and only works on a device that is logged in. On iPhone it is set up as an automation in the Shortcuts app (the sticker may be empty), on Android the link is written to the sticker.
+- Optional badge reminder (off by default): at the earliest every 25 calendar days (adjustable), the first punch of a day shows a note once to validate your badge at the reception. The count starts when it is switched on; a day without a punch is made up with the next first punch.
+- Works offline (punches wait in an outbox) and installs as an app; the settings show the steps for iPhone/iPad (Safari) and Android (Chrome).
+- Account: username (3–32 characters, no real name needed) and passphrase (at least 6 characters; the app warns below 10). There is no recovery key and no reset: a lost passphrase means the punches can no longer be read, and the account is deleted after 61 days without use (the username stays taken until then). Changing the passphrase (with the current one) logs out the other devices.
+- The server sees: an HMAC of the username (the name itself only in transit at registration and login), HMACs of the login keys and the wrapped master key, fixed-size ciphertext, when encrypted writes arrive (stored only as UTC days: last write of a record, last use of the account and of each session; never a time of day), and the IP address only as a keyed hash in rate-limit counters that are deleted within two days. When an account is deleted, only the hashes of its sessions are kept, so its other devices learn «account deleted» and clear their copy.
+- Honest limits: you must trust the JavaScript the server delivers; arrival times of writes are visible; a lost passphrase cannot be recovered; usernames are not secret.
+- Retention: a punch is kept 13 months, then deleted for good (export first: CSV or JSON; there is no encrypted backup export). A wrong device clock deletes nothing. At most 12 punches per day in the app; the server accepts at most 100 record writes per account and day. Accounts unused for 61 days are deleted.
+- Self-hosting: anyone can run their own copy – a small serverless backend with a SQL database; the README explains the setup. No build step, no third-party code.
+
+## Docs
+
+- [README](https://raw.githubusercontent.com/dropnook/zeropunch/main/README.md): how it works, threat model, limits, self-hosting, local development, tests
+- [Design notes (German)](https://raw.githubusercontent.com/dropnook/zeropunch/main/KONZEPT.md): goals, key derivation, data, retention, interface, hardening
+
+## Optional
+
+- [Source code](https://github.com/dropnook/zeropunch)
+- [The app](https://zeropunch.app/)
+- [Name and trademark](https://raw.githubusercontent.com/dropnook/zeropunch/main/TRADEMARKS.md)

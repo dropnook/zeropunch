@@ -1,0 +1,20 @@
+/* Hourglass: lean back, tip over and land (impact 30 %), sand runs, tip back and land again (≈ 88 %). */
+.pfx-hourglass { --pfx-at: 0.55; }
+.pfx-hourglass .pfx-glass { animation-name: pfx-hg-tip; }
+.pfx-hourglass .pfx-drain { animation-name: pfx-hg-drain; transform-origin: 50% 0%; }
+.pfx-hourglass .pfx-fill { animation-name: pfx-hg-fill; transform-origin: 50% 0%; }
+.pfx-hourglass .pfx-stream { animation-name: pfx-hg-stream; }
+@keyframes pfx-hg-tip {
+  0% { transform: none; animation-timing-function: ease-out; }
+  9% { transform: rotate(-14deg); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.7); }
+  27% { transform: rotate(194deg); animation-timing-function: ease-out; }
+  31% { transform: rotate(178deg); }
+  35% { transform: rotate(182deg); }
+  39%, 72% { transform: rotate(180deg); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.7); }
+  86% { transform: rotate(-10deg); animation-timing-function: ease-out; }
+  90% { transform: rotate(4deg); }
+  95%, 100% { transform: none; }
+}
+@keyframes pfx-hg-drain { 0%, 33% { transform: none; } 70%, 100% { transform: scaleY(0.04); } }
+@keyframes pfx-hg-fill { 0%, 36% { transform: scaleY(0); } 72%, 100% { transform: none; } }
+@keyframes pfx-hg-stream { 0%, 31% { opacity: 0; } 34%, 69% { opacity: 1; } 72%, 100% { opacity: 0; } }

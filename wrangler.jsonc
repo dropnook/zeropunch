@@ -1,0 +1,52 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "zeropunch",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    // Only the API runs through the Worker. Static files are served directly, with their
+    // security headers from public/_headers.
+    "run_worker_first": ["/api/*"],
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+  // Self-hosting: replace with your own host name, or remove "routes" and set "workers_dev": true.
+  "routes": [
+    { "pattern": "zeropunch.app", "custom_domain": true }
+  ],
+  "workers_dev": false,
+  // `wrangler dev` would otherwise rewrite request URLs to the route's host over plain http, which the
+  // API refuses (plain http only on localhost).
+  "dev": { "host": "localhost" },
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "zeropunch",
+      // Self-hosting: run `npx wrangler d1 create zeropunch` and put your own id here.
+      // The id is not a secret.
+      "database_id": "fc564def-d28f-4726-8b33-59f8a7bce7c0",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Daily retention: records not written for 396 days (13 months), accounts idle for 61 days, expired
+  // sessions and counters.
+  "triggers": { "crons": ["17 3 * * *"] },
+  // PEPPER is a secret (`wrangler secret put PEPPER`), never a var. Optional secret STATS_TOKEN enables
+  // GET /api/admin/stats (see README).
+  "vars": {
+    // Proof of work at registration: leading zero bits of SHA-256 (on average 2^bits hashes).
+    // 17 ≈ 0.2 s on a recent laptop, ≈ 1–1.5 s on a 4–6× slower phone (measured, see README).
+    "POW_BITS": "17",
+    // Registrations per client network and day (ten times that per IPv6 /48): generous, a whole office
+    // or mobile carrier can share one address.
+    "REG_PER_IP_DAY": "100",
+    // Above this many registrations a day the proof of work gets harder (+1 bit per doubling, at most +6).
+    "REG_GLOBAL_DAY": "1000",
+    // Hard ceiling of registrations per day overall: near plausible demand (see README «Abuse brakes»).
+    "REG_GLOBAL_MAX_DAY": "5000"
+  },
+  "observability": { "enabled": false }
+}

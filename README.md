@@ -172,5 +172,5 @@ cookie logs everybody out or makes existing accounts unreadable.
 
 ---
 
-<sub>Zeropunch is free software under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0-only);
+<sub>Copyright (c) 2026 Benjamin Müller (dropnook). Zeropunch is free software under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0-only);
 the names Zeropunch™ and Dropnook™ are not part of that license — see [TRADEMARKS.md](TRADEMARKS.md).</sub>

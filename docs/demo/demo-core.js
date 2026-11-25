@@ -24,6 +24,15 @@ export const TIMES = Object.freeze(
   ].map((s) => Date.parse(s)),
 );
 
+/**
+ * A second, shorter table for the «time travel» button under the phone: one day in 1955, in at 01:21 and
+ * out at 22:04. A state with `trip: true` runs on it; everything else works as with the main table.
+ */
+export const TRIP = Object.freeze(['1955-11-12T01:21:00Z', '1955-11-12T22:04:00Z'].map((s) => Date.parse(s)));
+
+/** The table a state runs on. @param {State} [st] */
+export const timesOf = (st) => (st && st.trip ? TRIP : TIMES);
+
 const MIN = 60_000;
 const p2 = (/** @type {number} */ n) => String(n).padStart(2, '0');
 const minute = (/** @type {number} */ ts) => Math.floor(ts / MIN) * MIN;
@@ -53,36 +62,39 @@ export function longDate(day, lang) {
   return lang === 'de' ? `${wd}, ${d.getUTCDate()}. ${mo} ${d.getUTCFullYear()}` : `${wd} ${d.getUTCDate()} ${mo} ${d.getUTCFullYear()}`;
 }
 
-/** @typedef {{ n: number, view: string | null }} State */
+/** @typedef {{ n: number, view: string | null, trip?: boolean }} State */
 
 /** @returns {State} */
 export const initial = () => ({ n: 0, view: null });
 
+/** The state before the first tap of the time travel. @returns {State} */
+export const trip = () => ({ n: 0, view: null, trip: true });
+
 /** The punches made so far. @param {State} st */
-export const punches = (st) => TIMES.slice(0, st.n);
+export const punches = (st) => timesOf(st).slice(0, st.n);
 
 /** The time the demo clock started from: the last punch, or the first time before the first punch. @param {State} st */
-export const base = (st) => TIMES[Math.max(0, st.n - 1)];
+export const base = (st) => timesOf(st)[Math.max(0, st.n - 1)];
 
 /** The demo clock: `base` plus the real time since then (ms). @param {State} st @param {number} elapsed */
 export const now = (st, elapsed) => base(st) + Math.max(0, elapsed);
 
-/** The day punch i counts to: the day its pair started on. @param {number} i index into TIMES */
-export const dayOfPunch = (i) => dayOf(TIMES[i - (i % 2)]);
+/** The day punch i counts to: the day its pair started on. @param {number} i index into the table @param {readonly number[]} [times] */
+export const dayOfPunch = (i, times = TIMES) => dayOf(times[i - (i % 2)]);
 
 /** The demo's today: the day the last punch counts to (the first time's day before the first punch). @param {State} st */
-export const today = (st) => dayOfPunch(Math.max(0, st.n - 1));
+export const today = (st) => dayOfPunch(Math.max(0, st.n - 1), timesOf(st));
 
 /** Days that have punches, plus today, oldest first: browsing goes through these (empty days between are skipped). @param {State} st */
 export function days(st) {
-  const set = new Set(punches(st).map((_, i) => dayOfPunch(i)));
+  const set = new Set(punches(st).map((_, i) => dayOfPunch(i, timesOf(st))));
   set.add(today(st));
   return [...set].sort();
 }
 
 /** One day: its punches in order with in/out, the total, and whether its last punch runs. @param {State} st @param {string} day @param {number} nowTs */
 export function dayInfo(st, day, nowTs) {
-  const list = punches(st).filter((_, i) => dayOfPunch(i) === day);
+  const list = punches(st).filter((_, i) => dayOfPunch(i, timesOf(st)) === day);
   const isToday = day === today(st);
   let sum = 0;
   for (let i = 0; i < list.length; i += 2) {
@@ -117,7 +129,7 @@ export function status(st, nowTs) {
     since: d.running ? last.time : null,
     todaySum: d.sum,
     punchesToday: d.punches.length,
-    full: st.n >= TIMES.length,
+    full: st.n >= timesOf(st).length,
   };
 }
 
@@ -137,9 +149,9 @@ export function step(st, dir) {
  */
 export function tap(st) {
   if (status(st, base(st)).full) return { state: st, punch: null };
-  const next = { n: st.n + 1, view: null };
-  const ts = TIMES[st.n];
-  return { state: next, punch: { ts, time: hm(ts), dir: /** @type {'in'|'out'} */ (st.n % 2 ? 'out' : 'in'), day: dayOfPunch(st.n) } };
+  const next = { ...st, n: st.n + 1, view: null };
+  const ts = timesOf(st)[st.n];
+  return { state: next, punch: { ts, time: hm(ts), dir: /** @type {'in'|'out'} */ (st.n % 2 ? 'out' : 'in'), day: dayOfPunch(st.n, timesOf(st)) } };
 }
 
 /** «Start again». @returns {State} */
@@ -180,6 +192,8 @@ export const TEXTS = {
     restart: 'Start again',
     caption: 'Demo – nothing is stored.',
     try_me: 'This is a demo, tap me!',
+    trip: 'Time travel',
+    trip_back: 'Back',
   },
   de: {
     today: 'Heute',
@@ -208,6 +222,8 @@ export const TEXTS = {
     restart: 'Nochmals von vorn',
     caption: 'Demo – nichts wird gespeichert.',
     try_me: 'Hier Demo, klick mich!',
+    trip: 'Zeitreise',
+    trip_back: 'Zurück',
   },
 };
 

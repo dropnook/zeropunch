@@ -174,6 +174,46 @@ describe('demo: logic', () => {
   });
 });
 
+describe('demo: time travel', () => {
+  it('a second table of two times on one day in 1955; the main table is untouched', () => {
+    expect(core.TRIP.map((ts) => new Date(ts).toISOString())).toEqual(['1955-11-12T01:21:00.000Z', '1955-11-12T22:04:00.000Z']);
+    expect(core.TIMES).toHaveLength(13);
+    expect(core.timesOf(core.initial())).toBe(core.TIMES);
+    expect(core.timesOf(core.trip())).toBe(core.TRIP);
+  });
+
+  it('before the first tap: 12 Nov 1955, no punch, the clock at 01:21:00', () => {
+    const st = core.trip();
+    expect(core.today(st)).toBe('1955-11-12');
+    expect(core.longDate(core.today(st), 'de')).toBe('Sa., 12. Nov. 1955');
+    expect(core.hms(core.now(st, 0))).toBe('01:21:00');
+    expect(core.status(st, core.now(st, 0))).toMatchObject({ in: false, punchesToday: 0, full: false });
+  });
+
+  it('two taps: in at 01:21, out at 22:04, 20:43 h on that day, then the table is used up', () => {
+    let st = core.trip();
+    const a = core.tap(st);
+    expect(a.punch).toMatchObject({ time: '01:21', dir: 'in', day: '1955-11-12' });
+    st = a.state;
+    expect(st.trip).toBe(true);
+    expect(core.status(st, core.now(st, 0))).toMatchObject({ in: true, since: '01:21', full: false });
+    const b = core.tap(st);
+    expect(b.punch).toMatchObject({ time: '22:04', dir: 'out', day: '1955-11-12' });
+    st = b.state;
+    const s = core.status(st, core.now(st, 0));
+    expect(s).toMatchObject({ in: false, punchesToday: 2, full: true });
+    expect(core.dur(s.todaySum)).toBe('20:43');
+    expect(core.days(st)).toEqual(['1955-11-12']);
+    expect(core.tap(st).punch).toBeNull();
+  });
+
+  it('browsing keeps the table: a step never drops out of the time travel', () => {
+    const st = core.tap(core.trip()).state;
+    expect(core.step(st, -1)).toBe(st);
+    expect(core.step({ ...st, view: '1955-11-12' }, 0).trip).toBe(true);
+  });
+});
+
 describe('demo: texts', () => {
   it('English and German have the same keys and no empty text', () => {
     expect(Object.keys(core.TEXTS.de).sort()).toEqual(Object.keys(core.TEXTS.en).sort());

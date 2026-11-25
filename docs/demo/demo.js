@@ -126,7 +126,9 @@ export function mount(old, lang) {
   const phone = h('div', { class: 'phone zd', role: 'group', 'aria-label': T('phone_aria') }, screen);
   // A nudge beside the phone until the first punch: the phone is a demo, not a picture.
   const tryMe = h('p', { class: 'zd-try', 'aria-hidden': 'true' }, h('span', { class: 'zd-try-text' }, T('try_me')), h('span', { class: 'zd-try-hand' }, '👉'));
-  const wrap = h('div', { class: 'zd-wrap' }, phone, tryMe, h('p', { class: 'zd-cap' }, T('caption')));
+  // Under the phone: the caption and a button that takes the demo to one day in 1955 and back.
+  const tripBtn = h('button', { class: 'zd-trip', type: 'button' }, `⚡ ${T('trip')}`);
+  const wrap = h('div', { class: 'zd-wrap' }, phone, tryMe, h('p', { class: 'zd-cap' }, h('span', {}, T('caption')), ' ', tripBtn));
 
   // ---------------------------------------------------------------- drawing
   let sig = '';
@@ -304,19 +306,30 @@ export function mount(old, lang) {
     glowTimer = setTimeout(() => (glowTs = 0), 1800);
     clearTimeout(timer);
     tick();
-    void fx.punch('random', { anchor: btn, time: r.punch.time });
+    // The last punch of the time travel is the clock tower's; every other one is picked at random.
+    void fx.punch(st.trip && core.status(st, r.punch.ts).full ? 'tower' : 'random', { anchor: btn, time: r.punch.time });
     said.textContent = T('punched', { time: r.punch.time, dir: T(r.punch.dir === 'in' ? 'dir_in' : 'dir_out') });
     if (btn.disabled) again.focus({ preventScroll: true }); // the button is done for the day; keep the focus nearby
   });
   again.addEventListener('click', () => {
     fx.cancel();
-    st = core.reset();
+    st = st.trip ? core.trip() : core.reset();
     t0 = performance.now();
     said.textContent = '';
     glowTs = 0;
     clearTimeout(timer);
     tick();
     btn.focus({ preventScroll: true });
+  });
+  tripBtn.addEventListener('click', () => {
+    fx.cancel();
+    st = st.trip ? core.reset() : core.trip();
+    tripBtn.textContent = st.trip ? `↩ ${T('trip_back')}` : `⚡ ${T('trip')}`;
+    t0 = performance.now();
+    said.textContent = '';
+    glowTs = 0;
+    clearTimeout(timer);
+    tick();
   });
 
   tick();

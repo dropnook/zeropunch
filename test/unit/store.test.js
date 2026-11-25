@@ -545,6 +545,7 @@ describe('outbox and local writes (B7)', () => {
       'off',
       'sundial',
       'hourglass',
+      'tower',
       'tally',
       'seal',
       'stamp',

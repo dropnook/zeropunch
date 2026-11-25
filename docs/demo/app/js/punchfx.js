@@ -17,6 +17,7 @@ import { h, s } from './dom.js';
 const FX = {
   sundial: { d: 1100, hit: 0.62, buzz: [12], shake: false },
   hourglass: { d: 1100, hit: 0.3, buzz: [14, 620, 10] },
+  tower: { d: 1100, hit: 0.5, buzz: [10, 40, 24] },
   tally: { d: 800, hit: 0.42, buzz: [14] },
   seal: { d: 950, hit: 0.4, buzz: [26] },
   stamp: { d: 900, hit: 0.4, buzz: [22] },

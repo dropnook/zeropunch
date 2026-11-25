@@ -1,0 +1,61 @@
+/* Clock tower: the cloud drifts in and swells, lightning runs down into the dial at --pfx-hit (50 %),
+   the sky flashes, the dial jolts and the minute hand jumps onto the minute, a spark leaps over to
+   the card and the time is branded on it. The still keeps both bolts lit. */
+.pfx-tower { --pfx-at: 0.8; }
+.pfx-tower .pfx-slip { animation-name: pfx-tw-slip; }
+.pfx-tower .pfx-print { --lag: calc(var(--pfx-hit) + 50ms); animation-name: pfx-pop-in; animation-duration: 240ms; }
+.pfx-tower .pfx-cloud { animation-name: pfx-tw-cloud; }
+.pfx-tower .pfx-dial { animation-name: pfx-tw-dial; }
+.pfx-tower .pfx-hh { animation-name: none; transform: rotate(var(--a)); transform-origin: 50% 100%; }
+.pfx-tower .pfx-mh { animation-name: pfx-tw-minute; transform-origin: 50% 100%; }
+.pfx-tower .pfx-glow { --lag: var(--pfx-hit); animation-name: pfx-ring; animation-duration: 420ms; }
+.pfx-tower .pfx-flash { animation-name: pfx-tw-flash; }
+.pfx-tower .pfx-bolt { stroke-dasharray: 1; animation-name: pfx-tw-bolt; }
+.pfx-tower .pfx-arc { stroke-dasharray: 1; animation-name: pfx-tw-arc; }
+@keyframes pfx-tw-slip {
+  0% { opacity: 0; transform: translateX(40px); animation-timing-function: cubic-bezier(0.2, 0.8, 0.4, 1); }
+  22%, 100% { opacity: 1; transform: none; }
+}
+@keyframes pfx-tw-cloud {
+  0% { opacity: 0; transform: translate(16px, -10px); animation-timing-function: cubic-bezier(0.2, 0.8, 0.4, 1); }
+  26% { opacity: 1; transform: none; }
+  34% { transform: none; }
+  42% { transform: scale(1.1); }
+  52%, 100% { opacity: 1; transform: none; }
+}
+@keyframes pfx-tw-dial {
+  0%, 49% { transform: none; }
+  52% { transform: scale(1.14); animation-timing-function: ease-out; }
+  58% { transform: scale(0.96); }
+  66%, 100% { transform: none; }
+}
+@keyframes pfx-tw-minute {
+  0%, 49% { transform: rotate(calc(var(--a) - 6deg)); }
+  52% { transform: rotate(calc(var(--a) + 4deg)); }
+  58%, 100% { transform: rotate(var(--a)); }
+}
+@keyframes pfx-tw-flash {
+  0%, 47% { opacity: 0; }
+  50% { opacity: 0.8; }
+  52% { opacity: 0.1; }
+  54% { opacity: 0.45; }
+  59%, 100% { opacity: 0; }
+}
+@keyframes pfx-tw-bolt {
+  0%, 42% { opacity: 0; stroke-dashoffset: 1; animation-timing-function: cubic-bezier(0.6, 0, 1, 0.6); }
+  43% { opacity: 1; stroke-dashoffset: 1; animation-timing-function: cubic-bezier(0.6, 0, 1, 0.6); }
+  50% { opacity: 1; stroke-dashoffset: 0; }
+  53% { opacity: 0.25; }
+  56% { opacity: 1; }
+  60% { opacity: 0.5; }
+  64%, 82% { opacity: 1; }
+  92%, 100% { opacity: 0; stroke-dashoffset: 0; }
+}
+@keyframes pfx-tw-arc {
+  0%, 49% { opacity: 0; stroke-dashoffset: 1; }
+  50% { opacity: 1; stroke-dashoffset: 1; }
+  55% { opacity: 1; stroke-dashoffset: 0; }
+  58% { opacity: 0.3; }
+  61%, 82% { opacity: 1; }
+  92%, 100% { opacity: 0; stroke-dashoffset: 0; }
+}

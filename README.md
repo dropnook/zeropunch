@@ -31,7 +31,7 @@ English and German. Design notes (German): [KONZEPT.md](KONZEPT.md).
   punch), syncs at once and closes the browser tab where the browser allows. With «Punch link without
   asking» switched off, or when the link is opened from another web page, it asks «Punch now?» first. On iPhone the link opens the default browser, not the home-screen app.
 - **Badge reminder** (off by default, every 25 days when on): a note to validate your badge.
-- **16 punch animations** (random by default, or one of them, or off; none with «reduce motion»).
+- **17 punch animations** (random by default, or one of them, or off; none with «reduce motion»).
 - **Offline first:** installable app, punches wait in an outbox. An installed app looks for a new
   version once a day and loads it by itself.
 - **Account:** username (3–32 characters, `a–z 0–9 . _ -`) and passphrase (at least 6 characters,

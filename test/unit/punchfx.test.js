@@ -30,9 +30,9 @@ afterEach(() => {
 });
 
 describe('punch animations: the list', () => {
-  it('the core lists sixteen animations, the same as the setting, each 600–1100 ms with its impact inside', async () => {
+  it('the core lists seventeen animations, the same as the setting, each 600–1100 ms with its impact inside', async () => {
     const { NAMES, DURATION, IMPACT, BUZZ } = await import('../../public/js/punchfx.js');
-    expect(NAMES).toHaveLength(16);
+    expect(NAMES).toHaveLength(17);
     expect([...NAMES]).toEqual([...FX_NAMES]);
     for (const n of NAMES) {
       expect(DURATION[n], n).toBeGreaterThanOrEqual(600);
@@ -131,7 +131,7 @@ describe('punch animations: playing', () => {
 
   it('the time clock, the rubber stamp, the flip clock, the validator and the typewriter show the real time', async () => {
     const { m, area, anchor } = await fresh();
-    for (const n of ['clock', 'stamp', 'validator', 'sundial']) {
+    for (const n of ['clock', 'stamp', 'validator', 'sundial', 'tower']) {
       m.play(n, { anchor, time: '17:42' });
       await settle();
       const texts = layers(area)[0].all().filter((/** @type {any} */ e) => e.tagName === 'text').map((/** @type {any} */ e) => e.textContent);
@@ -231,6 +231,15 @@ describe('punch animations: playing', () => {
     expect(hourAngle('15:30')).toBe(52.5);
     expect(hourAngle('23:10')).toBe(90);
     expect(hourAngle('02:00')).toBe(-90);
+  });
+
+  it('the clock tower sets its hands to the time of the punch', async () => {
+    installFakeDom();
+    const { hands } = await import('../../public/fx/tower.js');
+    expect(hands('22:04')).toEqual({ hour: 302, minute: 24 });
+    expect(hands('06:30')).toEqual({ hour: 195, minute: 180 });
+    expect(hands('12:00')).toEqual({ hour: 0, minute: 0 });
+    expect(hands('')).toEqual({ hour: 305, minute: 60 });
   });
 });
 

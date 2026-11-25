@@ -59,6 +59,7 @@ export function badgeNextDay(settings) {
 export const FX_NAMES = /** @type {const} */ ([
   'sundial',
   'hourglass',
+  'tower',
   'tally',
   'seal',
   'stamp',

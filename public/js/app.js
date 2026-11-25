@@ -86,7 +86,7 @@ import {
   daysBetween,
 } from './time.js';
 
-export const APP_VERSION = '2026.11.24';
+export const APP_VERSION = '2026.11.25';
 const MAIN_TABS = ['start', 'list', 'nerd', 'settings'];
 const FILE_PREFIX = APP_NAME.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 

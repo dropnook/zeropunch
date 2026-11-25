@@ -1,7 +1,7 @@
 // Zeropunch service worker: app shell from the cache, never the API.
 // Ship a new version = bump CACHE_VERSION.
 
-const CACHE_VERSION = 'zp-v2026.11.24';
+const CACHE_VERSION = 'zp-v2026.11.25';
 const SHELL = [
   '/',
   '/app.css',
@@ -53,6 +53,8 @@ const SHELL = [
   '/fx/sundial.js',
   '/fx/tally.css',
   '/fx/tally.js',
+  '/fx/tower.css',
+  '/fx/tower.js',
   '/fx/turnstile.css',
   '/fx/turnstile.js',
   '/fx/typewriter.css',

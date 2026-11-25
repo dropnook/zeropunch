@@ -43,7 +43,7 @@ describe('static delivery', () => {
 
   it('service worker answers only the app itself from the cache (e.g. /about/ goes to the network)', () => {
     const sw = read('public/sw.js');
-    expect(sw).toMatch(/CACHE_VERSION = 'zp-v2026\.11\.24'/);
+    expect(sw).toMatch(/CACHE_VERSION = 'zp-v2026\.11\.25'/);
     expect(sw).toMatch(/url\.pathname !== '\/' && url\.pathname !== '\/index\.html'\) return;/);
     expect(sw).toMatch(/if \(!SHELL_SET\.has\(url\.pathname\)\) return;/);
     // every file in the shell exists
@@ -70,7 +70,7 @@ describe('static delivery', () => {
 
   it('one version everywhere: package.json, app, Worker, service worker cache', async () => {
     const pkg = JSON.parse(read('package.json'));
-    expect(pkg.version).toBe('2026.11.24');
+    expect(pkg.version).toBe('2026.11.25');
     expect(read('public/js/app.js')).toMatch(new RegExp(`APP_VERSION = '${pkg.version.replace(/\./g, '\\.')}'`));
     expect(read('public/sw.js')).toContain(`CACHE_VERSION = 'zp-v${pkg.version}'`);
     expect((await import('../../src/api.js')).VERSION).toBe(pkg.version);

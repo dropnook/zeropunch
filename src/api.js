@@ -6,7 +6,7 @@ import { makeChallenge, checkSolution, powBits } from './pow.js';
 import { SETTINGS_ID, IDLE_DAYS, COOKIE_GRACE_DAYS, rememberGone } from './retention.js';
 
 /** Shown in /api/admin/stats; kept equal to package.json and the client by a unit test. */
-export const VERSION = '2026.11.24';
+export const VERSION = '2026.11.25';
 
 export const SESSION_COOKIE = '__Host-zp';
 /** Sliding session lifetime: as long as an unused account lives, not longer. */

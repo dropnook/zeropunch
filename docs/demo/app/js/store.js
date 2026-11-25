@@ -3,8 +3,8 @@
 // demo that stores nothing does not need. pickFx and FX_NAMES as in the app (test/unit/demo.test.js
 // compares them with the real ones); see scripts/sync-demo.mjs.
 /** The app's list, in its order (punchfx.js loads only when an animation plays, so it is not imported here). */
-export const FX_NAMES = Object.freeze(['sundial', 'hourglass', 'tally', 'seal', 'stamp', 'typewriter', 'clock', 'card',
-  'turnstile', 'flip', 'validator', 'badge', 'finger', 'iris', 'nfc', 'button']);
+export const FX_NAMES = Object.freeze(['sundial', 'hourglass', 'tower', 'tally', 'seal', 'stamp', 'typewriter', 'clock',
+  'card', 'turnstile', 'flip', 'validator', 'badge', 'finger', 'iris', 'nfc', 'button']);
 
 /** Which animation plays: «random» never repeats the previous one. @param {unknown} value @param {string|null} prev @param {() => number} [random] */
 export function pickFx(value, prev, random = Math.random) {

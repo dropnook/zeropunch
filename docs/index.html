@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>Zeropunch — a punch clock that knows nothing about you</title>
-<meta name="description" content="Zeropunch is a punch clock for your phone: one button, «Punch in/out», and a list of your times. Every punch is encrypted in the browser; the server never sees a working time. No e-mail, no real name. Free and open source.">
+<meta name="description" content="Zeropunch is a punch clock for your phone: one button, «Punch in/out», and a list of your times. Every punch is encrypted in the browser. The server never sees a working time. No e-mail, no real name. Free and open source.">
 <link rel="canonical" href="https://zeropunch.dropnook.app/">
 <link rel="alternate" hreflang="en" href="https://zeropunch.dropnook.app/">
 <link rel="alternate" hreflang="de" href="https://zeropunch.dropnook.app/de/">
@@ -14,7 +14,7 @@
 <meta property="og:site_name" content="Zeropunch">
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="Zeropunch — a punch clock that knows nothing about you">
-<meta property="og:description" content="One button, «Punch in/out», and a list of your times. Encrypted in the browser; the server never sees a working time. No e-mail, no real name.">
+<meta property="og:description" content="One button, «Punch in/out», and a list of your times. Encrypted in the browser. The server never sees a working time. No e-mail, no real name.">
 <meta property="og:url" content="https://zeropunch.dropnook.app/">
 <meta property="og:image" content="https://zeropunch.dropnook.app/social-preview.png">
 <meta property="og:image:width" content="1200">
@@ -35,7 +35,7 @@
    "@type": "WebApplication",
    "@id": "https://zeropunch.dropnook.app/#software",
    "name": "Zeropunch",
-   "description": "Zeropunch is a zero-knowledge punch clock for your phone: one button, «Punch in/out», and a list of your times. Every punch is encrypted in the browser before it leaves the device; the server stores fixed-size ciphertext and never sees a working time. No e-mail address, no real name.",
+   "description": "Zeropunch is a zero-knowledge punch clock for your phone: one button, «Punch in/out», and a list of your times. Every punch is encrypted in the browser before it leaves the device. The server never sees a working time. No e-mail address, no real name.",
    "url": "https://zeropunch.app/",
    "sameAs": "https://zeropunch.dropnook.app/",
    "inLanguage": ["en", "de"],
@@ -86,7 +86,7 @@
      "name": "Can anyone see my working times?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Not on the server. Every punch is encrypted in your browser before it leaves the device; the server stores fixed-size ciphertext. It does see when an encrypted write arrives. Punching without a network blurs that: the record then goes when you are back online."
+      "text": "Not on the server. Every punch is encrypted in your browser. The server only sees when an encrypted write arrives."
      }
     },
     {
@@ -94,7 +94,7 @@
      "name": "What if I forget my passphrase?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Then your punches cannot be read any more — by anyone. Nobody can reset a passphrase: there is no back door, no reset by e-mail and no recovery key. The account is deleted automatically after 61 days without use; until then the username stays taken. While you are still logged in, you can change the passphrase in the settings (that needs the current one)."
+      "text": "Then nobody can read your punches any more. A passphrase cannot be reset. The account is deleted after 61 days without use. While you are still logged in, you can change the passphrase in the settings."
      }
     },
     {
@@ -102,7 +102,7 @@
      "name": "I punched wrong. Can I fix it?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Yes, right in the list: every punch has a pencil to change it and a bin to delete it once you confirm. A whole day wrong? The bin in the day’s header asks once and deletes all its punches. You set the time on a wheel for hours and minutes. Forgot a punch? Add it with «+», up to 13 months back. The day then pairs up anew."
+      "text": "Yes, in the list. Every punch has a pencil to change it and a bin to delete it. Add a forgotten punch with «+», up to 13 months back."
      }
     },
     {
@@ -110,7 +110,7 @@
      "name": "Do I have to install an app?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "No. Zeropunch runs in the browser. You can add it to your home screen (the settings show how on iPhone, iPad and Android), and it keeps punching without a connection; the punches are sent once you are online again."
+      "text": "No. Zeropunch runs in the browser. You can add it to your home screen, and it keeps punching without a connection."
      }
     },
     {
@@ -118,7 +118,7 @@
      "name": "How long are my punches kept?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "13 months, then they are deleted for good. Export what you want to keep before that, as CSV or JSON. An account that is not used for 61 days is deleted with everything in it."
+      "text": "13 months, then they are deleted for good. Export first what you want to keep, as CSV or JSON."
      }
     },
     {
@@ -126,7 +126,7 @@
      "name": "Can I punch with an NFC sticker?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Yes. Stick an NFC sticker on your locker, desk, notebook or bag and hold your phone to it. The punch is made at once; if you prefer, the app asks «Punch now?» first. The sticker only opens a link that is the same for everyone and holds nothing about you. On an iPhone your work badge often does the job too, if it has an NFC chip: hold the badge to the phone instead of the phone to a sticker. Nothing on the badge is changed. Step-by-step instructions for iPhone and Android are in the settings."
+      "text": "Yes. Stick an NFC sticker on your locker, desk, notebook or bag and hold your phone to it. On an iPhone your work badge often does the job too, if it has an NFC chip. The instructions are in the settings."
      }
     },
     {
@@ -134,7 +134,7 @@
      "name": "Can I record holidays and sick days and print my times?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Yes. Vacation, sick days, public holidays and other absences are entered as a whole or half day, at most 31 days ahead; they count like working time towards your target. For every week and month there is a sheet to print or save as PDF."
+      "text": "Yes. Absences are entered as a whole or half day. They count towards your target. For every week and month there is a sheet to print or save as a PDF."
      }
     },
     {
@@ -142,7 +142,7 @@
      "name": "I work night shifts. Does that work?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Yes. Turn on night shifts in the settings and choose when your day changes, for example at 04:00. Punches before that time count to the previous day, so a shift over midnight stays one day."
+      "text": "Yes. Turn on night shifts in the settings and choose when your day changes, for example at 04:00. A shift over midnight stays one day."
      }
     },
     {
@@ -202,7 +202,7 @@
     <div class="hero-text">
       <p class="kicker">Free &amp; open source · zero knowledge</p>
       <h1>A punch clock that <em>knows nothing</em> about you.</h1>
-      <p class="lead">One button, «Punch in/out», and a list of your times. Every punch is encrypted on your phone before it leaves it — the server stores only ciphertext and never sees a working time. No e-mail address, no real name.</p>
+      <p class="lead">One button, «Punch in/out», and a list of your times. Every punch is encrypted on your phone. The server never sees a working time. No e-mail address, no real name.</p>
       <div class="ctas">
         <a class="btn" href="https://zeropunch.app/">Open Zeropunch</a>
         <a class="btn ghost" href="https://github.com/dropnook/zeropunch">Source on GitHub</a>
@@ -224,47 +224,47 @@
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7z"/><path d="M10.5 9.5a3.5 3.5 0 0 1 0 5M19.5 8a7 7 0 0 1 0 8"/></svg>
         <h3>Punch with an NFC sticker</h3>
-        <p>Stick an NFC sticker on your locker, desk, notebook or bag, hold your phone to it, and the punch is made. On an iPhone your work badge often does the job too, if it has an NFC chip: hold the badge to the phone instead of the phone to a sticker. Nothing on the badge is changed. The sticker only opens a link that is the same for everyone and holds nothing about you; it only works on a device where you are logged in. The punch is made at once; if you prefer, the app asks «Punch now?» first. Step-by-step instructions for iPhone and Android are in the settings.</p>
+        <p>Stick an NFC sticker on your locker, desk, notebook or bag and hold your phone to it. The punch is made. On an iPhone your work badge often does the job too, if it has an NFC chip. Nothing on the badge is changed. The sticker holds nothing about you. The instructions are in the settings.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M9.5 11.2a1.7 1.7 0 1 0-3.4 0 1.7 1.7 0 0 0 3.4 0zM5.5 15.5c.6-1.2 4-1.2 4.6 0M13 10h4.5M13 13.5l1.5 1.5 3-3"/></svg>
         <h3>Badge reminder</h3>
-        <p>Does your badge need validating at the reception every so often? Turn on the reminder: at the earliest every 25 calendar days (or as many as you choose), the first punch of the day brings up a note once. The count starts when you switch it on, so the first note comes after 25 days. If you do not punch that day, it comes with the next first punch.</p>
+        <p>Does your badge need validating every so often? The reminder comes up every 25 days with the first punch of the day. You choose the number of days.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/></svg>
         <h3>One button: «Punch in/out»</h3>
-        <p>Tap it when you start, tap it when you stop. The start screen shows where you are: in since when, or out, and today’s total. Above it are the punches of one day with its total — today, or swipe to earlier days. Handy for copying them into another system.</p>
+        <p>Tap it when you start. Tap it when you stop. The start screen shows whether you are in or out, and today’s total. Swipe sideways for earlier days.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h12m0 0-3-3m3 3-3 3M20 16H8m0 0 3-3m-3 3 3 3"/></svg>
         <h3>Punches pair up in order</h3>
-        <p>Within a day, the 1st punch is in, the 2nd out, the 3rd in again, and so on: <span class="eg">08:02 – 12:01</span>, <span class="eg">12:48 – 17:10</span>. Add, change or delete one, and the day pairs up anew, in plain sight.</p>
+        <p>The 1st punch of the day is in, the 2nd out, the 3rd in again: <span class="eg">08:02 – 12:01</span>, <span class="eg">12:48 – 17:10</span>. Change one, and the day pairs up anew.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10M17 19.5h3"/></svg>
         <h3>Day and week totals</h3>
-        <p>The list shows every day with its pairs and total, and every week with its sum against your target. Each punch has its own row with a pencil to change it and a bin to delete it; the bin in a day’s header deletes the whole day, after asking once. Forgot one? Add it with «+»; the time is set on a wheel for hours and minutes.</p>
+        <p>The list shows every day with its total and every week against your target. Every punch can be changed or deleted. Forgot one? Add it with «+».</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
         <h3>Night shifts, if you need them</h3>
-        <p>An optional setting moves the change of day to a time you choose, e.g. 04:00. A shift over midnight then stays one day.</p>
+        <p>Move the change of day, for example to 04:00. A shift over midnight stays one day.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h4"/><path d="M15.5 16.5l1.5 1.5 2.5-3"/></svg>
         <h3>Absences and a sheet to print</h3>
-        <p>Vacation, sick, a public holiday or something else: mark a whole or half day in the list, or a from–until range, one entry per weekday. An absence counts towards your target time (a whole day is a fifth of your weekly hours), so the week sums and the balance stay right; it is encrypted and synced like a punch. For your employer or your files, open a week or month sheet: one row per day with the in–out times, absences and totals, then worked time, credit, target and balance. Print it or save it as a PDF, black on white, A4.</p>
+        <p>Vacation, sick or a public holiday: mark a whole or half day, or a range of days. Absences count towards your target. For every week and month there is a sheet to print or save as a PDF.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/></svg>
         <h3>Nerd mode</h3>
-        <p>Balance for the week, the month and the last 12 months, hours per week (13 weeks) and per month (13 months), average first and last punch, breaks, and a heatmap of your punches by weekday and hour, over 90 days or all 13 months.</p>
+        <p>Balance for the week, the month and 12 months. Hours per week and per month. Average first and last punch, breaks and a heatmap.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>
         <h3>Offline, and like an app</h3>
-        <p>Add it to your home screen; the settings show how, on iPhone, iPad and Android. Without a connection you keep punching; the punches wait on the phone and go out when you are online again.</p>
+        <p>Add Zeropunch to your home screen. Without a connection you keep punching. The punches go out when you are online again.</p>
       </article>
     </div>
 
@@ -281,7 +281,7 @@
       </figure>
       <figure>
         <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="screenshots/list-en-dark.webp?v=252"><img src="screenshots/list-en-light.webp?v=252" width="780" height="1688" loading="lazy" alt="List: week 48 with 15:40 h of 42 h, today and yesterday with one row per punch (in 07:52, out 12:04, …), a pencil and a bin on every row, the duration of each pair, and a bin next to each day’s total that deletes the whole day"></picture>
-        <figcaption>List<small>Totals; edit, delete a punch or a day</small></figcaption>
+        <figcaption>List<small>Totals, edit, delete</small></figcaption>
       </figure>
       <figure>
         <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="screenshots/edit-en-dark.webp?v=252"><img src="screenshots/edit-en-light.webp?v=252" width="780" height="1688" loading="lazy" alt="Edit punch: the date, a wheel for hours and one for minutes set to 17:12, a note field, and Save, Delete and Cancel"></picture>
@@ -293,7 +293,7 @@
       </figure>
       <figure>
         <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="screenshots/settings-fx-en-dark.webp?v=260"><img src="screenshots/settings-fx-en-light.webp?v=260" width="780" height="1688" loading="lazy" alt="Settings, Animation: a preview showing the time clock after its punch, with 15:21 on the card, above a grid of tiles with a small picture each: Random, Off and the sixteen animations from Sundial to In the button, Time clock selected"></picture>
-        <figcaption>Animation<small>Fifteen to choose from</small></figcaption>
+        <figcaption>Animation<small>Sixteen to choose from</small></figcaption>
       </figure>
       <figure>
         <picture class="phone"><source media="(prefers-color-scheme: dark)" srcset="screenshots/register-en-dark.webp?v=252"><img src="screenshots/register-en-light.webp?v=252" width="780" height="1688" loading="lazy" alt="Registration: a username (no real name needed), a passphrase of at least 6 characters, twice, and the warning that fewer than 10 characters are easy to guess"></picture>
@@ -306,23 +306,23 @@
 <section id="privacy">
   <div class="wrap">
     <h2>What the server <em>knows</em></h2>
-    <p class="sub wide">Your browser derives the keys from your passphrase and encrypts every punch (AES-256-GCM, padded to a fixed size) before it is sent. The server keeps what it needs to let you log in and to sync — and nothing it could read.</p>
+    <p class="sub wide">Your browser encrypts every punch before it is sent (AES-256-GCM). The server keeps only what it needs to log you in and to sync. It can read none of it.</p>
     <div class="seen" role="table" aria-label="What the server sees and what it never sees">
       <div class="seen-head" role="row"><span role="columnheader">The server sees</span><span role="columnheader">The server never sees</span></div>
       <ul role="rowgroup">
-        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">The server sees</span>an HMAC of your username (and the username itself, in transit, while you register or log in)</p><p class="never" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 4l16 16"/></svg></svg><span class="lab">The server never sees</span>your username at rest</p></li>
+        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">The server sees</span>an HMAC of your username, the name itself only while you register or log in</p><p class="never" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 4l16 16"/></svg></svg><span class="lab">The server never sees</span>your username at rest</p></li>
         <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">The server sees</span>HMACs of the login keys, and your master key, wrapped</p><p class="never" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 4l16 16"/></svg></svg><span class="lab">The server never sees</span>your passphrase, the unwrapped master key</p></li>
         <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">The server sees</span>fixed-size ciphertext per punch</p><p class="never" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 4l16 16"/></svg></svg><span class="lab">The server never sees</span>times, notes, settings</p></li>
-        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">The server sees</span>when encrypted writes arrive; it stores only days, never a time of day: the UTC day of a record’s last write, of your last use and of a session’s last use</p><p class="never" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 4l16 16"/></svg></svg><span class="lab">The server never sees</span>what they contain</p></li>
-        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">The server sees</span>your IP address, only in passing: as a keyed hash in rate-limit counters that expire within two days</p><p class="never none" role="cell"></p></li>
+        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">The server sees</span>when an encrypted write arrives. It stores only the day, never a time of day.</p><p class="never" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/><path d="M4 4l16 16"/></svg></svg><span class="lab">The server never sees</span>what it contains</p></li>
+        <li role="row"><p class="sees" role="cell"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="11"/><svg x="3.5" y="3.5" width="15" height="15" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg></svg><span class="lab">The server sees</span>your IP address as a keyed hash in rate-limit counters, for two days at most</p><p class="never none" role="cell"></p></li>
       </ul>
     </div>
 
     <h3 class="mid">Honest limits</h3>
     <ul class="checks">
-      <li><b>You must trust the JavaScript the server delivers.</b> Like every web app that encrypts in the browser, a malicious or compromised server could ship code that leaks your passphrase. What helps: no third-party code, a strict Content Security Policy, no build step (what is in the repository is what runs), public source.</li>
-      <li><b>Arrival times are visible.</b> Punching live sends a record at that moment, so the operator could guess your times. Punching without a network blurs that: the record then goes when you are back online.</li>
-      <li><b>A lost passphrase cannot be recovered.</b> There is no back door, no reset by e-mail, no support that can restore your data. The punches stay unreadable, and the account is deleted after 61 days without use.</li>
+      <li><b>You must trust the JavaScript the server delivers.</b> As with every web app that encrypts in the browser: a compromised server could ship code that leaks your passphrase. What helps: no third-party code, a strict Content Security Policy, no build step, public source.</li>
+      <li><b>Arrival times are visible.</b> Punching live sends a record at that moment. The operator could guess your times from that. A punch made offline goes out later.</li>
+      <li><b>A lost passphrase cannot be recovered.</b> No back door, no reset by e-mail. The punches stay unreadable, and the account is deleted after 61 days without use.</li>
       <li><b>Usernames are not secret.</b> Registering tells you whether a name is taken. Pick one that does not identify you.</li>
       <li><b>A long passphrase matters.</b> Whoever obtained the database and the server secret could try passphrases offline, at 600 000 PBKDF2 rounds per guess.</li>
     </ul>
@@ -332,11 +332,11 @@
 <section id="account" class="band">
   <div class="wrap">
     <h2>No e-mail, <em>no real name</em></h2>
-    <p class="sub">An account is two things — and only you know the second one.</p>
+    <p class="sub">An account is two things. Only you know the second one.</p>
     <ol class="steps">
-      <li><h3>A username</h3><p>3–32 characters, <code>a–z 0–9 . _ -</code>. No real name needed — better none. On a new device it is all you need besides the passphrase.</p></li>
-      <li><h3>A passphrase</h3><p>At least 6 characters, better 10 or more; several words work well. It never leaves your device: the browser turns it into one key to log in and another that unlocks your data. Changing it in the settings logs out your other devices.</p></li>
-      <li class="warn"><h3>No reset</h3><p>Nobody can reset your passphrase — not even us. If it is lost, the punches can no longer be read, and the account is deleted automatically after 61 days without use; until then the username stays taken. So pick one you will remember.</p></li>
+      <li><h3>A username</h3><p>3–32 characters, <code>a–z 0–9 . _ -</code>. No real name needed, better none.</p></li>
+      <li><h3>A passphrase</h3><p>At least 6 characters, better 10 or more. It never leaves your device. Changing it logs out your other devices.</p></li>
+      <li class="warn"><h3>No reset</h3><p>Nobody can reset your passphrase, not even us. Without it the punches can no longer be read. Pick one you will remember.</p></li>
     </ol>
   </div>
 </section>
@@ -346,9 +346,9 @@
     <h2>Limits, <em>stated plainly</em></h2>
     <p class="sub">Zeropunch keeps as little as it can, for as short as it can.</p>
     <div class="limits">
-      <div class="limit"><span class="num">13</span><span class="unit">months per punch</span><p>A punch is kept 13 months, then deleted for good — on your device and on the server. Export first what you want to keep: CSV or JSON. A wrong clock on your device deletes nothing.</p></div>
-      <div class="limit"><span class="num">12</span><span class="unit">punches a day</span><p>12 punches per day in the app; once a day has 12, the button waits for the next day. The server accepts at most 100 record writes per account and day, so you can still add or fix several past days in one go.</p></div>
-      <div class="limit"><span class="num">61</span><span class="unit">days without use</span><p>An account that is not used for 61 days is deleted, with all its punches and sessions. The app says so before it matters, and tells you when you come back after a long break.</p></div>
+      <div class="limit"><span class="num">13</span><span class="unit">months per punch</span><p>After 13 months a punch is deleted for good, on your device and on the server. Export first what you want to keep: CSV or JSON.</p></div>
+      <div class="limit"><span class="num">12</span><span class="unit">punches a day</span><p>The app takes no more than 12 punches a day. The button then waits for the next day.</p></div>
+      <div class="limit"><span class="num">61</span><span class="unit">days without use</span><p>An account that is not used for 61 days is deleted with all its punches. The app warns you before that.</p></div>
     </div>
   </div>
 </section>
@@ -356,7 +356,7 @@
 <section id="self-hosting" class="band">
   <div class="wrap">
     <h2>Free and <em>open source</em></h2>
-    <p class="sub wide">Zeropunch is free software under the <span class="nw">AGPL-3.0</span>: no trackers, no cookies except the login session. Every line is on GitHub. You can also run your own copy: a small serverless backend with a SQL database, no build step. The README explains every step.</p>
+    <p class="sub wide">Zeropunch is free software under the <span class="nw">AGPL-3.0</span>. No trackers, no cookies except the login session. You can also run your own copy. The README explains every step.</p>
     <p class="ctas center"><a class="btn" href="https://github.com/dropnook/zeropunch#self-hosting">Self-hosting guide</a></p>
   </div>
 </section>
@@ -364,14 +364,14 @@
 <section id="faq">
   <div class="wrap narrow">
     <h2><em>Questions</em></h2>
-    <details><summary>Can anyone see my working times?</summary><p>Not on the server. Every punch is encrypted in your browser before it leaves the device; the server stores fixed-size ciphertext. It does see when an encrypted write arrives. Punching without a network blurs that: the record then goes when you are back online.</p></details>
-    <details><summary>What if I forget my passphrase?</summary><p>Then your punches cannot be read any more — by anyone. Nobody can reset a passphrase: there is no back door, no reset by e-mail and no recovery key. The account is deleted automatically after 61 days without use; until then the username stays taken. While you are still logged in, you can change the passphrase in the settings (that needs the current one).</p></details>
-    <details><summary>I punched wrong. Can I fix it?</summary><p>Yes, right in the list: every punch has a pencil to change it and a bin to delete it once you confirm. A whole day wrong? The bin in the day’s header asks once and deletes all its punches. You set the time on a wheel for hours and minutes. Forgot a punch? Add it with «+», up to 13 months back. The day then pairs up anew.</p></details>
-    <details><summary>Do I have to install an app?</summary><p>No. Zeropunch runs in the browser. You can add it to your home screen (the settings show how on iPhone, iPad and Android), and it keeps punching without a connection; the punches are sent once you are online again.</p></details>
-    <details><summary>How long are my punches kept?</summary><p>13 months, then they are deleted for good. Export what you want to keep before that, as CSV or JSON. An account that is not used for 61 days is deleted with everything in it.</p></details>
-    <details><summary>Can I punch with an NFC sticker?</summary><p>Yes. Stick an NFC sticker on your locker, desk, notebook or bag and hold your phone to it. The punch is made at once; if you prefer, the app asks «Punch now?» first. The sticker only opens a link that is the same for everyone and holds nothing about you. On an iPhone your work badge often does the job too, if it has an NFC chip: hold the badge to the phone instead of the phone to a sticker. Nothing on the badge is changed. Step-by-step instructions for iPhone and Android are in the settings.</p></details>
-    <details><summary>Can I record holidays and sick days and print my times?</summary><p>Yes. Vacation, sick days, public holidays and other absences are entered as a whole or half day, at most 31 days ahead; they count like working time towards your target. For every week and month there is a sheet to print or save as PDF.</p></details>
-    <details><summary>I work night shifts. Does that work?</summary><p>Yes. Turn on night shifts in the settings and choose when your day changes, for example at 04:00. Punches before that time count to the previous day, so a shift over midnight stays one day.</p></details>
+    <details><summary>Can anyone see my working times?</summary><p>Not on the server. Every punch is encrypted in your browser. The server only sees when an encrypted write arrives.</p></details>
+    <details><summary>What if I forget my passphrase?</summary><p>Then nobody can read your punches any more. A passphrase cannot be reset. The account is deleted after 61 days without use. While you are still logged in, you can change the passphrase in the settings.</p></details>
+    <details><summary>I punched wrong. Can I fix it?</summary><p>Yes, in the list. Every punch has a pencil to change it and a bin to delete it. Add a forgotten punch with «+», up to 13 months back.</p></details>
+    <details><summary>Do I have to install an app?</summary><p>No. Zeropunch runs in the browser. You can add it to your home screen, and it keeps punching without a connection.</p></details>
+    <details><summary>How long are my punches kept?</summary><p>13 months, then they are deleted for good. Export first what you want to keep, as CSV or JSON.</p></details>
+    <details><summary>Can I punch with an NFC sticker?</summary><p>Yes. Stick an NFC sticker on your locker, desk, notebook or bag and hold your phone to it. On an iPhone your work badge often does the job too, if it has an NFC chip. The instructions are in the settings.</p></details>
+    <details><summary>Can I record holidays and sick days and print my times?</summary><p>Yes. Absences are entered as a whole or half day. They count towards your target. For every week and month there is a sheet to print or save as a PDF.</p></details>
+    <details><summary>I work night shifts. Does that work?</summary><p>Yes. Turn on night shifts in the settings and choose when your day changes, for example at 04:00. A shift over midnight stays one day.</p></details>
     <details><summary>Is it free? Can I run it myself?</summary><p>Yes. Zeropunch is free and open source under the AGPL-3.0. For a copy of your own you need a small serverless backend with a SQL database. The <a href="https://github.com/dropnook/zeropunch#self-hosting">README on GitHub</a> explains the setup.</p></details>
     <p class="ctas center"><a class="btn" href="https://zeropunch.app/">Open Zeropunch</a></p>
   </div>

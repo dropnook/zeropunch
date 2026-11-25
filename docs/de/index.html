@@ -28,6 +28,7 @@
 <link rel="stylesheet" href="../site.css">
 <script src="../reveal.js" defer></script>
 <script type="module" src="../demo/boot.js"></script>
+<script type="module" src="../video.js"></script>
 <script type="application/ld+json">{
  "@context": "https://schema.org",
  "@graph": [
@@ -225,6 +226,10 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7z"/><path d="M10.5 9.5a3.5 3.5 0 0 1 0 5M19.5 8a7 7 0 0 1 0 8"/></svg>
         <h3>Punchen mit NFC-Kleber</h3>
         <p>Kleb einen NFC-Kleber an Spind, Pult, Notebook oder Tasche und halt das Handy daran. Der Punch ist gemacht. Auf dem iPhone geht oft auch dein Firmenbadge, wenn er einen NFC-Chip hat. Am Badge wird nichts verändert. Der Kleber enthält nichts über dich. Die Anleitung steht in den Einstellungen.</p>
+        <a class="vidtile" id="nfc-video" href="../video/nfc-iphone-de.mp4" data-video="nfc-dialog">
+          <span class="vidtile-pic"><img src="../video/nfc-iphone-de-klein.jpg" width="114" height="247" alt="" loading="lazy"><span class="vidtile-play" aria-hidden="true"></span></span>
+          <span class="vidtile-text"><small>Video-Anleitung · iPhone</small><b>NFC-Kleber einrichten</b><span>Abspielen · 75 Sekunden</span></span>
+        </a>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M9.5 11.2a1.7 1.7 0 1 0-3.4 0 1.7 1.7 0 0 0 3.4 0zM5.5 15.5c.6-1.2 4-1.2 4.6 0M13 10h4.5M13 13.5l1.5 1.5 3-3"/></svg>
@@ -379,6 +384,13 @@
 </section>
 
 </main>
+
+<dialog class="viddialog" id="nfc-dialog" aria-label="Video: NFC-Kleber auf dem iPhone einrichten">
+  <form method="dialog"><button class="viddialog-close" aria-label="Schliessen">×</button></form>
+  <video controls muted playsinline preload="none" width="684" height="1482" poster="../video/nfc-iphone-de.jpg">
+    <source src="../video/nfc-iphone-de.mp4" type="video/mp4">
+  </video>
+</dialog>
 
 <footer class="foot">
   <div class="wrap">

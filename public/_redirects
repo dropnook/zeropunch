@@ -1,3 +1,5 @@
 # The product site lives on its own host; /about leads there (Workers static assets redirects).
 /about https://zeropunch.dropnook.app/ 302
 /about/* https://zeropunch.dropnook.app/ 302
+# The iPhone NFC guide links to the video on the product site.
+/nfc-video https://zeropunch.dropnook.app/de/#nfc-video 302

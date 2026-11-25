@@ -124,7 +124,9 @@ export function mount(old, lang) {
     said,
   );
   const phone = h('div', { class: 'phone zd', role: 'group', 'aria-label': T('phone_aria') }, screen);
-  const wrap = h('div', { class: 'zd-wrap' }, phone, h('p', { class: 'zd-cap' }, T('caption')));
+  // A nudge beside the phone until the first punch: the phone is a demo, not a picture.
+  const tryMe = h('p', { class: 'zd-try', 'aria-hidden': 'true' }, h('span', { class: 'zd-try-text' }, T('try_me')), h('span', { class: 'zd-try-hand' }, '👉'));
+  const wrap = h('div', { class: 'zd-wrap' }, phone, tryMe, h('p', { class: 'zd-cap' }, T('caption')));
 
   // ---------------------------------------------------------------- drawing
   let sig = '';
@@ -294,6 +296,7 @@ export function mount(old, lang) {
     lastTap = t;
     const r = core.tap(st);
     if (!r.punch) return;
+    tryMe.remove();
     st = r.state;
     t0 = t; // the demo clock now stands at this punch and ticks on from there
     glowTs = r.punch.ts;

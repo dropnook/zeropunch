@@ -179,6 +179,7 @@ export const TEXTS = {
     demo_done: 'That was the demo.',
     restart: 'Start again',
     caption: 'Demo – nothing is stored.',
+    try_me: 'This is a demo, tap me!',
   },
   de: {
     today: 'Heute',
@@ -206,6 +207,7 @@ export const TEXTS = {
     demo_done: 'Das war die Demo.',
     restart: 'Nochmals von vorn',
     caption: 'Demo – nichts wird gespeichert.',
+    try_me: 'Hier Demo, klick mich!',
   },
 };
 

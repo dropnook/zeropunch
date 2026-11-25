@@ -142,3 +142,17 @@
   .zd-chips.zd-in, .zd-chips.zd-back, .zd-chip.zd-new { animation: none; }
   .zd .punch { transition: none; }
 }
+
+/* the nudge beside the phone, until the first punch */
+.zd-try { position: absolute; right: calc(100% + 10px); top: 66%; margin: 0; display: flex; align-items: center; gap: 8px;
+  white-space: nowrap; pointer-events: none; font-size: 15px; font-weight: 700; line-height: 1.2; color: var(--accent);
+  animation: zd-try 1.3s ease-in-out infinite; }
+.zd-try-text { padding: 7px 12px; border-radius: 999px; background: var(--accent-soft); }
+.zd-try-hand { font-size: 28px; line-height: 1; }
+@keyframes zd-try { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(8px); } }
+@media (max-width: 960px) {
+  .zd-try { right: auto; left: 50%; top: -46px; flex-direction: column; gap: 2px; animation-name: zd-try-down; margin-left: -90px; width: 180px; }
+  .zd-try-hand { transform: rotate(90deg); }
+  @keyframes zd-try-down { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+}
+@media (prefers-reduced-motion: reduce) { .zd-try { animation: none; } }

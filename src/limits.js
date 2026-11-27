@@ -20,9 +20,9 @@ export function limits(env) {
   return {
     // Registrations per client network (IPv4 address, IPv6 /64) and day. Generous on purpose: a whole
     // office or a mobile carrier can share one address (the operator watches the daily statistics).
-    regPerIp: { name: 'ri', max: num(env.REG_PER_IP_DAY, 100), win: DAY },
+    regPerIp: { name: 'ri', max: num(env.REG_PER_IP_DAY, 300), win: DAY },
     // The same per IPv6 /48 (65 536 /64s), ten times higher: one routed /48 cannot multiply the /64 limit.
-    regPerNet48: { name: 'rw', max: 10 * num(env.REG_PER_IP_DAY, 100), win: DAY },
+    regPerNet48: { name: 'rw', max: 10 * num(env.REG_PER_IP_DAY, 300), win: DAY },
     // Soft global threshold: above it the proof of work gets harder (see regExtraBits), nobody is blocked.
     regGlobal: { name: 'rg', max: num(env.REG_GLOBAL_DAY, 1000), win: DAY },
     // Hard global ceiling per day (same counter as regGlobal). Near plausible demand (see README).
@@ -41,9 +41,9 @@ export function limits(env) {
     // Authenticated requests per account and UTC day (incl. successful logins). 2-second polling all
     // day is 43 200 requests; 50 000 leaves room for stamps, settings, paging and logins on top.
     requestsPerDay: { name: 'aq', max: 50000, win: DAY },
-    // Record writes per account and UTC day. Deliberately above the app's 12 punches per day: back-entries
-    // and edits for several past days must fit into one sitting. The settings record has its own budget.
-    writesPerDay: { name: 'wd', max: 100, win: DAY },
+    // Record writes per account and UTC day. Far above the app's 12 punches per day: back-entries, edits
+    // and a CSV import of several months must fit into one sitting. The settings record has its own budget.
+    writesPerDay: { name: 'wd', max: 1000, win: DAY },
     // Unauthorised requests (no, a malformed or a wrong token) on /api/admin/stats per client network.
     statsFail: { name: 'sf', max: 10, win: HOUR },
     settingsPerDay: { name: 'sd', max: 200, win: DAY },

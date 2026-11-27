@@ -4,7 +4,7 @@ import * as api from './api.js';
 import * as db from './db.js';
 import { $, $$, h, s as svg, fill } from './dom.js';
 import { qrSvg } from './qr.js';
-import { weekBars, monthBars, heatmap } from './charts.js';
+import { weekBars, monthBars, matrix } from './charts.js';
 import {
   Store,
   localTz,
@@ -17,6 +17,7 @@ import {
   showAwayNotice,
   buttonLabel,
   buttonLabelKey,
+  buttonWords,
   BUTTON_LABELS,
   fxSetting,
   colorSetting,
@@ -37,11 +38,11 @@ import { deleteAccountWith, isWrongAuth, reloadBlocked, controllerWatch, linkPun
 import { createFxRunner } from './fx.js';
 import { createTabLink } from './tabs.js';
 import { handleAccountGone } from './gone.js';
-import { dayBlocks, deletePunch, deleteDay, absenceRows, absenceLabel, deleteAbsence } from './listview.js';
+import { dayBlocks, deletePunch, deleteDay, absenceRows, absenceLabel, deleteAbsence, withoutWeekendHolidays, aheadUntil, aheadMode, filterDays, listFilter, breakRule, ruleText, parsePause, encodePause } from './listview.js';
 import { periodOptions, renderSheet } from './sheet.js';
 import { createWheel } from './wheel.js';
 import { solve } from './pow.js';
-import { APP_NAME, WORDMARK, REPO_URL, t, tn, wordMatches, setLang, getLang, detectLang, applyStatic, locale, num, plain } from './i18n.js';
+import { APP_NAME, WORDMARK, REPO_URL, t, tn, wordMatches, setLang, getLang, detectLang, applyStatic, locale, num, plain, setWords } from './i18n.js';
 import {
   createAccount,
   passphraseKeys,
@@ -53,8 +54,11 @@ import {
   MIN_PASSPHRASE,
   WEAK_PASSPHRASE,
   PLAINTEXT_SIZE,
+  PBKDF2_ITERATIONS,
   SETTINGS_ID,
 } from './crypto.js';
+import { nerdStats, sickRate, toMin, presenceMatrix, dayBalances, breakMatrix, monthBalances } from './stats.js';
+import { readCsv, planImport } from './importcsv.js';
 import {
   buildDays,
   dayView,
@@ -66,7 +70,9 @@ import {
   editedTs,
   parseDay,
   addDays,
+  openDaysToWarn,
   weekStart,
+  isoWeek,
   formatDur,
   balance,
   weeklyHours,
@@ -74,21 +80,24 @@ import {
   addMonths,
   stats,
   minutesToClock,
+  workdays,
   calendarDate,
   clockToMinutes,
   parseHours,
   DEFAULT_TZ,
   logicalDay,
   creditByDay,
+  offByDay,
   withAbsences,
   absenceCredit,
+  absenceType,
   periodSheet,
   isDayKey,
   absenceDays,
   daysBetween,
 } from './time.js';
 
-export const APP_VERSION = '2026.11.27';
+export const APP_VERSION = '2026.11.28-1';
 const MAIN_TABS = ['start', 'list', 'nerd', 'settings'];
 const FILE_PREFIX = APP_NAME.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
@@ -99,6 +108,10 @@ const state = {
   fingerprint: null,
   tab: 'start',
   listWeeks: 8,
+  /** The funnel's day filter (listview.js LIST_FILTERS): for this session only, «all» after a restart. */
+  listFilter: 'all',
+  // The nerd view's network info, asked for on a tap (api.netInfo); kept for the session only.
+  net: /** @type {any} */ (null),
   /** @type {any} */ editing: null,
   timersStarted: false,
   /** Session expired while the app was open: log in again with the known username. */
@@ -112,7 +125,12 @@ const state = {
   /** Day the list scrolls to and highlights once (tapped on the start screen). @type {string|null} */
   listFocus: null,
   /** Nerd mode: period of the key figures and the heatmap. */
-  nerdRange: /** @type {'90d'|'all'} */ ('90d'),
+  // The nerd view's period for statistics, absences and heatmap (nerdPeriod).
+  nerdRange: '90d',
+  // The balance heatmap: weeks × weekdays or months × weekdays.
+  balanceBy: /** @type {'week'|'month'} */ ('week'),
+  // The nerd view's heatmap: presence by hour, punches by hour, or the balance per day.
+  heatMode: /** @type {'presence'|'breaks'|'punches'|'balance'} */ ('presence'),
   /** Days away before this login, if the away notice is due (shown once, after entering the app). @type {number|null} */
   away: null,
 };
@@ -262,17 +280,18 @@ function calendarDays(st, from, to) {
  * The absences of the list, the charts and the exports: the stored ones plus the calendar's days from
  * the first day with a punch or an absence (a holiday before it would move the start of the balance;
  * never before the retention bound) up to ABSENCE_AHEAD_DAYS ahead, like a planned absence. A holiday
- * on a Saturday or Sunday shows by its name and credits nothing (absenceCredit).
- * @param {Store} st @param {import('./time.js').Day[]} days from buildDays() @param {string} today
+ * on a Saturday or Sunday shows by its name and credits nothing (absenceCredit). The list ends at today
+ * (`until`: today).
+ * @param {Store} st @param {import('./time.js').Day[]} days from buildDays() @param {string} today @param {string} [until]
  */
-function absencesWithCalendar(st, days, today) {
+function absencesWithCalendar(st, days, today, until = addDays(today, ABSENCE_AHEAD_DAYS)) {
   const own = st.absences();
   if (!st.settings.holidays) return own;
   let first = today;
   for (const d of days) if (d.day < first) first = d.day;
   for (const a of own) if (a.day < first) first = a.day;
   const oldest = oldestLogicalDay(Date.now(), localTz(), st.dayStart);
-  return own.concat(calendarDays(st, first < oldest ? oldest : first, addDays(today, ABSENCE_AHEAD_DAYS)));
+  return own.concat(calendarDays(st, first < oldest ? oldest : first, until));
 }
 
 // ------------------------------------------------------------ helpers
@@ -361,7 +380,8 @@ function dayLabel(key) {
   const today = state.store ? state.store.dayOf(Date.now()) : dayKey(Date.now(), localTz());
   if (key === today) return t('today');
   if (key === addDays(today, -1)) return t('yesterday');
-  return shortDate(key);
+  // Another year (the list's coming days, or last December in January): with the year.
+  return key.slice(0, 4) === today.slice(0, 4) ? shortDate(key) : `${shortDate(key)} ${key.slice(0, 4)}`;
 }
 
 /**
@@ -443,6 +463,8 @@ function applyLanguage() {
 async function boot() {
   // Before any screen shows: the last colour of this device (the boot screen has no highlight).
   applyColor(savedColor());
+  applySize(savedSize());
+  applyTheme(savedTheme());
   setLang(detectLang());
   applyLanguage();
   bindEvents();
@@ -803,6 +825,8 @@ async function onPassChange(/** @type {SubmitEvent} */ e) {
 function render() {
   if (!state.store) return;
   applyColor(state.store.settings.color); // also when a sync brings another device's choice
+  // «Jetzt stempeln» / «Stempeln» on the button: the German texts say «Stempel» (i18n.js setWords).
+  if (setWords(buttonWords(state.store.settings.button))) applyLanguage();
   if ($('#app').dataset.view === 'print') return renderPrint();
   $('#tabs [data-tab=nerd]').hidden = !state.store.settings.nerd;
   if (state.tab === 'nerd' && !state.store.settings.nerd) return show('start');
@@ -859,9 +883,18 @@ function renderStart() {
   df.textContent = full ? fullText() : st.dailyLimited ? t('daily_wait') : '';
   df.hidden = !full && !st.dailyLimited;
   const warn = $('#o-openday');
-  if (cur.openDays.length) {
-    const last = cur.openDays[cur.openDays.length - 1];
-    warn.textContent = cur.openDays.length === 1 ? t('open_one', { day: shortDate(last) }) : t('open_many', { n: cur.openDays.length });
+  // Only the last working day up to yesterday (a Monday covers the Friday; holidays and whole-day
+  // absences are skipped); older open days are marked in the list only.
+  const offWhole = (/** @type {string} */ day) => [...st.absencesOn(day), ...calendarDays(st, day, day)].some((a) => !a.half);
+  const open = openDaysToWarn(cur.openDays, cur.today, offWhole);
+  if (open.length) {
+    const last = open[open.length - 1];
+    warn.textContent =
+      open.length > 1
+        ? t('open_many', { n: open.length })
+        : last === addDays(cur.today, -1)
+          ? t('open_yesterday')
+          : t('open_one', { day: shortDate(last) });
     warn.hidden = false;
   } else warn.hidden = true;
   const ob = $('#o-outbox');
@@ -1235,12 +1268,32 @@ function renderList() {
   const now = Date.now();
   const target = st.settings.weekHours;
   const days = buildDays(st.list(), now, st.dayStart, localTz());
-  const weeks = groupWeeks(withAbsences(days, absencesWithCalendar(st, days, st.dayOf(now)), target));
+  const today = st.dayOf(now);
+  // The latest day on top: the calendar's holidays as far ahead as the funnel says (aheadUntil), planned
+  // absences of your own always; holidays on a weekend are left out.
+  const absences = withoutWeekendHolidays(absencesWithCalendar(st, days, today, aheadUntil(today, listAhead())));
+  const all = withAbsences(days, absences, target);
+  // A day filter of the funnel: only the matching days, a bar on top to clear it, no week totals (they
+  // would count only the days shown).
+  const filter = listFilter(state.listFilter);
+  const rule = breakRule(st.settings.pause, String(st.settings.holidays || ''));
+  const filtered = filterDays(all, filter, rule);
+  const weeks = groupWeeks(filtered);
+  // A day that breaks a rule says so in a quiet red line: break too short, rest under 11 h, over 10 h.
+  /** @type {Map<string, string[]>} */
+  const notes = new Map();
+  for (const k of /** @type {const} */ (['pause', 'rest', 'long'])) {
+    for (const d of filterDays(all, k, rule)) notes.set(d.day, [...(notes.get(d.day) || []), t(`filter_${k}`)]);
+  }
+  const bar = $('#o-filter-bar');
+  bar.hidden = filter === 'all';
+  if (filter !== 'all') $('#o-filter-text').textContent = tn('filter_bar', filtered.length, { what: t(`filter_${filter}`) });
+  $('#b-ahead').classList.toggle('active', filter !== 'all');
   const out = $('#o-list');
   const focus = state.listFocus;
   state.listFocus = null;
   if (!weeks.length) {
-    fill(out, h('p', { class: 'empty' }, t('list_empty')));
+    fill(out, h('p', { class: 'empty' }, t(filter === 'all' ? 'list_empty' : 'filter_none')));
     return;
   }
   // A day tapped on the start screen: show enough weeks to contain it (8 at a time, as the button does).
@@ -1257,9 +1310,17 @@ function renderList() {
           'h2',
           { class: 'week-head' },
           h('span', {}, t('week', { n: w.week })),
-          h('span', { class: 'sum' }, `${formatDur(w.sum + w.credit)} h`, h('small', {}, ` / ${num(target)} h`)),
+          // Holidays lower the week's target (42 h → 33:36 h) instead of counting as time.
+          filter === 'all'
+            ? h(
+              'span',
+              { class: 'sum' },
+              `${formatDur(w.sum + w.credit - w.off)} h`,
+              h('small', {}, ` / ${w.off ? formatDur(target * 3_600_000 - w.off) : num(target)} h`),
+            )
+            : null,
         ),
-        w.days.map((d) => renderDay(d, target)),
+        w.days.map((d) => renderDay(d, target, notes.get(d.day))),
       ),
     ),
     weeks.length > shown.length
@@ -1280,8 +1341,8 @@ function focusDay(day) {
   setTimeout(() => el.classList.remove('flash'), 1800);
 }
 
-/** @param {import('./time.js').Day} d @param {number} weekHours */
-function renderDay(d, weekHours) {
+/** @param {import('./time.js').Day} d @param {number} weekHours @param {string[]} [notes] rules the day breaks */
+function renderDay(d, weekHours, notes = []) {
   const badge = d.open
     ? h('span', { class: 'badge warn' }, t('badge_open'))
     : d.running
@@ -1295,7 +1356,7 @@ function renderDay(d, weekHours) {
       {},
       h('span', { class: 'date' }, dayLabel(d.day)),
       badge,
-      h('span', { class: 'sum' }, formatDur(d.sum + (d.credit || 0))),
+      h('span', { class: 'sum' }, formatDur(d.sum + (d.credit || 0) - (d.off || 0))),
       // The day's bin deletes its punches; an absence has its own bin in its row.
       d.punches.length
         ? h(
@@ -1311,6 +1372,7 @@ function renderDay(d, weekHours) {
       )
         : h('span', { class: 'icon-gap', 'aria-hidden': 'true' }),
     ),
+    notes.length ? h('p', { class: 'day-warn' }, notes.join(' · ')) : null,
     h('ul', { class: 'pairs' }, absenceRows(d, weekHours).map((r) => renderAbsence(r, d.day)), dayBlocks(d).map((b) => renderPair(b, d.day))),
   );
 }
@@ -1350,7 +1412,7 @@ function renderAbsence(r, day) {
             : h('span', { class: 'icon-gap', 'aria-hidden': 'true' }),
         ),
       ),
-      h('span', { class: 'dur' }, formatDur(r.credit)),
+      h('span', { class: 'dur' }, r.shown),
     ),
     r.note ? h('p', { class: 'note' }, r.note) : null,
   );
@@ -1456,7 +1518,6 @@ function renderSettings() {
   const dsEl = input('#i-daystart');
   if (document.activeElement !== dsEl) dsEl.value = ds ? minutesToClock(ds) : '04:00';
   /** @type {HTMLSelectElement} */ ($('#s-lang')).value = getLang();
-  $('#o-whoami').textContent = t('signed_in_as', { user: /** @type {string} */ (state.username) });
   $('#o-username').textContent = t('your_username', { user: /** @type {string} */ (state.username) });
   input('#i-pass-user').value = /** @type {string} */ (state.username);
   $('#o-punch-link').textContent = punchLink();
@@ -1469,6 +1530,81 @@ function renderSettings() {
   }
   $('#o-about').textContent = t('about_version', { version: APP_VERSION });
   renderHolidayPicker(st);
+  renderPausePicker(st);
+}
+
+/**
+ * The selects of an own break rule (a wheel on the iPhone, a short list on Android; no typing errors):
+ * hours 1–16 in half hours («5½»), minutes 5–120 in steps of 5; «–» first (an empty second step).
+ */
+function fillPauseSelects() {
+  const dash = h('option', { value: '' }, '–');
+  /** @type {any[]} */
+  const hours = [];
+  for (let x = 1; x <= 16; x += 0.5) hours.push(h('option', { value: String(x) }, x % 1 ? `${Math.floor(x)}½` : String(x)));
+  /** @type {any[]} */
+  const mins = [];
+  for (let m = 5; m <= 120; m += 5) mins.push(h('option', { value: String(m) }, String(m)));
+  for (const id of ['#i-p1h', '#i-p2h']) fill($(id), dash.cloneNode(true), hours.map((o) => o.cloneNode(true)));
+  for (const id of ['#i-p1m', '#i-p2m']) fill($(id), dash.cloneNode(true), mins.map((o) => o.cloneNode(true)));
+}
+
+/**
+ * The break rule (settings.pause): automatic, a country, an own rule of one or two steps, or none; and
+ * whether short breaks are paid. Below it the rule in force in words. @param {Store} st
+ */
+function renderPausePicker(st) {
+  const p = parsePause(st.settings.pause);
+  const sel = /** @type {HTMLSelectElement} */ ($('#s-pause'));
+  const editing = $('#pause-custom').contains(document.activeElement);
+  if (document.activeElement !== sel && !editing) sel.value = p.mode;
+  $('#pause-custom').hidden = sel.value !== 'custom';
+  if (!editing && p.mode === 'custom') {
+    const [a, b] = p.steps;
+    input('#i-p1h').value = a ? String(a[0]) : '';
+    input('#i-p1m').value = a ? String(a[1]) : '';
+    input('#i-p2h').value = b ? String(b[0]) : '';
+    input('#i-p2m').value = b ? String(b[1]) : '';
+  }
+  const paid = input('#c-pause-paid');
+  paid.checked = p.paid;
+  const rule = breakRule(st.settings.pause, String(st.settings.holidays || ''));
+  const txt = ruleText(rule);
+  // No rule («None», or a calendar's country without one): the checkbox has nothing to do, greyed out.
+  const none = !breakRule(p.paid ? encodePause({ ...p, paid: false }) : st.settings.pause, String(st.settings.holidays || '')).steps.length && sel.value !== 'custom';
+  paid.disabled = none;
+  // «… ab 30 Min.» already ends with a full stop
+  const steps = txt.replace(/\.$/, '');
+  const out = $('#o-pause-rule');
+  out.hidden = none;
+  out.textContent = sel.value === 'custom' && p.mode !== 'custom' ? t('pause_rule_invalid') : txt ? t('pause_rule', { steps }) : '';
+}
+
+/** Save the break rule from the form; an own rule only once its steps are complete. */
+function onPauseChange() {
+  const st = state.store;
+  if (!st) return;
+  const mode = /** @type {HTMLSelectElement} */ ($('#s-pause')).value;
+  const paid = input('#c-pause-paid').checked;
+  $('#pause-custom').hidden = mode !== 'custom';
+  /** @type {[number, number][]} */
+  const steps = [];
+  if (mode === 'custom') {
+    for (const [hs, ms] of [['#i-p1h', '#i-p1m'], ['#i-p2h', '#i-p2m']]) {
+      const hv = input(hs).value.trim();
+      const mv = input(ms).value.trim();
+      if (!hv && !mv) continue;
+      steps.push([Number(hv), Number(mv)]);
+    }
+  }
+  const value = encodePause({ mode, steps, paid });
+  const parsed = parsePause(value);
+  if (mode === 'custom' && (parsed.mode !== 'custom' || !steps.length)) {
+    $('#o-pause-rule').textContent = t('pause_rule_invalid');
+    return;
+  }
+  if (value !== String(st.settings.pause || '')) st.saveSettings({ pause: value });
+  else renderPausePicker(st);
 }
 
 /**
@@ -1505,7 +1641,10 @@ async function renderNerd() {
   const list = st.list();
   const days = buildDays(list, now, st.dayStart, tz);
   const target = st.settings.weekHours;
-  const credits = creditByDay(absencesWithCalendar(st, days, today), target);
+  const nerdAbsences = absencesWithCalendar(st, days, today);
+  const credits = creditByDay(nerdAbsences, target);
+  // Holidays: shown as a lower target, not as time (the balance is the same).
+  const offs = offByDay(nerdAbsences, target);
   const { y, m } = parseDay(today);
   const periods = [
     [t('period_week'), weekStart(today)],
@@ -1513,93 +1652,654 @@ async function renderNerd() {
     // The last 12 months: from the same date a year ago (exclusive) up to and including today.
     [t('period_12m'), addDays(addMonths(today, -12), 1)],
   ];
-  // Key figures and heatmap: the last 90 days (default) or everything that is kept (13 months).
-  const rangeFrom = state.nerdRange === 'all' ? oldestDay(now, tz) : addDays(today, -89);
-  const inRange = days.filter((d) => d.day >= rangeFrom);
+  // Statistics, absences and heatmap: the period chosen at the top (nerdPeriod), never before what is kept.
+  const oldest = oldestDay(now, tz);
+  const period = nerdPeriod(state.nerdRange, today);
+  const rangeFrom = period.from < oldest ? oldest : period.from;
+  const rangeTo = period.to;
+  const inRange = days.filter((d) => d.day >= rangeFrom && d.day <= rangeTo);
   const s = stats(list, inRange);
-  const rangeBtn = (/** @type {'90d'|'all'} */ key, /** @type {string} */ label) =>
-    h(
-      'button',
-      {
-        type: 'button',
-        class: 'seg-btn',
-        'aria-pressed': state.nerdRange === key ? 'true' : 'false',
-        onclick: () => {
-          state.nerdRange = key;
-          renderNerd();
-        },
-      },
-      label,
-    );
   const fp = await db.kvGet('fingerprint').catch(() => null);
   // Tombstones: deleted punches and deleted absences (an absence is always `del` for old clients).
   const tomb = [...st.entries.values()].filter((e) => (isAbsence(e) ? e.gone : e.del)).length;
   const sample = [...st.raw].pop();
   const saldo = (/** @type {number} */ ms) => (ms >= 0 ? `+${formatDur(ms)}` : formatDur(ms));
   const dl = (/** @type {any[]} */ ...pairs) => h('dl', { class: 'kv' }, pairs);
+  const dlLong = (/** @type {any[]} */ ...pairs) => h('dl', { class: 'kv long' }, pairs);
   const row = (/** @type {string} */ k, /** @type {any} */ v, /** @type {any} */ attrs = {}) => [h('dt', {}, k), h('dd', attrs, v)];
+  // The statistics of the range: medians, weekdays, series, rule breaks, absences (stats.js).
+  const rule = breakRule(st.settings.pause, String(st.settings.holidays || ''));
+  const rangeDays = withAbsences(days, withoutWeekendHolidays(nerdAbsences), target).filter((d) => d.day >= rangeFrom && d.day <= rangeTo);
+  const n = nerdStats(rangeDays, rule);
+  const clock = (/** @type {number | null} */ min) => minutesToClock(min);
+  const dur = (/** @type {number | null} */ ms) => (ms == null ? '–' : `${formatDur(ms)} h`);
+  const mins = (/** @type {number | null} */ ms) => (ms == null ? '–' : t('n_min', { n: toMin(ms) ?? 0 }));
+  const atDay = (/** @type {{ day: string } | null} */ x, /** @type {string} */ v) => (x ? `${v} · ${shortDate(x.day)}` : '–');
+  const wd = t('wd').split(',');
+  const firstData = rangeDays.at(-1)?.day ?? rangeTo;
+  const workDaysInRange = workdays(rangeFrom > firstData ? rangeFrom : firstData, rangeTo);
+  const rate = sickRate(n.absent.sick, workDaysInRange);
+  // Device facts, all local (no request): storage, persistence, time zone, installed, online.
+  const est = await navigator.storage?.estimate?.().catch(() => null);
+  const persisted = await navigator.storage?.persisted?.().catch(() => null);
+  const localBytes = [...st.raw.values()].reduce((sum, v) => sum + String(v).length, 0);
+  const installed = matchMedia('(display-mode: standalone)').matches || /** @type {any} */ (navigator).standalone === true;
+  const skew = st.skew == null ? '–' : `${st.skew >= 0 ? '+' : '−'}${num(Math.round(Math.abs(st.skew) / 100) / 10)} s`;
+  const yesNo = (/** @type {boolean | null | undefined} */ v) => (v == null ? '–' : t(v ? 'yes' : 'no'));
+  const net = state.net;
+  const section = (/** @type {string} */ id, /** @type {any[]} */ ...kids) => h('section', { class: 'nerd-sec stack', id }, kids);
 
   if (state.tab !== 'nerd') return;
+  const periodSelect = h(
+    'label',
+    { class: 'nerd-period' },
+    h('span', {}, t('period_label')),
+    h(
+      'select',
+      {
+        onchange: (/** @type {Event} */ e) => {
+          state.nerdRange = /** @type {HTMLSelectElement} */ (e.target).value;
+          renderNerd();
+        },
+      },
+      nerdPeriodLabels().map(([k, label]) => h('option', { value: k, selected: k === state.nerdRange || null }, label)),
+    ),
+    h('small', {}, t('period_range', { from: shortDate(rangeFrom), to: shortDate(rangeTo) })),
+  );
   fill(
     $('#o-nerd'),
-    h('h2', {}, t('h_balance')),
-    h(
-      'div',
-      { class: 'cards' },
-      periods.map(([label, from]) => {
-        const b = balance(days, target, from, today, credits);
-        return h(
-          'div',
-          { class: 'card' },
-          h('span', { class: 'label' }, label),
-          h('strong', { class: b.diff >= 0 ? 'pos' : 'neg' }, saldo(b.diff)),
-          h('span', { class: 'small' }, t('of_target', { worked: formatDur(b.worked + b.credit), target: formatDur(b.target) })),
-        );
-      }),
-    ),
-    h('p', { class: 'hint' }, t('balance_hint', { h: num(target) })),
-
-    h('h2', {}, t('h_weekhours')),
-    // Bars: worked time plus the absence credit (what counts against the target).
-    weekBars(weeklyHours(days, today, 13, credits).map((w) => ({ ...w, sum: w.sum + w.credit })), target),
-
-    h('h2', {}, t('h_monthhours')),
-    monthBars(monthlyHours(days, today, RETENTION_MONTHS, target, credits).map((x) => ({ ...x, sum: x.sum + x.credit }))),
-
-    h('div', { class: 'seg seg-buttons', role: 'group', 'aria-label': t('range_label') }, rangeBtn('90d', t('range_90d')), rangeBtn('all', t('range_all'))),
-    h('h2', {}, t('h_figures')),
-    dl(
-      row(t('avg_first'), minutesToClock(s.avgFirst)),
-      row(t('avg_last'), minutesToClock(s.avgLast)),
-      row(t('longest'), s.longest ? `${shortDate(s.longest.day)} · ${formatDur(s.longest.sum)} h` : '–'),
-      row(t('avg_break'), s.avgBreak != null ? tn('break_days', s.breakDays, { dur: formatDur(s.avgBreak) }) : '–'),
-      row(t('days_worked'), String(s.workedDays)),
-      row(t('stamps_today'), t('of_max', { n: st.countDay(today), max: MAX_PER_DAY })),
+    periodSelect,
+    section(
+      'nerd-saldo',
+      h('h2', {}, t('h_balance')),
+      h(
+        'div',
+        { class: 'cards' },
+        periods.map(([label, from]) => {
+          const b = balance(days, target, from, today, credits, offs);
+          return h(
+            'div',
+            { class: 'card' },
+            h('span', { class: 'label' }, label),
+            h('strong', { class: b.diff >= 0 ? 'pos' : 'neg' }, saldo(b.diff)),
+            h('span', { class: 'small' }, t('of_target', { worked: formatDur(b.worked + b.credit - b.off), target: formatDur(b.target - b.off) })),
+          );
+        }),
+      ),
+      h('p', { class: 'hint' }, t('balance_hint', { h: num(target) })),
     ),
 
-    h('h2', {}, t('h_heat')),
-    heatmap(s.heat),
-
-    h('h2', {}, t('h_crypto')),
-    dl(
-      row(t('fingerprint'), fp || '–', { class: 'mono' }),
-      row(t('records'), tn('records_detail', st.raw.size, { del: tomb, set: st.raw.has(SETTINGS_ID) ? t('settings_rec') : '' })),
-      st.unreadable ? row(t('unreadable'), String(st.unreadable), { class: 'neg' }) : null,
-      row(t('sync_state'), t('sync_no', { n: st.seq })),
-      row(t('last_sync'), st.lastSync ? new Date(st.lastSync).toLocaleString(locale()) : '–'),
-      row(t('outbox'), t('outbox_detail', { n: st.outbox })),
+    section(
+      'nerd-charts',
+      h('h2', {}, t('h_weekhours')),
+      // Bars: worked time plus the absence credit (what counts against the target).
+      weekBars(weeklyHours(days, today, 13, credits).map((w) => ({ ...w, sum: w.sum + w.credit })), target),
+      h('h2', {}, t('h_monthhours')),
+      monthBars(monthlyHours(days, today, RETENTION_MONTHS, target, credits).map((x) => ({ ...x, sum: x.sum + x.credit }))),
     ),
-    h('p', { class: 'hint' }, t('raw_hint')),
-    sample ? h('pre', { class: 'raw' }, `${sample[0]}\n${sample[1]}`) : h('p', { class: 'muted' }, t('no_record')),
-    h('div', { class: 'row-buttons' }, h('button', { class: 'btn', type: 'button', onclick: () => st.sync({ force: true }) }, t('send_now'))),
-    h('h2', {}, t('h_export')),
-    h(
-      'div',
-      { class: 'row-buttons' },
-      h('button', { class: 'btn', type: 'button', onclick: exportCsv }, 'CSV'),
-      h('button', { class: 'btn', type: 'button', onclick: exportJson }, 'JSON'),
+
+    section(
+      'nerd-stats',
+      h('h2', {}, t('h_figures')),
+      h('p', { class: 'hint' }, t('stats_hint')),
+      h('h3', {}, t('h_typical')),
+      dl(
+        row(t('med_first'), clock(n.medianFirst)),
+        row(t('med_last'), clock(n.medianLast)),
+        row(t('med_day'), dur(n.medianDay)),
+        row(t('avg_day'), dur(n.avgDay)),
+        row(t('med_lunch_at'), n.breakDays ? clock(n.medianLunchAt) : '–'),
+        row(t('med_lunch'), n.breakDays ? mins(n.medianLunch) : '–'),
+        row(t('med_breaks'), n.breakDays ? mins(n.medianBreak) : '–'),
+        row(t('med_punches'), n.medianPunches == null ? '–' : num(n.medianPunches)),
+        row(t('stamps_today'), String(st.countDay(today))),
+      ),
+      h('h3', {}, t('h_records')),
+      dl(
+        row(t('earliest'), atDay(n.earliest, clock(n.earliest?.min ?? null))),
+        row(t('latest'), atDay(n.latest, clock(n.latest?.min ?? null))),
+        row(t('longest'), atDay(n.longest, dur(n.longest?.ms ?? null))),
+        row(t('shortest'), atDay(n.shortest, dur(n.shortest?.ms ?? null))),
+        row(t('best_run'), n.bestRun ? tn('n_days', n.bestRun) : '–'),
+        row(t('days_worked'), String(n.workedDays)),
+        row(t('total_worked'), dur(n.total)),
+        row(t('weekend_days'), String(n.weekendDays)),
+      ),
+      h('h3', {}, t('h_by_weekday')),
+      h(
+        'table',
+        { class: 'nerd-table' },
+        h('thead', {}, h('tr', {}, h('th', {}, t('weekday')), h('th', {}, t('days')), h('th', {}, t('median')), h('th', {}, t('lunch_col')), h('th', {}, t('lunch_at_col')))),
+        h(
+          'tbody',
+          {},
+          n.weekdays.map((x, i) =>
+            i < 5 || x.days
+              ? h(
+                'tr',
+                {},
+                h('td', {}, wd[i]),
+                h('td', {}, String(x.days)),
+                h('td', {}, x.median == null ? '–' : formatDur(x.median)),
+                h('td', {}, x.lunch == null ? '–' : String(toMin(x.lunch))),
+                h('td', {}, x.lunchAt == null ? '–' : clock(x.lunchAt)),
+              )
+              : null,
+          ),
+        ),
+      ),
+      h('h3', {}, t('h_rules')),
+      dl(
+        row(t('filter_pause'), String(n.rules.pause), n.rules.pause ? { class: 'neg' } : {}),
+        row(t('filter_rest'), String(n.rules.rest), n.rules.rest ? { class: 'neg' } : {}),
+        row(t('filter_long'), String(n.rules.long), n.rules.long ? { class: 'neg' } : {}),
+        row(t('filter_open'), String(n.rules.open), n.rules.open ? { class: 'neg' } : {}),
+      ),
+    ),
+
+    section(
+      'nerd-absent',
+      h('h2', {}, t('h_absent')),
+      dl(
+        row(t('abs_vacation'), num(n.absent.vacation)),
+        row(t('abs_sick'), num(n.absent.sick)),
+        row(t('abs_comp'), num(n.absent.comp)),
+        row(t('abs_holiday'), num(n.absent.holiday)),
+        row(t('abs_other'), num(n.absent.other)),
+        row(t('sick_rate'), rate == null ? '–' : `${num(rate)} %`),
+      ),
+      h('p', { class: 'hint' }, t('absent_hint', { n: workDaysInRange })),
+    ),
+
+    section('nerd-heat', ...heatSection(rangeDays, rangeFrom, rangeTo, now, target, s.heat)),
+
+    section(
+      'nerd-tech',
+      h('h2', {}, t('h_crypto')),
+      dlLong(
+        row(t('tech_cipher'), t('tech_cipher_v')),
+        row(t('tech_kdf'), t('tech_kdf_v', { n: num(PBKDF2_ITERATIONS).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') })),
+        row(t('tech_packet'), t('tech_packet_v', { bytes: PLAINTEXT_SIZE, chars: sample ? String(sample[1]).length : '–' })),
+        row(t('fingerprint'), fp || '–', { class: 'mono' }),
+        row(t('records'), tn('records_detail', st.raw.size, { del: tomb, set: st.raw.has(SETTINGS_ID) ? t('settings_rec') : '' })),
+        row(t('tech_local'), t('n_kb', { n: num(Math.round(localBytes / 102.4) / 10) })),
+        st.unreadable ? row(t('unreadable'), String(st.unreadable), { class: 'neg' }) : null,
+        row(t('sync_state'), t('sync_no', { n: st.seq })),
+        row(t('last_sync'), st.lastSync ? new Date(st.lastSync).toLocaleString(locale()) : '–'),
+        row(t('outbox'), t('outbox_detail', { n: st.outbox })),
+        row(t('tech_skew'), skew),
+      ),
+      h('p', { class: 'hint' }, t('raw_hint')),
+      sample ? h('pre', { class: 'raw' }, `${sample[0]}\n${sample[1]}`) : h('p', { class: 'muted' }, t('no_record')),
+      h('div', { class: 'row-buttons' }, h('button', { class: 'btn', type: 'button', onclick: () => st.sync({ force: true }) }, t('send_now'))),
+      h('h3', {}, t('h_device')),
+      dl(
+        row(t('tech_version'), APP_VERSION),
+        row(t('tech_tz'), localTz()),
+        row(t('tech_lang'), navigator.language || '–'),
+        row(t('tech_installed'), yesNo(installed)),
+        row(t('tech_online'), yesNo(navigator.onLine)),
+        row(t('tech_storage'), est && est.usage != null ? t('n_of_mb', { used: num(Math.round((est.usage / 1048576) * 10) / 10), quota: num(Math.round((est.quota || 0) / 1048576)) }) : '–'),
+        row(t('tech_persisted'), yesNo(persisted)),
+      ),
+      h('h3', {}, t('h_net')),
+      net
+        ? dl(
+          row(t('net_ip'), net.ip || '–', { class: 'mono' }),
+          row(t('net_org'), net.org || '–'),
+          row(t('net_country'), net.country || '–'),
+          row(t('net_colo'), net.colo || '–'),
+          row(t('net_tls'), [net.tls, net.http].filter(Boolean).join(' · ') || '–'),
+        )
+        : null,
+      h('p', { class: 'hint' }, t('net_hint')),
+      h(
+        'div',
+        { class: 'row-buttons' },
+        h(
+          'button',
+          {
+            class: 'btn',
+            type: 'button',
+            onclick: async () => {
+              try {
+                state.net = await api.netInfo();
+              } catch (e) {
+                toast(message(e));
+                return;
+              }
+              renderNerd();
+            },
+          },
+          t(net ? 'net_again' : 'net_show'),
+        ),
+      ),
+    ),
+
+    section(
+      'nerd-export',
+      h('h2', {}, t('h_export_import')),
+      h(
+        'div',
+        { class: 'row-buttons' },
+        h('button', { class: 'btn', type: 'button', onclick: openSheetDialog }, t('sheet_button')),
+        h('button', { class: 'btn', type: 'button', onclick: exportCsv }, 'CSV'),
+        h('button', { class: 'btn', type: 'button', onclick: exportJson }, 'JSON'),
+      ),
+      h('p', { class: 'hint' }, t('sheet_vs_data')),
+      h('div', { class: 'row-buttons' }, h('button', { class: 'btn', type: 'button', onclick: pickCsv }, t('import_csv'))),
+      h('p', { class: 'hint' }, t('import_hint')),
     ),
   );
+}
+
+// ------------------------------------------------------------ nerd view: CSV import
+
+/** Choose a CSV file (the nerd view's import); it is read on the device only. */
+function pickCsv() {
+  const inp = /** @type {HTMLInputElement} */ (h('input', { type: 'file', accept: '.csv,.txt,text/csv,text/plain' }));
+  inp.addEventListener('change', () => {
+    const file = inp.files && inp.files[0];
+    if (file) void importCsvFile(file);
+  });
+  inp.click();
+}
+
+/**
+ * Read a CSV file and import its punches after a look at what it adds (importcsv.js): new ones only,
+ * none in the future or older than kept, 12 places a day. Each becomes an ordinary punch: encrypted,
+ * one record of the fixed size, synced like any other.
+ * @param {File} file
+ */
+async function importCsvFile(file) {
+  const st = state.store;
+  if (!st) return;
+  const read = readCsv(await file.text(), localTz());
+  const now = Date.now();
+  const plan = planImport(read.punches, st.list(), {
+    now,
+    oldestDay: oldestLogicalDay(now, localTz(), st.dayStart),
+    dayStart: st.dayStart,
+    maxPerDay: MAX_PER_DAY,
+    placesTaken: (day) => st.dayRecords(day),
+  });
+  const skip = plan.future + plan.old + plan.full + read.unreadable.length;
+  if (!plan.add.length) {
+    toast(t('import_nothing', { dup: plan.dup, skip }));
+    return;
+  }
+  const ok = await confirmDialog(t('import_title'), t('import_text', { n: plan.add.length, days: plan.days, dup: plan.dup, skip }), { ok: t('import_ok') });
+  if (!ok) return;
+  let done = 0;
+  let failed = 0;
+  for (const p of plan.add) {
+    try {
+      await st.write(newId(), { ts: p.ts, tz: p.tz, note: p.note, del: false });
+      done++;
+    } catch {
+      failed++;
+    }
+  }
+  toast(`${tn('import_done', done)}${failed ? ` ${t('import_failed', { n: failed })}` : ''}`);
+}
+
+// ------------------------------------------------------------ nerd view: period and heatmaps
+
+/** The nerd view's periods (statistics, absences, heatmap), in the select's order. */
+const nerdPeriodLabels = () => [
+  ['week', t('np_week')],
+  ['lastweek', t('np_lastweek')],
+  ['month', t('np_month')],
+  ['lastmonth', t('np_lastmonth')],
+  ['90d', t('np_90d')],
+  ['year', t('np_year')],
+  ['all', t('np_all')],
+];
+
+/**
+ * A period of the nerd view as days, both included; unknown keys are the last 90 days.
+ * @param {string} key @param {string} today @returns {{ from: string, to: string }}
+ */
+function nerdPeriod(key, today) {
+  const ws = weekStart(today);
+  const m1 = `${today.slice(0, 7)}-01`;
+  if (key === 'week') return { from: ws, to: today };
+  if (key === 'lastweek') return { from: addDays(ws, -7), to: addDays(ws, -1) };
+  if (key === 'month') return { from: m1, to: today };
+  if (key === 'lastmonth') return { from: addMonths(m1, -1), to: addDays(m1, -1) };
+  if (key === 'year') return { from: `${today.slice(0, 4)}-01-01`, to: today };
+  if (key === 'all') return { from: '0000-01-01', to: today };
+  return { from: addDays(today, -89), to: today };
+}
+
+
+/**
+ * The nerd view's heatmap, three views to switch: presence (median minutes per weekday and hour, over
+ * the days with punches), punches per weekday and hour, and the balance per day (weeks × weekdays and
+ * the week's sum). A tap on a cell writes its details above the chart.
+ * @param {import('./time.js').Day[]} rangeDays the range's days, withAbsences()
+ * @param {string} rangeFrom @param {string} today @param {number} now @param {number} target weekHours
+ * @param {number[][]} punchHeat punches per weekday and hour (time.js stats)
+ */
+function heatSection(rangeDays, rangeFrom, today, now, target, punchHeat) {
+  const mode = state.heatMode;
+  const wd = t('wd').split(',');
+  const p2 = (/** @type {number} */ n) => String(n).padStart(2, '0');
+  const info = h('p', { class: 'heat-info', 'aria-live': 'polite' }, t('heat_tap'));
+  /** @param {{ title: string }} c */
+  const pick = (c) => {
+    const [head, ...rest] = c.title.split('\n');
+    fill(info, head, rest.length ? h('small', {}, rest.join(' ')) : null);
+  };
+  // Hour views: only the hours with something in them (and one around), at least eight, so the cells are
+  // wide enough to read on a phone.
+  /** @param {number[][]} grid 7 × 24 */
+  const span = (grid) => {
+    const used = Array.from({ length: 24 }, (_, hr) => grid.some((row) => row[hr] > 0));
+    let a = used.indexOf(true);
+    let b = used.lastIndexOf(true);
+    if (a < 0) [a, b] = [7, 18];
+    a = Math.max(0, a - 1);
+    b = Math.min(23, b + 1);
+    while (b - a < 7) b < 23 ? b++ : a--;
+    return { a, b, n: b - a + 1 };
+  };
+  /** @param {{ a: number, n: number }} sp */
+  const hourCols = (sp) => Array.from({ length: sp.n }, (_, i) => (sp.n <= 12 || (sp.a + i) % 2 === 0 ? String(sp.a + i) : ''));
+  /** @param {{ n: number }} sp */
+  const cellW = (sp) => Math.min(30, Math.floor(344 / sp.n) - 2);
+  /** @type {any} */
+  let chart;
+  /** @type {string} */
+  let note;
+  /** @type {any} */
+  let sub = null;
+  if (mode === 'balance') {
+    const signed = (/** @type {number} */ m) => (m === 0 ? '0:00' : `${m > 0 ? '+' : '−'}${formatDur(Math.abs(m) * 60_000)}`);
+    const cls = (/** @type {number} */ m, /** @type {number} */ scale) => {
+      const a = Math.abs(m) / scale;
+      const lvl = a === 0 ? 0 : a <= 30 ? 1 : a <= 120 ? 2 : 3;
+      return lvl ? `mx-${m > 0 ? 'g' : 'r'}${lvl}` : '';
+    };
+    const byMonth = state.balanceBy === 'month';
+    /** @type {{ label: string, cells: any[] }[]} */
+    let rows;
+    if (byMonth) {
+      // A month's weekday holds about four days: the colour steps are four times as wide.
+      const fmtMonth = new Intl.DateTimeFormat(locale(), { month: 'short', year: '2-digit', timeZone: 'UTC' });
+      const monthName = new Intl.DateTimeFormat(locale(), { month: 'long', year: 'numeric', timeZone: 'UTC' });
+      rows = monthBalances(rangeDays, target, rangeFrom, today).map((m) => {
+        const at = Date.UTC(+m.month.slice(0, 4), +m.month.slice(5, 7) - 1, 15);
+        return {
+          label: fmtMonth.format(at),
+          cells: [
+            ...m.cells.map((v, i) => ({ cls: cls(v, 4), text: signed(v), title: `${monthName.format(at)} · ${wd[i]}\n${t('heat_balance_title', { v: signed(v) })}` })),
+            { cls: cls(m.sum, 20), text: signed(m.sum), title: `${monthName.format(at)}\n${t('heat_balance_title', { v: signed(m.sum) })}` },
+          ],
+        };
+      });
+    } else {
+      rows = dayBalances(rangeDays, target, rangeFrom, today).map((w) => ({
+        label: t('week', { n: isoWeek(w.start).week }),
+        cells: [
+          ...w.cells.map((v, i) =>
+            v == null ? null : { cls: cls(v, 1), text: signed(v), title: `${longDate(addDays(w.start, i))}\n${t('heat_balance_title', { v: signed(v) })}` },
+          ),
+          { cls: cls(w.sum, 5), text: signed(w.sum), title: `${t('week', { n: isoWeek(w.start).week })}\n${t('heat_balance_title', { v: signed(w.sum) })}` },
+        ],
+      }));
+    }
+    chart = rows.length
+      ? matrix({ aria: t('heat_balance_aria'), cols: [...wd, 'Σ'], rows, cellW: 38, cellH: 20, padL: 34, font: 8, onPick: pick })
+      : h('p', { class: 'muted' }, t('no_record'));
+    const byBtn = (/** @type {'week'|'month'} */ key, /** @type {string} */ label) =>
+      h(
+        'button',
+        {
+          type: 'button',
+          class: 'seg-btn',
+          'aria-pressed': state.balanceBy === key ? 'true' : 'false',
+          onclick: () => {
+            state.balanceBy = key;
+            renderNerd();
+          },
+        },
+        label,
+      );
+    sub = h('div', { class: 'seg seg-small', role: 'group', 'aria-label': t('heat_mode_balance') }, byBtn('week', t('heat_by_week')), byBtn('month', t('heat_by_month')));
+    note = t(byMonth ? 'heat_balance_month_note' : 'heat_balance_note');
+  } else if (mode === 'punches') {
+    const max = Math.max(1, ...punchHeat.flat());
+    const sp = span(punchHeat);
+    chart = matrix({
+      aria: t('heat_aria'),
+      cols: hourCols(sp),
+      rows: wd.map((label, w) => ({
+        label,
+        cells: punchHeat[w].slice(sp.a, sp.a + sp.n).map((n, i) => {
+          const hr = sp.a + i;
+          const lvl = n === 0 ? 0 : Math.max(1, Math.ceil((n / max) * 5));
+          return { cls: lvl ? `mx-p${lvl}` : '', text: n ? String(n) : '', strong: lvl >= 4, title: tn('heat_title', n, { day: label, h: hr, h2: hr + 1 }) };
+        }),
+      })),
+      cellW: cellW(sp),
+      cellH: 18,
+      padL: 18,
+      font: 8,
+      onPick: pick,
+    });
+    note = t('heat_punches_note');
+  } else {
+    // Presence or breaks: median minutes per weekday and hour.
+    const breaks = mode === 'breaks';
+    const p = breaks ? breakMatrix(rangeDays) : presenceMatrix(rangeDays, now);
+    const sp = span(p.median);
+    chart = matrix({
+      aria: t(breaks ? 'heat_breaks_aria' : 'heat_presence_aria'),
+      cols: hourCols(sp),
+      rows: wd.map((label, w) => ({
+        label,
+        cells: p.median[w].slice(sp.a, sp.a + sp.n).map((m, i) => {
+          const hr = sp.a + i;
+          const lvl = m === 0 ? 0 : Math.min(5, Math.ceil(m / 12));
+          const head = t(breaks ? 'heat_breaks_title' : 'heat_presence_title', { day: label, h: p2(hr), h2: p2((hr + 1) % 24), m });
+          return { cls: lvl ? `mx-p${lvl}` : '', text: m ? String(m) : '', strong: lvl >= 4, title: `${head}\n${tn('heat_presence_days', p.days[w])}` };
+        }),
+      })),
+      cellW: cellW(sp),
+      cellH: 18,
+      padL: 18,
+      font: 8,
+      onPick: pick,
+    });
+    note = t(breaks ? 'heat_breaks_note' : 'heat_presence_note');
+  }
+  const modeBtn = (/** @type {'presence'|'breaks'|'punches'|'balance'} */ key, /** @type {string} */ label) =>
+    h(
+      'button',
+      {
+        type: 'button',
+        class: 'seg-btn',
+        'aria-pressed': mode === key ? 'true' : 'false',
+        onclick: () => {
+          state.heatMode = key;
+          renderNerd();
+        },
+      },
+      label,
+    );
+  return [
+    h('h2', {}, t('h_heat')),
+    h(
+      'div',
+      { class: 'seg seg4 seg-buttons', role: 'group', 'aria-label': t('h_heat') },
+      modeBtn('presence', t('heat_mode_presence')),
+      modeBtn('breaks', t('heat_mode_breaks')),
+      modeBtn('punches', t('heat_mode_punches')),
+      modeBtn('balance', t('heat_mode_balance')),
+    ),
+    sub,
+    info,
+    chart,
+    h('p', { class: 'hint' }, note),
+  ];
+}
+
+// ------------------------------------------------------------ list: «+» and the funnel
+
+/** How far ahead the list shows holidays: kept on this device only (a view choice, not a setting). */
+const AHEAD_KEY = 'zeropunch-ahead';
+
+/** The funnel's choice on this device (default: 14 days). */
+function listAhead() {
+  try {
+    return aheadMode(localStorage.getItem(AHEAD_KEY));
+  } catch {
+    return aheadMode(null); // storage blocked
+  }
+}
+
+/** «+» in the list: a punch on any day, or an absence. */
+function openAddMenu() {
+  const dlg = /** @type {HTMLDialogElement} */ ($('#dlg-add'));
+  dlg.returnValue = '';
+  dlg.showModal();
+}
+
+/** The funnel: how far ahead holidays show; without a calendar a hint and the way to the settings. */
+function openAheadDialog() {
+  const st = state.store;
+  if (!st) return;
+  const noCal = !st.settings.holidays;
+  $('#o-ahead-nocal').hidden = !noCal;
+  $('#b-ahead-settings').hidden = !noCal;
+  const mode = listAhead();
+  for (const r of $$('#ahead-choices input')) /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === mode;
+  const filter = listFilter(state.listFilter);
+  for (const r of $$('#filter-choices input')) /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === filter;
+  const rule = ruleText(breakRule(st.settings.pause, String(st.settings.holidays || '')));
+  $('#o-filter-hint').textContent = t('filter_hint', { rule: rule || t('pause_off') });
+  const dlg = /** @type {HTMLDialogElement} */ ($('#dlg-ahead'));
+  dlg.returnValue = '';
+  dlg.showModal();
+}
+
+function bindListButtons() {
+  $('#b-add').addEventListener('click', openAddMenu);
+  $('#dlg-add').addEventListener('close', () => {
+    const v = /** @type {HTMLDialogElement} */ ($('#dlg-add')).returnValue;
+    if (v === 'punch') openNew();
+    else if (v === 'absence') openAbsence();
+  });
+  $('#b-ahead').addEventListener('click', openAheadDialog);
+  $('#dlg-ahead').addEventListener('close', () => {
+    const v = /** @type {HTMLDialogElement} */ ($('#dlg-ahead')).returnValue;
+    if (v === 'settings') {
+      show('settings');
+      document.getElementById('set-time')?.scrollIntoView({ block: 'start' });
+      return;
+    }
+    if (v !== 'ok') return;
+    const picked = /** @type {HTMLInputElement | null} */ (document.querySelector('#ahead-choices input:checked'));
+    try {
+      localStorage.setItem(AHEAD_KEY, aheadMode(picked?.value));
+    } catch {
+      // storage blocked: the default stays
+    }
+    const f = /** @type {HTMLInputElement | null} */ (document.querySelector('#filter-choices input:checked'));
+    state.listFilter = listFilter(f?.value);
+    if (state.store) renderList();
+    window.scrollTo(0, 0);
+  });
+  $('#b-filter-off').addEventListener('click', () => {
+    state.listFilter = 'all';
+    if (state.store) renderList();
+  });
+}
+
+// ------------------------------------------------------------ text size (this device only)
+
+/** Text size of this device: s, m (normal, the default), l; `data-size` on <html> scales every rem in app.css. */
+const SIZE_KEY = 'zeropunch-size';
+const SIZES = ['s', 'm', 'l'];
+/** @param {unknown} v */
+const sizeSetting = (v) => (SIZES.includes(/** @type {any} */ (v)) ? /** @type {string} */ (v) : 'm');
+
+function savedSize() {
+  try {
+    return sizeSetting(localStorage.getItem(SIZE_KEY));
+  } catch {
+    return 'm'; // storage blocked
+  }
+}
+
+/** @param {string} value */
+function applySize(value) {
+  const v = sizeSetting(value);
+  if (v === 'm') delete document.documentElement.dataset.size;
+  else document.documentElement.dataset.size = v;
+  for (const r of $$('input[name=text-size]')) /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === v;
+}
+
+function bindSizeChoice() {
+  for (const r of $$('input[name=text-size]')) {
+    r.addEventListener('change', () => {
+      const v = sizeSetting(/** @type {HTMLInputElement} */ (r).value);
+      try {
+        localStorage.setItem(SIZE_KEY, v);
+      } catch {
+        /* storage blocked: for this session only */
+      }
+      applySize(v);
+    });
+  }
+  applySize(savedSize());
+}
+
+// ------------------------------------------------------------ appearance (this device only)
+
+/** Light or dark: «auto» follows the system (the default); `data-theme` on <html> picks app.css's values. */
+const THEME_KEY = 'zeropunch-theme';
+const THEMES = ['auto', 'light', 'dark'];
+/** @param {unknown} v */
+const themeSetting = (v) => (THEMES.includes(/** @type {any} */ (v)) ? /** @type {string} */ (v) : 'auto');
+/** The browser bar's colour per theme (as the two theme-color metas in index.html). */
+const THEME_BAR = { light: '#f6f7f9', dark: '#2B3238' };
+
+function savedTheme() {
+  try {
+    return themeSetting(localStorage.getItem(THEME_KEY));
+  } catch {
+    return 'auto'; // storage blocked
+  }
+}
+
+/** @param {string} value */
+function applyTheme(value) {
+  const v = themeSetting(value);
+  if (v === 'auto') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = v;
+  // The browser bar: both metas follow the chosen theme, or their own media query with «auto».
+  for (const m of $$('meta[name="theme-color"]')) {
+    const own = /dark/.test(m.getAttribute('media') || '') ? 'dark' : 'light';
+    m.setAttribute('content', THEME_BAR[/** @type {'light'|'dark'} */ (v === 'auto' ? own : v)]);
+  }
+  for (const r of $$('input[name=theme]')) /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === v;
+}
+
+function bindThemeChoice() {
+  for (const r of $$('input[name=theme]')) {
+    r.addEventListener('change', () => {
+      const v = themeSetting(/** @type {HTMLInputElement} */ (r).value);
+      try {
+        localStorage.setItem(THEME_KEY, v);
+      } catch {
+        /* storage blocked: for this session only */
+      }
+      applyTheme(v);
+    });
+  }
+  applyTheme(savedTheme());
 }
 
 // ------------------------------------------------------------ highlight colour setting
@@ -1921,8 +2621,6 @@ function openAbsence(day) {
   input('#i-abs-note').value = '';
   input('#c-abs-half').checked = false;
   $('#o-abs-range').textContent = t('absence_range_hint', { weeks: ABSENCE_MAX_WEEKS, days: ABSENCE_AHEAD_DAYS });
-  const whole = absenceCredit({ day: '2026-01-05', half: false }, st.settings.weekHours); // any Monday
-  $('#o-abs-credit').textContent = t('absence_credit', { dur: formatDur(whole), half: formatDur(Math.round(whole / 2)) });
   updateAbsenceForm();
   setError('e-absence', null);
   /** @type {HTMLDialogElement} */ ($('#dlg-absence')).showModal();
@@ -1936,6 +2634,12 @@ function updateAbsenceForm() {
   const half = input('#c-abs-half');
   half.disabled = range;
   if (range) half.checked = false;
+  // What the chosen kind does to the target: vacation, sick, other count as time; a holiday lowers the
+  // target; time off in lieu counts nothing (the balance pays for it).
+  const type = absenceType(/** @type {HTMLSelectElement} */ ($('#s-abs-type')).value);
+  const whole = absenceCredit({ day: '2026-01-05', half: false }, state.store ? state.store.settings.weekHours : 0); // any Monday
+  const dur = { dur: formatDur(whole), half: formatDur(Math.round(whole / 2)) };
+  $('#o-abs-credit').textContent = t(type === 'comp' ? 'absence_comp' : type === 'holiday' ? 'absence_holiday' : 'absence_credit', dur);
 }
 
 async function onAbsenceSubmit(/** @type {SubmitEvent} */ ev) {
@@ -2247,13 +2951,26 @@ function bindEvents() {
     showLogin('login');
   });
 
-  $('#b-add').addEventListener('click', () => openNew());
-  $('#b-absence').addEventListener('click', () => openAbsence());
+  bindListButtons();
+  // Settings and nerd view: the jump buttons scroll to their section (no #hash: the hash belongs to the
+  // app's links), just below themselves: they stay at the top while the page scrolls (app.css .set-nav).
+  const navs = $$('.set-nav');
+  for (const b of $$('.set-nav [data-goto]')) {
+    const nav = /** @type {HTMLElement} */ (b.closest('.set-nav'));
+    b.addEventListener('click', () => {
+      const group = document.getElementById(String(b.dataset.goto));
+      if (!group) return;
+      const top = group.getBoundingClientRect().top + window.scrollY - nav.offsetHeight - 4;
+      window.scrollTo({ top, behavior: reducedMotion() ? 'auto' : 'smooth' });
+    });
+  }
+  // A fine line under the jump buttons once the page scrolls under them.
+  window.addEventListener('scroll', () => { for (const n of navs) n.classList.toggle('stuck', window.scrollY > 40); }, { passive: true });
   onSubmit('#f-absence', onAbsenceSubmit);
   $('#b-abs-cancel').addEventListener('click', () => /** @type {HTMLDialogElement} */ ($('#dlg-absence')).close());
   $('#i-abs-from').addEventListener('input', updateAbsenceForm);
+  $('#s-abs-type').addEventListener('change', updateAbsenceForm);
   $('#i-abs-to').addEventListener('input', updateAbsenceForm);
-  $('#b-sheet').addEventListener('click', openSheetDialog);
   onSubmit('#f-sheet', onSheetSubmit);
   $('#b-sheet-cancel').addEventListener('click', () => /** @type {HTMLDialogElement} */ ($('#dlg-sheet')).close());
   for (const r of $$('input[name=sheet-kind]')) r.addEventListener('change', fillSheetPeriods);
@@ -2279,6 +2996,10 @@ function bindEvents() {
   $('#s-holidays').addEventListener('change', (e) => {
     state.store?.saveSettings({ holidays: /** @type {HTMLSelectElement} */ (e.target).value });
   });
+  $('#s-pause').addEventListener('change', onPauseChange);
+  input('#c-pause-paid').addEventListener('change', onPauseChange);
+  fillPauseSelects();
+  for (const id of ['#i-p1h', '#i-p1m', '#i-p2h', '#i-p2m']) input(id).addEventListener('change', onPauseChange);
   $('#s-lang').addEventListener('change', (e) => {
     setLang(/** @type {'en'|'de'} */ (/** @type {HTMLSelectElement} */ (e.target).value), true);
     applyLanguage();
@@ -2310,6 +3031,8 @@ function bindEvents() {
     });
   }
   bindColorChoice();
+  bindSizeChoice();
+  bindThemeChoice();
   bindFxChoice();
   $('#b-rej-retry').addEventListener('click', () => state.store?.retryRejected());
   $('#b-rej-discard').addEventListener('click', async () => {

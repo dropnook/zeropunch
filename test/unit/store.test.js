@@ -266,9 +266,9 @@ describe('12 punches per day (client)', () => {
     await idle(st);
   });
 
-  it('the app stops at 12 a day, while the server (100 writes a day) still takes back-entries for other days', async () => {
+  it('the app stops at 12 a day, while the server (1000 writes a day) still takes back-entries for other days', async () => {
     const { st, clock, server } = setup({ max: limits({}).writesPerDay.max });
-    expect(limits({}).writesPerDay.max).toBe(100);
+    expect(limits({}).writesPerDay.max).toBe(1000);
     for (let i = 0; i < MAX_PER_DAY; i++) await st.punch(clock.now - (MAX_PER_DAY - i) * 60_000);
     await expect(st.punch(clock.now)).rejects.toThrow('day_full');
     // back-entries for three past days in the same sitting: 36 more writes, all accepted by the server
@@ -423,6 +423,16 @@ describe('no delayed sync any more (removed in 2.9)', () => {
     expect(db.s.outbox.size).toBe(0);
   });
 
+  it('the old field «delayed» is dropped from the settings record with the next change (room for newer fields)', async () => {
+    const { st } = setup();
+    await st.saveSettings({ delayed: true });
+    expect(/** @type {any} */ (st.settings).delayed).toBe(true);
+    await st.saveSettings({ pause: 'de' });
+    await idle(st);
+    expect(/** @type {any} */ (st.settings).delayed).toBeUndefined();
+    expect(st.settings.pause).toBe('de');
+  });
+
   it('a record still waiting with a time from the old setting goes with the next sync', async () => {
     const { st, clock, server, db } = setup();
     await idle(st);
@@ -540,9 +550,10 @@ describe('outbox and local writes (B7)', () => {
 
   it('punch animation setting: «random» by default, each by name, «off»; unknown → random; survives other writes', async () => {
     expect(DEFAULT_SETTINGS.fx).toBe('random');
+    // the picker's order: «Off» first, «Random» (the default) second
     expect(FX_CHOICES).toEqual([
-      'random',
       'off',
+      'random',
       'sundial',
       'hourglass',
       'tower',

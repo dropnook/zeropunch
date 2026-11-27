@@ -175,9 +175,10 @@ export function formatDur(ms) {
  * @typedef {{ in: Entry, out: Entry|null, start: number, end: number|null, dur: number,
  *             day: string, status: 'ok'|'running'|'open' }} Pair
  * @typedef {{ day: string, pairs: Pair[], punches: Entry[], sum: number, open: boolean, running: boolean,
- *             absences?: Absence[], credit?: number }} Day
- *   sum = worked time; absences and credit are added by withAbsences()
- * @typedef {{ key: string, year: number, week: number, start: string, sum: number, credit: number, days: Day[] }} Week
+ *             absences?: Absence[], credit?: number, off?: number }} Day
+ *   sum = worked time; absences, credit and off are added by withAbsences(); off = the part of the
+ *   credit that is a holiday (shown as a lower target, not as time)
+ * @typedef {{ key: string, year: number, week: number, start: string, sum: number, credit: number, off: number, days: Day[] }} Week
  */
 
 /** Timestamp cut to the whole minute (what HH:MM shows). @param {number} ts */
@@ -298,11 +299,12 @@ export function groupWeeks(days) {
     let w = map.get(start);
     if (!w) {
       const { year, week } = isoWeek(d.day);
-      map.set(start, (w = { key: start, year, week, start, sum: 0, credit: 0, days: [] }));
+      map.set(start, (w = { key: start, year, week, start, sum: 0, credit: 0, off: 0, days: [] }));
     }
     w.days.push(d);
     w.sum += d.sum;
     w.credit += d.credit || 0;
+    w.off += d.off || 0;
   }
   return [...map.values()].sort((a, b) => (a.key < b.key ? 1 : -1));
 }
@@ -342,6 +344,28 @@ export function currentState(entries, now, tz = DEFAULT_TZ, dayStart = 0, oldest
   };
 }
 
+/**
+ * The last working day before `today`: back from yesterday, past Saturdays, Sundays and days that are
+ * off as a whole (a whole holiday of the calendar or a whole-day absence; a half day is a working day).
+ * Looks back 60 days at most.
+ * @param {string} today @param {(day: string) => boolean} offWhole the day is off as a whole
+ */
+export function lastWorkday(today, offWhole) {
+  let d = addDays(today, -1);
+  for (let i = 0; i < 60 && (weekday(d) >= 5 || offWhole(d)); i++) d = addDays(d, -1);
+  return d;
+}
+
+/**
+ * The open days the start screen warns about: only from the last working day to yesterday (a Monday
+ * also covers the Friday and the weekend). Older open days stay marked in the list only.
+ * @param {string[]} openDays @param {string} today @param {(day: string) => boolean} offWhole
+ */
+export function openDaysToWarn(openDays, today, offWhole) {
+  const from = lastWorkday(today, offWhole);
+  return openDays.filter((d) => d >= from && d < today);
+}
+
 // ------------------------------------------------------------ nerd mode
 
 /** Working days Mon–Fri between a and b (both included). @param {string} a @param {string} b */
@@ -357,17 +381,21 @@ export function workdays(a, b) {
  * optional: without it nothing is credited.
  * @param {Day[]} days @param {number} weekHours @param {string} periodStart @param {string} today
  * @param {Map<string, number>} [credits] day → credited ms
+ * @param {Map<string, number>} [offs] day → the part of the credit that is a holiday (offByDay): `off`
+ *   in the result, to show as a lower target
  */
-export function balance(days, weekHours, periodStart, today, credits = new Map()) {
+export function balance(days, weekHours, periodStart, today, credits = new Map(), offs = new Map()) {
   let first = days.length ? days[days.length - 1].day : today;
   for (const k of credits.keys()) if (k < first) first = k;
   const from = first > periodStart ? first : periodStart;
-  if (from > today) return { worked: 0, credit: 0, target: 0, diff: 0, from };
+  if (from > today) return { worked: 0, credit: 0, off: 0, target: 0, diff: 0, from };
   const worked = days.filter((d) => d.day >= from && d.day <= today).reduce((s, d) => s + d.sum, 0);
   let credit = 0;
   for (const [k, ms] of credits) if (k >= from && k <= today) credit += ms;
+  let off = 0;
+  for (const [k, ms] of offs) if (k >= from && k <= today) off += Math.min(ms, credits.get(k) || 0);
   const target = workdays(from, today) * (weekHours / 5) * HOUR;
-  return { worked, credit, target, diff: worked + credit - target, from };
+  return { worked, credit, off, target, diff: worked + credit - target, from };
 }
 
 /**
@@ -530,13 +558,14 @@ export function editedTs(original, opened, day, time, tz, dayStart = 0) {
 // ------------------------------------------------------------ absences
 
 /**
- * An absence is a whole or half logical day off: vacation, sick, public holiday, other. It is its own
- * record (kind 'absence', see store.js); it never takes part in pairing. It credits the day's target
- * time: weekHours / 5 for a whole day, half of that for a half day, nothing on a Saturday or Sunday
- * (those have no target either).
+ * An absence is a whole or half logical day off: vacation, sick, public holiday, time off in lieu
+ * («comp»), other. It is its own record (kind 'absence', see store.js); it never takes part in pairing.
+ * It credits the day's target time: weekHours / 5 for a whole day, half of that for a half day, nothing
+ * on a Saturday or Sunday (those have no target either). Time off in lieu credits nothing: the balance
+ * pays for it.
  * @typedef {{ id: string, kind: 'absence', day: string, type: string, half?: boolean, note?: string, ts?: number, tz?: string }} Absence
  */
-export const ABSENCE_TYPES = /** @type {const} */ (['vacation', 'sick', 'holiday', 'other']);
+export const ABSENCE_TYPES = /** @type {const} */ (['vacation', 'sick', 'holiday', 'comp', 'other']);
 
 /** The stored type as one of ABSENCE_TYPES (unknown = other). @param {unknown} v */
 export const absenceType = (v) => (ABSENCE_TYPES.includes(/** @type {any} */ (v)) ? /** @type {(typeof ABSENCE_TYPES)[number]} */ (v) : 'other');
@@ -545,9 +574,9 @@ const DAY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 /** A valid day key "YYYY-MM-DD". @param {unknown} v */
 export const isDayKey = (v) => typeof v === 'string' && DAY_KEY_RE.test(v) && addDays(v, 0) === v;
 
-/** Credited time of one absence in ms. @param {{ day: string, half?: boolean }} a @param {number} weekHours */
+/** Credited time of one absence in ms. @param {{ day: string, half?: boolean, type?: string }} a @param {number} weekHours */
 export function absenceCredit(a, weekHours) {
-  if (!isDayKey(a.day) || weekday(a.day) > 4) return 0;
+  if (!isDayKey(a.day) || weekday(a.day) > 4 || a.type === 'comp') return 0;
   const h = Number(weekHours);
   return Number.isFinite(h) && h > 0 ? Math.round(((a.half ? 0.5 : 1) * h * HOUR) / 5) : 0;
 }
@@ -575,16 +604,31 @@ export function creditByDay(absences, weekHours) {
  */
 export function withAbsences(days, absences, weekHours) {
   /** @type {Map<string, Day>} */
-  const map = new Map(days.map((d) => [d.day, { ...d, absences: [], credit: 0 }]));
+  const map = new Map(days.map((d) => [d.day, { ...d, absences: [], credit: 0, off: 0 }]));
   const credits = creditByDay(absences, weekHours);
+  const offs = offByDay(absences, weekHours);
   for (const a of absences) {
     if (!isDayKey(a.day)) continue;
     let d = map.get(a.day);
-    if (!d) map.set(a.day, (d = { day: a.day, pairs: [], punches: [], sum: 0, open: false, running: false, absences: [], credit: 0 }));
+    if (!d) map.set(a.day, (d = { day: a.day, pairs: [], punches: [], sum: 0, open: false, running: false, absences: [], credit: 0, off: 0 }));
     /** @type {Absence[]} */ (d.absences).push(a);
     d.credit = credits.get(a.day) || 0;
+    d.off = Math.min(d.credit, offs.get(a.day) || 0);
   }
   return [...map.values()].sort((a, b) => (a.day < b.day ? 1 : -1));
+}
+
+/**
+ * A public holiday (a day of the calendar or an absence of type «holiday») lowers the day's target
+ * instead of counting as worked time: on 25 December the target is 0, on a half holiday half the day.
+ * The balance is the same either way (worked + credit − target); only what is shown differs.
+ * @param {{ cal?: boolean, type?: string }} a
+ */
+export const isHoliday = (a) => !!a.cal || absenceType(a.type) === 'holiday';
+
+/** Per day, the part of the target a holiday takes off (ms). @param {Absence[] | any[]} absences @param {number} weekHours */
+export function offByDay(absences, weekHours) {
+  return creditByDay(absences.filter(isHoliday), weekHours);
 }
 
 /**
@@ -632,6 +676,7 @@ export function periodSheet(days, from, to, today, weekHours) {
       absences: (d && d.absences) || [],
       worked: d ? d.sum : 0,
       credit: (d && d.credit) || 0,
+      off: (d && d.off) || 0,
       open: d ? d.open : false,
     });
   }
@@ -639,6 +684,7 @@ export function periodSheet(days, from, to, today, weekHours) {
   const counted = rows.filter((r) => r.day <= end);
   const worked = counted.reduce((s, r) => s + r.worked, 0);
   const credit = counted.reduce((s, r) => s + r.credit, 0);
+  const off = counted.reduce((s, r) => s + r.off, 0);
   const target = from <= end ? workdays(from, end) * (weekHours / 5) * HOUR : 0;
-  return { from, to, rows, totals: { worked, credit, target, diff: worked + credit - target, end, partial: to > today } };
+  return { from, to, rows, totals: { worked, credit, off, target, diff: worked + credit - target, end, partial: to > today } };
 }

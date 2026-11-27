@@ -11,7 +11,7 @@ import { dayKey, logicalDay, addDays, parseDay, zonedToEpoch, isDayKey, absenceT
  * dayStart: minutes after local midnight at which the day changes (0 = midnight; night shifts e.g. 240).
  * holidays: the key of a public-holiday calendar (holidays.js), '' = none; its days are computed, never stored.
  */
-export const DEFAULT_SETTINGS = { v: 1, kind: 'settings', weekHours: 42, nerd: false, dayStart: 0, button: 'inout', fx: 'random', badge: 0, badgeAt: '', linkPunch: true, color: 'orange', holidays: '', mod: 0 };
+export const DEFAULT_SETTINGS = { v: 1, kind: 'settings', weekHours: 42, nerd: false, dayStart: 0, button: 'inout', fx: 'random', badge: 0, badgeAt: '', linkPunch: true, color: 'orange', holidays: '', pause: '', mod: 0 };
 
 /**
  * Highlight colours (settings.color): the punch button and the second half of the wordmark. Only the
@@ -26,15 +26,20 @@ export const colorSetting = (value) => (COLORS.includes(/** @type {any} */ (valu
 
 /**
  * Labels for the big button (settings.button): «Punch in/out» (default, both languages), «Punch», or a
- * worded one per language («Clock in/out» / «Jetzt stempeln»; stored as `now` since 2.4's first draft).
+ * worded one per language («Clock in/out» / «Jetzt stempeln»; stored as `now` since 2.4's first draft),
+ * or «Clock» / «Stempeln» (`stamp`). With `now` and `stamp` the German texts say «Stempel» instead of
+ * «Punch» everywhere (i18n.js setWords).
  */
-export const BUTTON_LABELS = /** @type {const} */ (['inout', 'punch', 'now']);
+export const BUTTON_LABELS = /** @type {const} */ (['inout', 'punch', 'now', 'stamp']);
 
 /** The stored value as one of BUTTON_LABELS: anything unknown or missing is the default. @param {unknown} value settings.button */
-export const buttonLabel = (value) => (value === 'punch' || value === 'now' ? value : 'inout');
+export const buttonLabel = (value) => (BUTTON_LABELS.includes(/** @type {any} */ (value)) ? /** @type {(typeof BUTTON_LABELS)[number]} */ (value) : 'inout');
 
 /** Text key of the big button's label. @param {unknown} value settings.button */
-export const buttonLabelKey = (value) => ({ inout: 'punch_inout', punch: 'punch', now: 'punch_now' })[buttonLabel(value)];
+export const buttonLabelKey = (value) => ({ inout: 'punch_inout', punch: 'punch', now: 'punch_now', stamp: 'punch_stamp' })[buttonLabel(value)];
+
+/** The words of the app's texts: «stamp» (German «Stempel») with a worded stamp label, else «punch». @param {unknown} value settings.button */
+export const buttonWords = (value) => (buttonLabel(value) === 'now' || buttonLabel(value) === 'stamp' ? 'stamp' : 'punch');
 
 /** Badge reminder (settings.badge): the default interval in calendar days when it is switched on. */
 export const BADGE_DAYS_DEFAULT = 25;
@@ -90,7 +95,7 @@ export const FX_NAMES = /** @type {const} */ ([
   'button',
 ]);
 /** settings.fx: «random» (default: another one each punch), «off», or one of FX_NAMES (the picker's order). */
-export const FX_CHOICES = /** @type {const} */ (['random', 'off', ...FX_NAMES]);
+export const FX_CHOICES = /** @type {const} */ (['off', 'random', ...FX_NAMES]);
 
 /** The stored value as one of FX_CHOICES: unknown or missing is «random». @param {unknown} value settings.fx */
 export const fxSetting = (value) => (FX_CHOICES.includes(/** @type {any} */ (value)) ? /** @type {(typeof FX_CHOICES)[number]} */ (value) : 'random');
@@ -573,7 +578,9 @@ export class Store extends EventTarget {
         if (!this.prePull) this.prePull = { patch: {}, base: { had: this.raw.has(SETTINGS_ID), mod: Number(this.settings.mod) || 0 } };
         Object.assign(this.prePull.patch, patch);
       }
-      return this.write(SETTINGS_ID, { ...this.settings, ...patch, kind: 'settings' });
+      // «delayed» (the former delayed sync, up to 2.8) is dropped: it only took room in the record.
+      const { delayed: _gone, ...current } = /** @type {any} */ (this.settings);
+      return this.write(SETTINGS_ID, { ...current, ...patch, kind: 'settings' });
     };
     const next = this.settingsQueue.then(run, run);
     this.settingsQueue = next.catch(() => {});

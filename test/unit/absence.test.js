@@ -53,8 +53,12 @@ describe('absence credit (time.js)', () => {
     expect(c.get('2026-11-24')).toBe(4 * H);
   });
 
-  it('types: the four kinds, anything else is «other»; day keys are checked', () => {
-    expect(['vacation', 'sick', 'holiday', 'other', 'x', undefined].map(absenceType)).toEqual(['vacation', 'sick', 'holiday', 'other', 'other', 'other']);
+  it('types: the five kinds, anything else is «other»; day keys are checked', () => {
+    expect(['vacation', 'sick', 'holiday', 'comp', 'other', 'x', undefined].map(absenceType)).toEqual(['vacation', 'sick', 'holiday', 'comp', 'other', 'other', 'other']);
+    // time off in lieu credits nothing (the balance pays for it), whole or half
+    expect(absenceCredit({ day: '2026-11-23', type: 'comp' }, 42)).toBe(0);
+    expect(absenceCredit({ day: '2026-11-23', type: 'comp', half: true }, 42)).toBe(0);
+    expect(absenceCredit({ day: '2026-11-23', type: 'vacation' }, 42)).toBe(8.4 * 3_600_000);
     expect(isDayKey('2026-11-23')).toBe(true);
     expect(isDayKey('2026-02-30')).toBe(false);
     expect(isDayKey('2026-1-3')).toBe(false);
@@ -332,6 +336,27 @@ describe('absences in the store', () => {
     expect(old.filter((e) => !e.del)).toEqual([]);
     expect(buildDays(old, clock.now, 0, TZ)).toEqual([]);
     expect(new Date(plain.ts).toISOString()).toBe('2026-11-23T11:00:00.000Z'); // noon of that day, Zurich
+  });
+
+  it('every record stays one fixed-size packet: the longest notes in letters fit, a note of emoji that would not is refused before anything is written', async () => {
+    const clock = { now: at(2026, 11, 24, 20) };
+    const server = fakeServer(clock);
+    const st = device(clock, server);
+    await st.sync();
+    // the form's limits: 60 characters for an absence, 120 for a punch; in plain letters both fit
+    const abs = await st.addAbsence({ day: '2026-11-23', type: 'vacation', note: 'x'.repeat(60) });
+    await st.write(newId(), { ts: at(2026, 11, 24, 7), tz: 'America/Argentina/ComodRivadavia', note: 'x'.repeat(120), del: false });
+    await idle(st);
+    // every packet on the server has the same length
+    const lens = new Set([...server.records.values()].map((r) => r.data.length));
+    expect(lens.size).toBe(1);
+    // 60 emoji (4 bytes each in UTF-8) would not fit: refused, nothing written, the old record stays
+    const before = server.records.size;
+    await expect(st.addAbsence({ day: '2026-11-20', type: 'vacation', note: '🏖️'.repeat(30) })).rejects.toThrow('too_long');
+    await expect(st.write(newId(), { ts: at(2026, 11, 24, 8), tz: TZ, note: '😀'.repeat(60), del: false })).rejects.toThrow('too_long');
+    await idle(st);
+    expect(server.records.size).toBe(before);
+    expect(st.absences().map((a) => a.id)).toEqual([abs.id]);
   });
 
   it('one absence per day; an absence takes one of the day\'s 12 places', async () => {

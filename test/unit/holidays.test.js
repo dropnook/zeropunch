@@ -4,7 +4,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { holidays, holidayAbsences, easter, ruleDay, calendarKey, calendarGroups, CALENDAR_KEYS } from '../../public/js/holidays.js';
-import { creditByDay, withAbsences, workdays, balance, periodSheet } from '../../public/js/time.js';
+import { creditByDay, offByDay, withAbsences, workdays, balance, periodSheet } from '../../public/js/time.js';
 import { absenceRows, absenceLabel } from '../../public/js/listview.js';
 import { DEFAULT_SETTINGS, FX_NAMES } from '../../public/js/store.js';
 import { jsonSize, PLAINTEXT_SIZE } from '../../public/js/crypto.js';
@@ -241,6 +241,43 @@ describe('credits and the list', () => {
     // a stored absence keeps its bin
     expect(absenceRows(/** @type {any} */ ({ day: '2026-12-23', absences: [manual('2026-12-23')] }), 42)[0].controls.map((x) => x.kind)).toEqual(['delete']);
   });
+
+  it('time off in lieu shows what it takes from the balance: −8:24, with 2 h worked −6:24, a half day at most −4:12', () => {
+    const comp = (/** @type {string} */ day, half = false) => ({ id: `c-${day}`, kind: 'absence', day, type: 'comp', half, note: '' });
+    const row = (/** @type {any} */ d) => absenceRows(d, 42)[0].shown;
+    expect(row({ day: '2026-11-25', sum: 0, absences: [comp('2026-11-25')] })).toBe('−8:24');
+    expect(row({ day: '2026-11-25', sum: 2 * H, absences: [comp('2026-11-25')] })).toBe('−6:24');
+    expect(row({ day: '2026-11-25', sum: 0, absences: [comp('2026-11-25', true)] })).toBe('−4:12');
+    expect(row({ day: '2026-11-25', sum: 4.2 * H, absences: [comp('2026-11-25', true)] })).toBe('−4:12');
+    expect(row({ day: '2026-11-25', sum: 9 * H, absences: [comp('2026-11-25')] })).toBe('0:00'); // worked anyway
+    // the balance itself: worked − target, the comp day credits nothing
+    const credits = creditByDay([comp('2026-11-25')], 42);
+    const days = [{ day: '2026-11-25', pairs: [], punches: [], sum: 2 * H, open: false, running: false }];
+    expect(balance(/** @type {any} */ (days), 42, '2026-11-25', '2026-11-25', credits).diff).toBe(-6.4 * H);
+  });
+
+  it('a holiday shows as a lower target, not as time: 25 Dec target 0:00, 24 Dec 4:12; the balance is unchanged', () => {
+    const cal = holidayAbsences('CH-LU', '2026-12-21', '2026-12-27');
+    const days = withAbsences([], [...cal, manual('2026-12-21')], 42);
+    const day = (/** @type {string} */ k) => /** @type {any} */ (days.find((d) => d.day === k));
+    // the holiday's part of the credit is `off`; vacation stays credit
+    expect(day('2026-12-25')).toMatchObject({ credit: 8.4 * H, off: 8.4 * H });
+    expect(day('2026-12-24')).toMatchObject({ credit: 4.2 * H, off: 4.2 * H });
+    expect(day('2026-12-21')).toMatchObject({ credit: 8.4 * H, off: 0 });
+    setLang('de');
+    expect(absenceRows(day('2026-12-25'), 42)[0].shown).toBe('Soll 0:00');
+    expect(absenceRows(day('2026-12-24'), 42)[0].shown).toBe('Soll 4:12');
+    expect(absenceRows(day('2026-12-21'), 42)[0].shown).toBe('8:24'); // vacation: the credited time
+    // the week: target 42 h − 12:36 h holidays = 29:24 h; time 8:24 h (the vacation day)
+    const sheet = periodSheet(days, '2026-12-21', '2026-12-27', '2026-12-31', 42);
+    expect(sheet.totals.target - sheet.totals.off).toBe(29.4 * H);
+    expect(sheet.totals.credit - sheet.totals.off).toBe(8.4 * H);
+    expect(sheet.totals.diff).toBe(8.4 * H + 12.6 * H - 42 * H); // as before
+    const credits = creditByDay([...cal, manual('2026-12-21')], 42);
+    const b = balance([], 42, '2026-12-21', '2026-12-27', credits, offByDay([...cal, manual('2026-12-21')], 42));
+    expect(b.off).toBe(12.6 * H);
+    expect(b.diff).toBe(21 * H - 42 * H);
+  });
 });
 
 describe('settings and loading', () => {
@@ -260,12 +297,14 @@ describe('settings and loading', () => {
       linkPunch: false,
       color: 'graphite', // the longest colour key
       holidays: longestKey,
-      delayed: false, // a field of older versions that may still ride along
+      pause: '-5.5-15,9.5-60', // the longest break rule
       mod: 9_999_999_999_999,
     };
     expect(jsonSize(largest)).toBeLessThanOrEqual(PLAINTEXT_SIZE);
-    // Room left for one more short field later (colour and calendar together leave about 18 bytes).
+    // Room left for one more short field later. «delayed» (up to 2.8) is no longer written (store.test.js).
     expect(PLAINTEXT_SIZE - jsonSize(largest)).toBeGreaterThanOrEqual(10);
+    // An old record that still carries «delayed» and every other field at its longest also fits.
+    expect(jsonSize({ ...largest, pause: '', delayed: false })).toBeLessThanOrEqual(PLAINTEXT_SIZE);
   });
 
   it('the picker: «None» first (in index.html), Switzerland with the cantons by German name, then the countries', () => {

@@ -6,7 +6,7 @@ import { makeChallenge, checkSolution, powBits } from './pow.js';
 import { SETTINGS_ID, IDLE_DAYS, COOKIE_GRACE_DAYS, rememberGone } from './retention.js';
 
 /** Shown in /api/admin/stats; kept equal to package.json and the client by a unit test. */
-export const VERSION = '2026.11.27';
+export const VERSION = '2026.11.28-1';
 
 export const SESSION_COOKIE = '__Host-zp';
 /** Sliding session lifetime: as long as an unused account lives, not longer. */
@@ -582,6 +582,26 @@ async function getKeys(env, userId) {
   return json(200, { version: Number(row.keys_version), keys: (await readKeys(env, userId, row.keys)).blob, seq: Number(row.seq), now: Date.now() });
 }
 
+// ---------------------------------------------------------------- the nerd view's network info
+
+/**
+ * What this request looks like from here, for the nerd view (on a tap, never on its own): the public
+ * address and what Cloudflare knows of the connection. Read from this one request only: nothing is
+ * stored or logged. Logged-in accounts only, so it is no open «what is my IP» service.
+ * @param {Request} req
+ */
+function netInfo(req) {
+  const cf = /** @type {Record<string, any>} */ (/** @type {any} */ (req).cf || {});
+  return json(200, {
+    ip: req.headers.get('CF-Connecting-IP') || '',
+    country: String(cf.country || ''),
+    colo: String(cf.colo || ''),
+    org: String(cf.asOrganization || ''),
+    tls: String(cf.tlsVersion || ''),
+    http: String(cf.httpProtocol || ''),
+  });
+}
+
 // ---------------------------------------------------------------- records
 
 /** @param {URL} url @param {Record<string, any>} env @param {string} userId */
@@ -780,6 +800,7 @@ export async function handleApi(req, env) {
     path === '/api/keys' ||
     path === '/api/records' ||
     path === '/api/account' ||
+    path === '/api/net' ||
     path.startsWith('/api/records/');
   if (!known) return err(404, 'not_found');
 
@@ -802,6 +823,7 @@ export async function handleApi(req, env) {
   else if (path.startsWith('/api/records/') && method === 'PUT') res = await putRecord(req, env, s.userId, recId);
   else if (path.startsWith('/api/records/') && method === 'DELETE') res = await deleteRecord(env, s.userId, recId);
   else if (path === '/api/account' && method === 'DELETE') res = await deleteAccount(req, env, s);
+  else if (path === '/api/net' && method === 'GET') res = netInfo(req);
   else res = err(405, 'method');
 
   if (s.setCookie && !res.headers.get('Set-Cookie')) res.headers.append('Set-Cookie', s.setCookie);

@@ -144,15 +144,58 @@
     </section>
 
     <section id="v-list" class="view main" hidden>
-      <div class="list-tools">
-        <button class="btn small" type="button" id="b-absence" data-i18n="absence_add"></button>
-        <button class="btn small" type="button" id="b-sheet" data-i18n="sheet_button"></button>
-      </div>
+      <!-- No buttons on top: «+» (a punch or an absence) and the funnel (holidays ahead, day filters) float
+           at the bottom; the printable sheet is in the nerd view. A day filter shows its bar here. -->
+      <p class="filter-bar" id="o-filter-bar" hidden>
+        <span id="o-filter-text"></span>
+        <button class="btn small ghost" type="button" id="b-filter-off" data-i18n="filter_off"></button>
+      </p>
       <div id="o-list" class="list"></div>
       <p class="hint center list-rule" data-i18n="pair_rule"></p>
       <p class="hint center list-foot" data-i18n="retention_note"></p>
-      <button class="fab" type="button" id="b-add" data-i18n-aria="add_aria">+</button>
+      <button class="fab fab-small" type="button" id="b-ahead" data-i18n-aria="ahead_aria">
+        <svg viewBox="0 0 24 24" class="ico-svg" aria-hidden="true" focusable="false"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg>
+      </button>
+      <button class="fab" type="button" id="b-add" data-i18n-aria="add_menu_aria">+</button>
     </section>
+
+    <!-- «+» in the list: what to add -->
+    <dialog id="dlg-add" class="sheet" aria-labelledby="dlg-add-title">
+      <form class="stack" method="dialog">
+        <h2 id="dlg-add-title" data-i18n="add_menu_title"></h2>
+        <button class="btn primary" type="submit" value="punch" data-i18n="add_aria"></button>
+        <button class="btn" type="submit" value="absence" data-i18n="absence_add"></button>
+        <button class="btn ghost" type="submit" value="" data-i18n="cancel"></button>
+      </form>
+    </dialog>
+
+    <!-- The funnel in the list: how far ahead the calendar's holidays show, and which days -->
+    <dialog id="dlg-ahead" class="sheet" aria-labelledby="dlg-filter-title">
+      <form class="stack" method="dialog">
+        <h2 id="dlg-filter-title" data-i18n="filter_title"></h2>
+        <h3 id="dlg-ahead-title" data-i18n="ahead_title"></h3>
+        <p class="hint" id="o-ahead-nocal" data-i18n="ahead_nocal" hidden></p>
+        <button class="btn" type="submit" value="settings" id="b-ahead-settings" data-i18n="ahead_choose_cal" hidden></button>
+        <div class="choice" id="ahead-choices" role="radiogroup" aria-labelledby="dlg-ahead-title">
+          <label class="check"><input type="radio" name="ahead" value="none"> <span data-i18n="ahead_none"></span></label>
+          <label class="check"><input type="radio" name="ahead" value="14"> <span data-i18n="ahead_14"></span></label>
+          <label class="check"><input type="radio" name="ahead" value="year"> <span data-i18n="ahead_year"></span></label>
+        </div>
+        <h3 id="dlg-days-title" data-i18n="filter_days_title"></h3>
+        <!-- js/listview.js filterDays -->
+        <div class="choice" id="filter-choices" role="radiogroup" aria-labelledby="dlg-days-title">
+          <label class="check"><input type="radio" name="day-filter" value="all"> <span data-i18n="filter_all"></span></label>
+          <label class="check"><input type="radio" name="day-filter" value="pause"> <span data-i18n="filter_pause"></span></label>
+          <label class="check"><input type="radio" name="day-filter" value="open"> <span data-i18n="filter_open"></span></label>
+          <label class="check"><input type="radio" name="day-filter" value="rest"> <span data-i18n="filter_rest"></span></label>
+          <label class="check"><input type="radio" name="day-filter" value="long"> <span data-i18n="filter_long"></span></label>
+          <label class="check"><input type="radio" name="day-filter" value="weekend"> <span data-i18n="filter_weekend"></span></label>
+          <label class="check"><input type="radio" name="day-filter" value="absent"> <span data-i18n="filter_absent"></span></label>
+        </div>
+        <p class="hint" id="o-filter-hint"></p>
+        <button class="btn primary" type="submit" value="ok" data-i18n="ok"></button>
+      </form>
+    </dialog>
 
     <!-- Week or month sheet for printing (js/sheet.js; print layout: @media print in app.css) -->
     <section id="v-print" class="view print-view" hidden>
@@ -165,181 +208,274 @@
     </section>
 
     <section id="v-nerd" class="view main" hidden>
+      <!-- Jump buttons to the sections js/app.js renderNerd draws (ids nerd-…); they stay on top -->
+      <nav class="set-nav" data-i18n-aria="nerd_nav_aria">
+        <button class="btn small" type="button" data-goto="nerd-saldo" data-i18n="nerd_g_saldo"></button>
+        <button class="btn small" type="button" data-goto="nerd-charts" data-i18n="nerd_g_charts"></button>
+        <button class="btn small" type="button" data-goto="nerd-stats" data-i18n="nerd_g_stats"></button>
+        <button class="btn small" type="button" data-goto="nerd-absent" data-i18n="nerd_g_absent"></button>
+        <button class="btn small" type="button" data-goto="nerd-heat" data-i18n="nerd_g_heat"></button>
+        <button class="btn small" type="button" data-goto="nerd-tech" data-i18n="nerd_g_tech"></button>
+        <button class="btn small" type="button" data-goto="nerd-export" data-i18n="nerd_g_export"></button>
+      </nav>
       <div id="o-nerd" class="stack"></div>
     </section>
 
     <section id="v-settings" class="view main" hidden>
       <div class="stack">
-        <p class="whoami" id="o-whoami"></p>
-        <h2 data-i18n="h_punchlink"></h2>
-        <p class="hint" data-i18n="punchlink_intro"></p>
-        <p class="mono small break" id="o-punch-link"></p>
-        <button class="btn" type="button" id="b-copy-punch-link" data-i18n="copy_link"></button>
-        <label class="check"><input type="checkbox" id="c-linkpunch"> <span data-i18n="linkpunch_check"></span></label>
-        <p class="hint" data-i18n="linkpunch_hint"></p>
-        <details class="howto" id="d-nfc-ios27">
-          <summary data-i18n="nfc_ios27_title"></summary>
-          <p class="hint"><a href="/nfc-video" target="_blank" rel="noopener" data-i18n="nfc_ios_video"></a></p>
-          <ol>
-            <li data-i18n="nfc_ios_1"></li>
-            <li data-i18n="nfc_ios_2"></li>
-            <li data-i18n="nfc_ios_3"></li>
-            <li data-i18n="nfc_ios27_4"></li>
-            <li data-i18n="nfc_ios27_5"></li>
-            <li data-i18n="nfc_ios27_6"></li>
-            <li data-i18n="nfc_ios27_7"></li>
-            <li data-i18n="nfc_ios27_8"></li>
-            <li data-i18n="nfc_ios27_9"></li>
-            <li data-i18n="nfc_ios27_10"></li>
-          </ol>
-          <p class="hint" data-i18n="nfc_ios_note"></p>
-        </details>
-        <details class="howto" id="d-nfc-android">
-          <summary data-i18n="nfc_android_title"></summary>
-          <ol>
-            <li data-i18n="nfc_android_1"></li>
-            <li data-i18n="nfc_android_2"></li>
-            <li data-i18n="nfc_android_3"></li>
-            <li data-i18n="nfc_android_4"></li>
-            <li data-i18n="nfc_android_5"></li>
-            <li data-i18n="nfc_android_6"></li>
-          </ol>
-          <p class="hint" data-i18n="nfc_android_note"></p>
-        </details>
+        <!-- Jump buttons to the groups below (js/app.js, data-goto; no #hash: the hash is the app's) -->
+        <nav class="set-nav" data-i18n-aria="set_nav_aria">
+          <button class="btn small" type="button" data-goto="set-look" data-i18n="set_g_look"></button>
+          <button class="btn small" type="button" data-goto="set-badge" data-i18n="set_g_badge"></button>
+          <button class="btn small" type="button" data-goto="set-app" data-i18n="set_g_app"></button>
+          <button class="btn small" type="button" data-goto="set-punch" data-i18n="set_g_punch"></button>
+          <button class="btn small" type="button" data-goto="set-time" data-i18n="set_g_time"></button>
+          <button class="btn small" type="button" data-goto="set-data" data-i18n="set_g_data"></button>
+          <button class="btn small" type="button" data-goto="set-account" data-i18n="set_g_account"></button>
+        </nav>
+        <section class="set-group stack" id="set-look">
+          <h2 id="h-button" data-i18n="h_button"></h2>
+          <div class="choice" role="radiogroup" aria-labelledby="h-button">
+            <label class="check"><input type="radio" name="button-label" value="inout"> <span class="choice-sample" data-i18n="punch_inout"></span></label>
+            <label class="check"><input type="radio" name="button-label" value="punch"> <span class="choice-sample" data-i18n="punch"></span></label>
+            <label class="check"><input type="radio" name="button-label" value="now"> <span class="choice-sample" data-i18n="punch_now"></span></label>
+            <label class="check"><input type="radio" name="button-label" value="stamp"> <span class="choice-sample" data-i18n="punch_stamp"></span></label>
+          </div>
 
-        <h2 data-i18n="h_worktime"></h2>
-        <form id="f-target" class="row" novalidate>
-          <label for="i-target" data-i18n="target_label"></label>
-          <input id="i-target" type="number" inputmode="decimal" min="0" max="80" step="0.25">
-        </form>
-        <div class="row">
-          <label for="s-holidays" data-i18n="holidays_label"></label>
-          <!-- Filled by js/app.js (renderHolidayPicker) from js/holidays.js, loaded only here or when a calendar is set -->
-          <select id="s-holidays" aria-describedby="o-holidays-hint">
-            <option value="" data-i18n="holidays_none"></option>
+          <h2 id="h-color" data-i18n="h_color"></h2>
+          <p class="hint" data-i18n="color_hint"></p>
+          <!-- Filled by js/app.js (bindColorChoice): one round swatch per colour, as one radio group -->
+          <div class="swatches" id="color-choices" role="radiogroup" aria-labelledby="h-color"></div>
+
+          <h2 id="h-size" data-i18n="h_size"></h2>
+          <!-- Text size, kept on this device (js/app.js applySize; app.css html[data-size]) -->
+          <div class="seg seg3 seg-size" role="radiogroup" aria-labelledby="h-size">
+            <label><input type="radio" name="text-size" value="s" data-i18n-aria="size_s"> <span data-i18n="size_letter" aria-hidden="true"></span></label>
+            <label><input type="radio" name="text-size" value="m" data-i18n-aria="size_m"> <span data-i18n="size_letter" aria-hidden="true"></span></label>
+            <label><input type="radio" name="text-size" value="l" data-i18n-aria="size_l"> <span data-i18n="size_letter" aria-hidden="true"></span></label>
+          </div>
+
+          <h2 id="h-theme" data-i18n="h_theme"></h2>
+          <!-- Light or dark: from the system (default) or chosen, kept on this device (js/app.js applyTheme) -->
+          <div class="seg seg3" role="radiogroup" aria-labelledby="h-theme">
+            <label><input type="radio" name="theme" value="auto"> <span data-i18n="theme_auto"></span></label>
+            <label><input type="radio" name="theme" value="light"> <span data-i18n="theme_light"></span></label>
+            <label><input type="radio" name="theme" value="dark"> <span data-i18n="theme_dark"></span></label>
+          </div>
+          <p class="hint" data-i18n="size_hint"></p>
+
+          <h2 id="h-fx" data-i18n="h_fx"></h2>
+          <p class="hint" data-i18n="fx_hint"></p>
+          <!-- The chosen animation plays here once; then its still stays (js/app.js showFx) -->
+          <div class="fx-show" id="fx-show" aria-hidden="true"></div>
+          <!-- Filled by js/app.js (bindFxChoice): tiles for Random, Off and every animation, as one radio group -->
+          <div class="fx-grid" id="fx-choices" role="radiogroup" aria-labelledby="h-fx"></div>
+          <p class="hint" id="o-fx-reduced" data-i18n="fx_reduced" hidden></p>
+
+          <h2 id="h-lang" data-i18n="h_language"></h2>
+          <select id="s-lang" aria-labelledby="h-lang">
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
           </select>
-          <p class="hint" id="o-holidays-hint" data-i18n="holidays_hint"></p>
-        </div>
-        <label class="check"><input type="checkbox" id="c-night"> <span data-i18n="night_shifts"></span></label>
-        <div id="night-box" class="row" hidden>
-          <label for="i-daystart" data-i18n="day_changes_at"></label>
-          <input id="i-daystart" type="time">
-          <p class="hint" data-i18n="night_hint"></p>
-        </div>
-        <label class="check"><input type="checkbox" id="c-badge"> <span data-i18n="badge_check"></span></label>
-        <div id="badge-box" class="row" hidden>
-          <label for="i-badge-days" data-i18n="badge_days_label"></label>
-          <input id="i-badge-days" type="number" inputmode="numeric" min="1" max="365" step="1">
-          <p class="hint" data-i18n="badge_hint"></p>
-          <p class="hint" id="o-badge-next"></p>
-        </div>
 
-        <h2 id="h-button" data-i18n="h_button"></h2>
-        <div class="choice" role="radiogroup" aria-labelledby="h-button">
-          <label class="check"><input type="radio" name="button-label" value="inout"> <span class="choice-sample" data-i18n="punch_inout"></span></label>
-          <label class="check"><input type="radio" name="button-label" value="punch"> <span class="choice-sample" data-i18n="punch"></span></label>
-          <label class="check"><input type="radio" name="button-label" value="now"> <span class="choice-sample" data-i18n="punch_now"></span></label>
-        </div>
+          <h2 data-i18n="h_nerd"></h2>
+          <label class="check"><input type="checkbox" role="switch" id="c-nerd"> <span data-i18n="nerd_check"></span></label>
+          <p class="hint" data-i18n="nerd_hint"></p>
+        </section>
 
-        <h2 id="h-color" data-i18n="h_color"></h2>
-        <p class="hint" data-i18n="color_hint"></p>
-        <!-- Filled by js/app.js (bindColorChoice): one round swatch per colour, as one radio group -->
-        <div class="swatches" id="color-choices" role="radiogroup" aria-labelledby="h-color"></div>
+        <section class="set-group stack" id="set-badge">
+          <h2 data-i18n="h_badge"></h2>
+          <label class="check"><input type="checkbox" role="switch" id="c-badge"> <span data-i18n="badge_check"></span></label>
+          <p class="hint" data-i18n="badge_intro"></p>
+          <div id="badge-box" class="row" hidden>
+            <label for="i-badge-days" data-i18n="badge_days_label"></label>
+            <input id="i-badge-days" type="number" inputmode="numeric" min="1" max="365" step="1">
+            <p class="hint" data-i18n="badge_hint"></p>
+            <p class="hint" id="o-badge-next"></p>
+          </div>
+        </section>
 
-        <h2 id="h-fx" data-i18n="h_fx"></h2>
-        <p class="hint" data-i18n="fx_hint"></p>
-        <!-- The chosen animation plays here once; then its still stays (js/app.js showFx) -->
-        <div class="fx-show" id="fx-show" aria-hidden="true"></div>
-        <!-- Filled by js/app.js (bindFxChoice): tiles for Random, Off and every animation, as one radio group -->
-        <div class="fx-grid" id="fx-choices" role="radiogroup" aria-labelledby="h-fx"></div>
-        <p class="hint" id="o-fx-reduced" data-i18n="fx_reduced" hidden></p>
+        <section class="set-group stack" id="set-app">
+          <h2 data-i18n="h_install"></h2>
+          <p class="hint" id="o-installed" data-i18n="install_done" hidden></p>
+          <div id="install-box" class="stack">
+            <p class="hint" data-i18n="install_intro"></p>
+            <details class="howto" id="d-install-ios">
+              <summary data-i18n="install_ios_title"></summary>
+              <ol>
+                <li data-i18n="install_ios_1"></li>
+                <li data-i18n="install_ios_2"></li>
+                <li data-i18n="install_ios_3"></li>
+                <li data-i18n="install_ios_4"></li>
+              </ol>
+              <p class="hint" data-i18n="install_ios_note"></p>
+            </details>
+            <details class="howto" id="d-install-android">
+              <summary data-i18n="install_android_title"></summary>
+              <ol>
+                <li data-i18n="install_android_1"></li>
+                <li data-i18n="install_android_2"></li>
+                <li data-i18n="install_android_3"></li>
+                <li data-i18n="install_android_4"></li>
+              </ol>
+            </details>
+          </div>
+        </section>
 
-        <h2 id="h-lang" data-i18n="h_language"></h2>
-        <select id="s-lang" aria-labelledby="h-lang">
-          <option value="en">English</option>
-          <option value="de">Deutsch</option>
-        </select>
-
-        <h2 data-i18n="h_install"></h2>
-        <p class="hint" id="o-installed" data-i18n="install_done" hidden></p>
-        <div id="install-box" class="stack">
-          <p class="hint" data-i18n="install_intro"></p>
-          <details class="howto" id="d-install-ios">
-            <summary data-i18n="install_ios_title"></summary>
+        <section class="set-group stack" id="set-punch">
+          <h2 data-i18n="h_punchlink"></h2>
+          <!-- What it is, then the step-by-step guides, then the link and the setting they refer to -->
+          <p class="hint" data-i18n="punchlink_intro"></p>
+          <details class="howto" id="d-nfc-ios27">
+            <summary data-i18n="nfc_ios27_title"></summary>
+            <p class="hint"><a href="/nfc-video" target="_blank" rel="noopener" data-i18n="nfc_ios_video"></a></p>
             <ol>
-              <li data-i18n="install_ios_1"></li>
-              <li data-i18n="install_ios_2"></li>
-              <li data-i18n="install_ios_3"></li>
-              <li data-i18n="install_ios_4"></li>
+              <li data-i18n="nfc_ios_1"></li>
+              <li data-i18n="nfc_ios_2"></li>
+              <li data-i18n="nfc_ios_3"></li>
+              <li data-i18n="nfc_ios27_4"></li>
+              <li data-i18n="nfc_ios27_5"></li>
+              <li data-i18n="nfc_ios27_6"></li>
+              <li data-i18n="nfc_ios27_7"></li>
+              <li data-i18n="nfc_ios27_8"></li>
+              <li data-i18n="nfc_ios27_9"></li>
+              <li data-i18n="nfc_ios27_10"></li>
             </ol>
-            <p class="hint" data-i18n="install_ios_note"></p>
+            <p class="hint" data-i18n="nfc_ios_note"></p>
           </details>
-          <details class="howto" id="d-install-android">
-            <summary data-i18n="install_android_title"></summary>
+          <details class="howto" id="d-nfc-android">
+            <summary data-i18n="nfc_android_title"></summary>
             <ol>
-              <li data-i18n="install_android_1"></li>
-              <li data-i18n="install_android_2"></li>
-              <li data-i18n="install_android_3"></li>
-              <li data-i18n="install_android_4"></li>
+              <li data-i18n="nfc_android_1"></li>
+              <li data-i18n="nfc_android_2"></li>
+              <li data-i18n="nfc_android_3"></li>
+              <li data-i18n="nfc_android_4"></li>
+              <li data-i18n="nfc_android_5"></li>
+              <li data-i18n="nfc_android_6"></li>
             </ol>
+            <p class="hint" data-i18n="nfc_android_note"></p>
+            <p class="hint" data-i18n="nfc_android_badge"></p>
           </details>
-        </div>
+          <p class="hint" data-i18n="punchlink_link"></p>
+          <p class="mono small break" id="o-punch-link"></p>
+          <button class="btn" type="button" id="b-copy-punch-link" data-i18n="copy_link"></button>
+          <label class="check"><input type="checkbox" role="switch" id="c-linkpunch"> <span data-i18n="linkpunch_check"></span></label>
+          <p class="hint" data-i18n="linkpunch_hint"></p>
+        </section>
 
-        <h2 data-i18n="h_nerd"></h2>
-        <label class="check"><input type="checkbox" id="c-nerd"> <span data-i18n="nerd_check"></span></label>
+        <section class="set-group stack" id="set-time">
+          <h2 data-i18n="h_worktime"></h2>
+          <form id="f-target" class="row" novalidate>
+            <label for="i-target" data-i18n="target_label"></label>
+            <input id="i-target" type="number" inputmode="decimal" min="0" max="80" step="0.25">
+          </form>
+          <div class="row">
+            <label for="s-holidays" data-i18n="holidays_label"></label>
+            <!-- Filled by js/app.js (renderHolidayPicker) from js/holidays.js, loaded only here or when a calendar is set -->
+            <select id="s-holidays" aria-describedby="o-holidays-hint">
+              <option value="" data-i18n="holidays_none"></option>
+            </select>
+            <p class="hint" id="o-holidays-hint" data-i18n="holidays_hint"></p>
+          </div>
+          <!-- Break rule for the list's filter «Break too short» (js/listview.js breakRule; settings.pause) -->
+          <div class="row">
+            <label for="s-pause" data-i18n="pause_label"></label>
+            <select id="s-pause" aria-describedby="o-pause-rule">
+              <option value="auto" data-i18n="pause_auto"></option>
+              <option value="ch" data-i18n="pause_ch"></option>
+              <option value="de" data-i18n="pause_de"></option>
+              <option value="at" data-i18n="pause_at"></option>
+              <option value="custom" data-i18n="pause_custom"></option>
+              <option value="off" data-i18n="pause_off"></option>
+            </select>
+            <!-- Selects (a wheel on the iPhone): hours 1–16 in half hours, minutes 5–120 in steps of 5; filled by
+                 js/app.js fillPauseSelects -->
+            <div id="pause-custom" class="pause-custom" hidden>
+              <p class="pause-step">
+                <span data-i18n="pause_over"></span>
+                <select id="i-p1h" data-i18n-aria="pause_hours_aria"></select>
+                <span data-i18n="pause_hours"></span>
+                <select id="i-p1m" data-i18n-aria="pause_minutes_aria"></select>
+                <span data-i18n="pause_minutes_break"></span>
+              </p>
+              <p class="pause-step">
+                <span data-i18n="pause_over"></span>
+                <select id="i-p2h" data-i18n-aria="pause_hours_aria"></select>
+                <span data-i18n="pause_hours"></span>
+                <select id="i-p2m" data-i18n-aria="pause_minutes_aria"></select>
+                <span data-i18n="pause_minutes_break"></span>
+                <span class="hint" data-i18n="optional"></span>
+              </p>
+            </div>
+            <label class="check"><input type="checkbox" role="switch" id="c-pause-paid"> <span data-i18n="pause_paid"></span></label>
+            <p class="hint" id="o-pause-rule"></p>
+          </div>
+          <label class="check"><input type="checkbox" role="switch" id="c-night"> <span data-i18n="night_shifts"></span></label>
+          <div id="night-box" class="row" hidden>
+            <label for="i-daystart" data-i18n="day_changes_at"></label>
+            <input id="i-daystart" type="time">
+            <p class="hint" data-i18n="night_hint"></p>
+          </div>
+        </section>
 
-        <h2 data-i18n="h_retention"></h2>
-        <p class="hint" data-i18n="retention_note"></p>
-        <p class="hint" data-i18n="idle_note"></p>
+        <section class="set-group stack" id="set-data">
+          <h2 data-i18n="h_retention"></h2>
+          <p class="hint" data-i18n="retention_note"></p>
+          <p class="hint" data-i18n="idle_note"></p>
 
-        <h2 data-i18n="h_export"></h2>
-        <p class="hint" data-i18n="export_hint"></p>
-        <div class="row-buttons">
-          <button class="btn" type="button" id="b-csv">CSV</button>
-          <button class="btn" type="button" id="b-json">JSON</button>
-        </div>
+          <h2 data-i18n="h_export"></h2>
+          <p class="hint" data-i18n="export_hint"></p>
+          <div class="row-buttons">
+            <button class="btn" type="button" id="b-csv">CSV</button>
+            <button class="btn" type="button" id="b-json">JSON</button>
+          </div>
 
-        <h2 data-i18n="h_account"></h2>
-        <p id="o-username" class="mono"></p>
-        <p class="hint" data-i18n="other_device_hint"></p>
-        <div class="qr-box small" id="qr-login"></div>
-        <p class="mono small break" id="o-login-link"></p>
-        <button class="btn" type="button" id="b-copy-link" data-i18n="copy_link"></button>
+          <h2 data-i18n="h_privacy"></h2>
+          <p class="hint" data-i18n="privacy_text"></p>
+          <p class="hint"><span data-i18n="about_license"></span> · <a href="/about" rel="noopener" data-i18n="about_site"></a> · <a id="a-source" rel="noopener" data-i18n="source_link"></a></p>
+          <p class="hint small" id="o-about"></p>
+        </section>
 
-        <h2 data-i18n="h_pass"></h2>
-        <form id="f-pass" class="stack" novalidate>
-          <input type="text" name="username" autocomplete="username" id="i-pass-user" hidden>
-          <label for="i-pold" data-i18n="current_pass"></label>
-          <input id="i-pold" type="password" autocomplete="current-password">
-          <label for="i-pnew1" data-i18n="new_pass_min"></label>
-          <input id="i-pnew1" type="password" autocomplete="new-password">
-          <p class="warn-line" id="w-pnew" role="status" hidden data-i18n="pass_weak"></p>
-          <label for="i-pnew2" data-i18n="new_pass_repeat"></label>
-          <input id="i-pnew2" type="password" autocomplete="new-password">
-          <p class="error" id="e-pass" role="alert" hidden></p>
-          <button class="btn" type="submit" data-i18n="h_pass"></button>
-        </form>
+        <section class="set-group stack" id="set-account">
+          <h2 data-i18n="h_account"></h2>
+          <p id="o-username" class="mono"></p>
+          <p class="hint" data-i18n="other_device_hint"></p>
+          <div class="qr-box small" id="qr-login"></div>
+          <p class="mono small break" id="o-login-link"></p>
+          <button class="btn" type="button" id="b-copy-link" data-i18n="copy_link"></button>
+          <p class="hint" data-i18n="login_link_note"></p>
 
-        <h2 data-i18n="h_devices"></h2>
-        <button class="btn" type="button" id="b-logout" data-i18n="logout"></button>
-        <button class="btn" type="button" id="b-logout-all" data-i18n="logout_all"></button>
-        <p class="hint" data-i18n="logout_hint"></p>
+          <h2 data-i18n="h_pass"></h2>
+          <form id="f-pass" class="stack" novalidate>
+            <input type="text" name="username" autocomplete="username" id="i-pass-user" hidden>
+            <label for="i-pold" data-i18n="current_pass"></label>
+            <input id="i-pold" type="password" autocomplete="current-password">
+            <label for="i-pnew1" data-i18n="new_pass_min"></label>
+            <input id="i-pnew1" type="password" autocomplete="new-password">
+            <p class="warn-line" id="w-pnew" role="status" hidden data-i18n="pass_weak"></p>
+            <label for="i-pnew2" data-i18n="new_pass_repeat"></label>
+            <input id="i-pnew2" type="password" autocomplete="new-password">
+            <p class="error" id="e-pass" role="alert" hidden></p>
+            <button class="btn" type="submit" data-i18n="h_pass"></button>
+          </form>
 
-        <h2 data-i18n="delete_account"></h2>
-        <button class="btn danger" type="button" id="b-delete" data-i18n="delete_account"></button>
+          <h2 data-i18n="h_devices"></h2>
+          <button class="btn" type="button" id="b-logout" data-i18n="logout"></button>
+          <button class="btn" type="button" id="b-logout-all" data-i18n="logout_all"></button>
+          <p class="hint" data-i18n="logout_hint"></p>
 
-        <h2 data-i18n="h_privacy"></h2>
-        <p class="hint" data-i18n="privacy_text"></p>
-        <p class="hint"><span data-i18n="about_license"></span> · <a href="/about" rel="noopener" data-i18n="about_site"></a> · <a id="a-source" rel="noopener" data-i18n="source_link"></a></p>
-        <p class="hint small" id="o-about"></p>
+          <h2 data-i18n="delete_account"></h2>
+          <button class="btn danger" type="button" id="b-delete" data-i18n="delete_account"></button>
+        </section>
       </div>
     </section>
 
     <nav class="tabs" id="tabs" hidden data-i18n-aria="nav">
-      <button type="button" data-tab="start" aria-current="page"><span class="ico" aria-hidden="true">◷</span><span data-i18n="tab_start"></span></button>
-      <button type="button" data-tab="list"><span class="ico" aria-hidden="true">☰</span><span data-i18n="tab_list"></span></button>
-      <button type="button" data-tab="nerd" hidden><span class="ico" aria-hidden="true">∑</span><span data-i18n="tab_nerd"></span></button>
-      <button type="button" data-tab="settings"><span class="ico" aria-hidden="true">⚙</span><span data-i18n="tab_settings"></span></button>
+      <!-- Symbols only, large; the name is the button's accessible name (and its tooltip, js/app.js) -->
+      <button type="button" data-tab="start" aria-current="page" data-i18n-aria="tab_start" data-i18n-title="tab_start"><span class="ico" aria-hidden="true">◷</span></button>
+      <button type="button" data-tab="list" data-i18n-aria="tab_list" data-i18n-title="tab_list"><span class="ico" aria-hidden="true">☰</span></button>
+      <button type="button" data-tab="nerd" hidden data-i18n-aria="tab_nerd" data-i18n-title="tab_nerd"><span class="ico ico-emoji" aria-hidden="true">🤓</span></button>
+      <button type="button" data-tab="settings" data-i18n-aria="tab_settings" data-i18n-title="tab_settings"><span class="ico" aria-hidden="true">⚙</span></button>
     </nav>
 
     <!-- Edit one punch / add one -->
@@ -374,6 +510,7 @@
           <option value="vacation" data-i18n="abs_vacation"></option>
           <option value="sick" data-i18n="abs_sick"></option>
           <option value="holiday" data-i18n="abs_holiday"></option>
+          <option value="comp" data-i18n="abs_comp"></option>
           <option value="other" data-i18n="abs_other"></option>
         </select>
         <label for="i-abs-from" data-i18n="absence_from"></label>
@@ -381,7 +518,7 @@
         <label for="i-abs-to" data-i18n="absence_to"></label>
         <input id="i-abs-to" type="date">
         <p class="hint" id="o-abs-range"></p>
-        <label class="check"><input type="checkbox" id="c-abs-half"> <span data-i18n="absence_half"></span></label>
+        <label class="check"><input type="checkbox" role="switch" id="c-abs-half"> <span data-i18n="absence_half"></span></label>
         <label for="i-abs-note" data-i18n="note"></label>
         <input id="i-abs-note" type="text" maxlength="60" autocomplete="off">
         <p class="hint" id="o-abs-credit"></p>

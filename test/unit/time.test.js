@@ -21,7 +21,34 @@ import {
   parseHours,
   editedTs,
   entryEpoch,
+  lastWorkday,
+  openDaysToWarn,
 } from '../../public/js/time.js';
+
+describe('the start screen warns about an open day only back to the last working day', () => {
+  const none = () => false;
+  it('yesterday on a weekday; on a Monday the Friday and the weekend', () => {
+    expect(lastWorkday('2026-11-26', none)).toBe('2026-11-25'); // Thursday → Wednesday
+    expect(lastWorkday('2026-11-30', none)).toBe('2026-11-27'); // Monday → Friday
+    expect(openDaysToWarn(['2026-11-20', '2026-11-27', '2026-11-28'], '2026-11-30', none)).toEqual(['2026-11-27', '2026-11-28']);
+    expect(openDaysToWarn(['2026-11-20'], '2026-11-27', none)).toEqual([]); // a week ago: list only
+  });
+
+  it('skips whole holidays and whole-day absences, not half days', () => {
+    // Tuesday 2027-03-30 after Good Friday and Easter Monday: back to Thursday 25 March
+    const easter = new Set(['2027-03-26', '2027-03-29']);
+    expect(lastWorkday('2027-03-30', (d) => easter.has(d))).toBe('2027-03-25');
+    expect(openDaysToWarn(['2027-03-25'], '2027-03-30', (d) => easter.has(d))).toEqual(['2027-03-25']);
+    // a whole-day absence on Wednesday: Thursday warns about Tuesday
+    expect(lastWorkday('2026-11-26', (d) => d === '2026-11-25')).toBe('2026-11-24');
+    // a half day (not off as a whole) is a working day
+    expect(lastWorkday('2026-12-25', none)).toBe('2026-12-24');
+  });
+
+  it('stops after 60 days', () => {
+    expect(lastWorkday('2026-11-27', () => true)).toBe('2026-09-27');
+  });
+});
 
 const TZ = 'Europe/Zurich';
 const H = 3600_000;

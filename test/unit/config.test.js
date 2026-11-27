@@ -43,7 +43,7 @@ describe('static delivery', () => {
 
   it('service worker answers only the app itself from the cache (e.g. /about/ goes to the network)', () => {
     const sw = read('public/sw.js');
-    expect(sw).toMatch(/CACHE_VERSION = 'zp-v2026\.11\.27'/);
+    expect(sw).toMatch(/CACHE_VERSION = 'zp-v2026\.11\.28-1'/);
     expect(sw).toMatch(/url\.pathname !== '\/' && url\.pathname !== '\/index\.html'\) return;/);
     expect(sw).toMatch(/if \(!SHELL_SET\.has\(url\.pathname\)\) return;/);
     // every file in the shell exists
@@ -64,13 +64,13 @@ describe('static delivery', () => {
     const sw = read('public/sw.js');
     const re = new RegExp(/RELOAD_FROM = \/(.*)\/;/.exec(sw)[1]);
     for (const k of ['zp-v2.3.1', 'zp-v2.3.0', 'zp-v2.0.0', 'zp-v1.4.2']) expect(re.test(k), k).toBe(true);
-    for (const k of ['zp-v2.4.0', 'zp-v2.4.1', 'zp-v2.10.0', 'zp-v3.0.0', 'other']) expect(re.test(k), k).toBe(false);
+    for (const k of ['zp-v2.4.0', 'zp-v2.4.1', 'zp-v2.10.0', 'zp-v3.0.0', 'zp-v2026.11.28-1', 'other']) expect(re.test(k), k).toBe(false);
     expect(sw).toMatch(/navigate\(c\.url\)/);
   });
 
   it('one version everywhere: package.json, app, Worker, service worker cache', async () => {
     const pkg = JSON.parse(read('package.json'));
-    expect(pkg.version).toBe('2026.11.27');
+    expect(pkg.version).toBe('2026.11.28-1');
     expect(read('public/js/app.js')).toMatch(new RegExp(`APP_VERSION = '${pkg.version.replace(/\./g, '\\.')}'`));
     expect(read('public/sw.js')).toContain(`CACHE_VERSION = 'zp-v${pkg.version}'`);
     expect((await import('../../src/api.js')).VERSION).toBe(pkg.version);
@@ -106,6 +106,8 @@ describe('highlight colours (app.css palette)', () => {
     /** @type {Record<string, { light?: { hl: string, fg: string }, dark?: { hl: string, fg: string } }>} */
     const out = {};
     for (const m of css.matchAll(/\[data-color=([a-z]+)\]\s*\{\s*--hl:\s*(#[0-9a-f]{6});\s*--hl-fg:\s*(#[0-9a-f]{6});\s*\}/g)) {
+      // the copy for «Dark» chosen in the settings is checked below (the same values)
+      if (css.slice(Math.max(0, /** @type {number} */ (m.index) - 25), m.index).includes('[data-theme="dark"]')) continue;
       const theme = /** @type {number} */ (m.index) > dark ? 'dark' : 'light';
       const e = (out[m[1]] ??= {});
       expect(e[theme], `${m[1]} twice in the ${theme} theme`).toBeUndefined();
@@ -131,6 +133,20 @@ describe('highlight colours (app.css palette)', () => {
         expect(contrast(v.hl, v.fg), `${c} ${theme}: ${v.fg} on ${v.hl}`).toBeGreaterThanOrEqual(4.5);
       }
     }
+  });
+
+  it('«Dark» chosen in the settings uses exactly the dark values of the system theme (base colours and palette)', () => {
+    const css = read('public/app.css');
+    const media = /@media \(prefers-color-scheme: dark\) \{\n {2}:root:not\(\[data-theme="light"\]\) \{\n([\s\S]*?)\n {2}\}\n\}/.exec(css);
+    const forced = /\n:root\[data-theme="dark"\] \{\n([\s\S]*?)\n\}/.exec(css);
+    expect(media).not.toBeNull();
+    expect(forced).not.toBeNull();
+    const vars = (/** @type {string} */ block) => block.split('\n').map((l) => l.trim()).filter(Boolean);
+    expect(vars(/** @type {RegExpExecArray} */ (forced)[1])).toEqual(vars(/** @type {RegExpExecArray} */ (media)[1]));
+    const pal = (/** @type {RegExp} */ re) => [...css.matchAll(re)].map((m) => m.slice(1).join(' '));
+    const inMedia = pal(/:root:not\(\[data-theme="light"\]\)\[data-color=([a-z]+)\] \{ ([^}]*)\}/g);
+    expect(inMedia).toHaveLength(COLORS.length);
+    expect(pal(/:root\[data-theme="dark"\]\[data-color=([a-z]+)\] \{ ([^}]*)\}/g)).toEqual(inMedia);
   });
 
   it('orange is the brand coral with slate text in both themes, and the default without any data-color', () => {
@@ -169,7 +185,7 @@ describe('texts', () => {
     for (const l of ['en', 'de']) {
       for (const [k, v] of Object.entries(DICT[l])) {
         // 90 only as the «90 days» range of the key figures and 13 only for the 13-week chart; months via {months}
-        if (k !== 'range_90d' && k !== 'h_weekhours') expect(v, `${l}.${k}`).not.toMatch(/\b(90|50|61|396|13)\b/);
+        if (k !== 'np_90d' && k !== 'h_weekhours') expect(v, `${l}.${k}`).not.toMatch(/\b(90|50|61|396|13)\b/);
       }
     }
     setLang('en');
@@ -299,7 +315,7 @@ describe('texts', () => {
     const rest = body.replace(boot, '').replace(/<option[^>]*>[^<]*<\/option>/g, '');
     const texts = [...rest.matchAll(/>([^<>]+)</g)].map((m) => m[1].trim()).filter(Boolean);
     // Allowed: symbols, units and format names that are the same in both languages
-    const allowed = new Set(['◷', '☰', '∑', '⚙', '+', '–', '--:--', '0:00', 'h', '…', 'CSV', 'JSON', '·', '‹', '›']);
+    const allowed = new Set(['◷', '☰', '🤓', '⚙', '+', '–', '--:--', '0:00', 'h', '…', 'CSV', 'JSON', '·', '‹', '›']);
     expect(texts.filter((x) => !allowed.has(x))).toEqual([]);
   });
 
@@ -318,9 +334,10 @@ describe('texts', () => {
     setLang('en');
     expect(tn('unsynced_text', 1)).toBe('1 change is not on the server yet and will be lost when you log out.');
     expect(tn('unsynced_text', 3)).toMatch(/^3 changes are/);
-    expect(tn('break_days', 1, { dur: '0:30' })).toBe('0:30 h (on 1 day)');
+    expect(tn('n_days', 1)).toBe('1 day');
+    expect(tn('n_days', 4)).toBe('4 days');
     setLang('de');
-    expect(tn('break_days', 1, { dur: '0:30' })).toBe('0:30 h (an 1 Tag)');
+    expect(tn('n_days', 1)).toBe('1 Tag');
     expect(tn('heat_title', 1, { day: 'Mo', h: 8, h2: 9 })).toBe('Mo 8–9 Uhr: 1 Punch');
     expect(tn('records_detail', 1, { del: 0, set: '' })).toBe('1 Paket, davon 0 gelöscht');
     expect(t('settings_rec')).not.toMatch(/1 Einstellungen/);

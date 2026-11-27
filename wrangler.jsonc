@@ -42,7 +42,7 @@
     "POW_BITS": "17",
     // Registrations per client network and day (ten times that per IPv6 /48): generous, a whole office
     // or mobile carrier can share one address.
-    "REG_PER_IP_DAY": "100",
+    "REG_PER_IP_DAY": "300",
     // Above this many registrations a day the proof of work gets harder (+1 bit per doubling, at most +6).
     "REG_GLOBAL_DAY": "1000",
     // Hard ceiling of registrations per day overall: near plausible demand (see README «Abuse brakes»).

@@ -78,7 +78,7 @@ non-extractable WebCrypto key. Sync: the larger `mod` wins.
   writes per account and UTC day**, then `429 daily_limit` and the writes wait until the next day.
 - **5000 records per account**, fixed record size, at most 20 sessions, request bodies at most 8 KiB.
 - **Abuse brakes** per IPv4 address or IPv6 /64 (and ten times higher per /48): proof of work and
-  100 registrations per network and day, 300 failed logins per network and hour (generous, so people
+  300 registrations per network and day, 300 failed logins per network and hour (generous, so people
   behind one shared office or mobile address do not lock each other out), attacked accounts need
   a proof of work instead of being locked. Details in [KONZEPT.md](KONZEPT.md).
 
@@ -116,7 +116,7 @@ npx wrangler deploy
 |---|---|---|
 | `PEPPER` | secret | server secret for HMACs (usernames, auth keys, IPs, challenges) |
 | `POW_BITS` | var | proof-of-work difficulty at registration, default `17` |
-| `REG_PER_IP_DAY` | var | registrations per client network and day, default `100` (ten times that per IPv6 /48) |
+| `REG_PER_IP_DAY` | var | registrations per client network and day, default `300` (ten times that per IPv6 /48) |
 | `REG_GLOBAL_DAY` | var | registrations per day above which the proof of work gets harder, default `1000` |
 | `REG_GLOBAL_MAX_DAY` | var | hard ceiling of registrations per day overall, default `5000` |
 | `STATS_TOKEN` | secret, optional | bearer token for `GET /api/admin/stats`; without it the route answers 404 |

@@ -76,6 +76,8 @@ export const register = (/** @type {any} */ body) => api('POST', '/api/auth/regi
 /** @param {string} username @param {string} auth @param {{challenge: string, nonce: string}} [pow] */
 export const login = (username, auth, pow) => api('POST', '/api/auth/login', pow ? { username, auth, pow } : { username, auth });
 export const changePassphrase = (/** @type {any} */ body) => api('POST', '/api/auth/passphrase', body);
+/** The nerd view: this device's public address and connection, as the server sees it (nothing stored). */
+export const netInfo = () => api('GET', '/api/net');
 /** @param {{ quiet?: boolean }} [opt] */
 export const logout = (opt = {}) => api('POST', '/api/auth/logout', {}, opt);
 export const logoutAll = () => api('POST', '/api/auth/logout-all', {});

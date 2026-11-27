@@ -33,8 +33,10 @@
   color-scheme: light dark;
 }
 
+/* Dark: from the system («Automatic»), unless «Light» is chosen; or chosen («Dark»). The two blocks
+   carry the same values (test/unit/config.test.js). Settings «Appearance», kept on the device. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #111418;
     --surface: #1a1e24;
     --surface-2: #232830;
@@ -60,17 +62,49 @@
     --heat-4: #6aa2ff;
   }
 }
+:root[data-theme="dark"] {
+  --bg: #111418;
+  --surface: #1a1e24;
+  --surface-2: #232830;
+  --fg: #e9edf2;
+  --muted: #9aa4b1;
+  --line: #2f3640;
+  --accent: #5b9dff;
+  --accent-fg: #0b1220;
+  --in: #2ea56a;
+  --in-fg: #06130c;
+  --out: #f07a3e;
+  --out-fg: #1b0b02;
+  --warn-bg: #3a2e10;
+  --warn-fg: #ffd98a;
+  --danger: #ff6b5e;
+  --pos: #4cc38a;
+  --neg: #ff7b6e;
+  --focus: #8ab8ff;
+  --heat-0: #222831;
+  --heat-1: #1d3a66;
+  --heat-2: #24539a;
+  --heat-3: #3a74cf;
+  --heat-4: #6aa2ff;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* Text size (settings, «A A A»; kept on the device): every font size is in rem, so this scales all
+   text; animations, charts and the tab bar keep their own size. The middle size is the default. */
+html { font-size: 110%; }
+html[data-size="s"] { font-size: 100%; }
+html[data-size="l"] { font-size: 122%; }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font: 1.0625rem/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
 }
@@ -150,6 +184,40 @@ input:focus { border-color: var(--accent); }
 
 .check { display: flex; align-items: center; gap: 12px; min-height: 48px; cursor: pointer; }
 .check input { width: 24px; height: 24px; flex: none; accent-color: var(--accent); }
+.check:has(input:disabled) { opacity: 0.45; cursor: default; }
+.check { justify-content: flex-start; }
+/* On/off settings as switches (iOS style), on the right of their text; role="switch" in index.html. */
+.check input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  order: 2;
+  margin: 0 0 0 auto;
+  position: relative;
+  width: 51px;
+  height: 31px;
+  border-radius: 16px;
+  background: var(--line);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.check input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  transition: transform 0.2s;
+}
+.check input[type="checkbox"]:checked { background: var(--accent); }
+.check input[type="checkbox"]:checked::before { transform: translateX(20px); }
+.check input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .check input[type="checkbox"], .check input[type="checkbox"]::before { transition: none; }
+}
 
 .row { display: flex; flex-direction: column; gap: 6px; }
 .row-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -234,7 +302,7 @@ select {
   min-width: 0;
   min-height: var(--tabs-h);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 12.5px; /* the tab bar keeps its size with every text size */
   color: var(--muted);
   background: none;
   border: 0;
@@ -249,7 +317,9 @@ select {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tabs .ico { font-size: 1.25rem; line-height: 1; }
+.tabs .ico { font-size: 28px; line-height: 1; }
+.tabs .ico-emoji { font-size: 26px; filter: grayscale(1); opacity: 0.75; }
+.tabs button[aria-current=page] .ico-emoji { filter: none; opacity: 1; }
 .tabs button[aria-current=page] { color: var(--accent); font-weight: 700; }
 
 .banner {
@@ -313,15 +383,15 @@ select {
 /* The area always keeps the height of its fullest layout, so the clock below never jumps when a punch
    adds a row: three dense rows (3 × 46 + 2 × 5; 3 × 44 + 2 × 5 on short phones).
    Chips have a fixed height for the same reason. */
-.dv-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-content: start; min-height: 148px; }
+.dv-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-content: start; min-height: 9.25rem; }
 .dv-chips.dense { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
 .dv-chip {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-  height: 54px; padding: 4px;
+  height: 3.375rem; padding: 4px;
   font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
   cursor: pointer;
 }
-.dense .dv-chip { height: 46px; padding: 2px; border-radius: 10px; }
+.dense .dv-chip { height: 2.875rem; padding: 2px; border-radius: 10px; }
 .dv-chip:active { transform: scale(0.98); }
 /* The punch just made glows once, instead of a banner over the screen. */
 .dv-chip.dv-new { animation: dv-glow 1.6s ease-out 1; }
@@ -340,8 +410,8 @@ select {
 /* Short phones: the clock block is always a little tighter (not only on a full day – a size change
    on the 7th punch would make the screen jump), so three rows of chips need no scrolling at 320 × 640. */
 @media (max-height: 700px) {
-  .dv-chips { min-height: 142px; }
-  .dense .dv-chip { height: 44px; }
+  .dv-chips { min-height: 8.875rem; }
+  .dense .dv-chip { height: 2.75rem; }
   .start .punch { min-height: 96px; }
   .start .status { padding: 2px 0; }
   .start .clock { font-size: clamp(2.2rem, 12vw, 4.5rem); margin: 0; }
@@ -511,6 +581,46 @@ select {
   box-shadow: 0 6px 18px rgb(0 0 0 / 0.25);
   cursor: pointer;
 }
+/* The funnel beside «+» in the list: as large as «+», but quiet. */
+.fab.fab-small {
+  right: calc(16px + 60px + 12px + var(--safe-r));
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+.fab.fab-small .ico-svg { width: 26px; height: 26px; }
+/* A day filter is on: a dot on the funnel, and a bar on top of the list to clear it. */
+.fab.fab-small.active::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--hl);
+  border: 2px solid var(--surface);
+}
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 6px 6px 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-weight: 600;
+}
+.filter-bar[hidden] { display: none; }
+/* Settings: an own break rule, «Ab [6] h Arbeit mindestens [30] Min.» per step. */
+.pause-custom { display: grid; gap: 6px; }
+.pause-step { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; }
+.pause-step select { width: 4.8em; }
+dialog h3 { font-size: 0.95rem; margin: 0.6rem 0 0; }
 
 /* Dialogs as sheets from the bottom */
 dialog.sheet {
@@ -536,6 +646,14 @@ dialog h2 { margin-top: 0; }
 .seg label:has(input:checked) { background: var(--accent); color: var(--accent-fg); }
 .seg input { accent-color: var(--accent); }
 .seg-buttons { margin-top: 18px; }
+/* Three-way pickers (text size, appearance); the text size shows each «A» in its own size. */
+.seg.seg3 { grid-template-columns: repeat(3, 1fr); }
+.seg3 label { position: relative; }
+.seg-size label { font-size: 1rem; }
+.seg-size label:nth-child(2) { font-size: 1.25rem; }
+.seg-size label:nth-child(3) { font-size: 1.55rem; }
+.seg3 input { position: absolute; opacity: 0; pointer-events: none; }
+.seg3 label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -4px; }
 .seg-btn { font: inherit; font-weight: 600; min-height: 44px; border: 0; background: var(--surface); color: var(--fg); cursor: pointer; }
 .seg-btn[aria-pressed=true] { background: var(--accent); color: var(--accent-fg); }
 
@@ -645,20 +763,23 @@ dialog h2 { margin-top: 0; }
 
 .chart { width: 100%; height: auto; display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 6px; }
 .chart .grid { stroke: var(--line); stroke-width: 1; }
-.chart .axis { fill: var(--muted); font-size: 9px; font-family: system-ui, sans-serif; }
+.chart .axis { fill: var(--muted); font-family: system-ui, sans-serif; }
+.chart:not(.matrix) .axis { font-size: 9px; }
 .chart .bar { fill: var(--accent); opacity: 0.75; }
 .chart .bar-ok { fill: var(--pos); opacity: 0.9; }
 .chart .target { stroke: var(--out); stroke-width: 1.5; stroke-dasharray: 4 3; }
-.chart.heat .axis { font-size: 8px; }
-.hc0 { fill: var(--heat-0); }
-.hc1 { fill: var(--heat-1); }
-.hc2 { fill: var(--heat-2); }
-.hc3 { fill: var(--heat-3); }
-.hc4 { fill: var(--heat-4); }
 
-.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; }
+.kv { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 6px 12px; margin: 0; }
 .kv dt { color: var(--muted); }
-.kv dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.kv dd { margin: 0; text-align: right; overflow-wrap: break-word; font-variant-numeric: tabular-nums; }
+/* Long values (the nerd view's crypto facts): the value under its name, left-aligned. */
+.kv.long { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+.kv.long dd { text-align: left; margin-bottom: 10px; }
+.nerd-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.nerd-table th, .nerd-table td { padding: 4px 6px; text-align: right; border-bottom: 1px solid var(--line); }
+.nerd-table th:first-child, .nerd-table td:first-child { text-align: left; }
+.nerd-table th { color: var(--muted); font-weight: 600; }
+.nerd-sec + .nerd-sec { border-top: 1px solid var(--line); margin-top: 18px; }
 .raw {
   font-size: 0.72rem;
   white-space: pre-wrap;
@@ -681,7 +802,7 @@ dialog h2 { margin-top: 0; }
 
 @media (max-width: 360px) {
   /* «Einstellungen» must fit a quarter of 320 px. */
-  .tabs button { font-size: 0.66rem; letter-spacing: -0.02em; text-overflow: clip; padding: 0 1px; }
+  .tabs button { font-size: 10.5px; letter-spacing: -0.02em; text-overflow: clip; padding: 0 1px; }
   .card { padding: 8px 6px; }
 }
 
@@ -701,15 +822,23 @@ dialog h2 { margin-top: 0; }
 [data-color=green] { --hl: #24803c; --hl-fg: #ffffff; }
 [data-color=graphite] { --hl: #3d4450; --hl-fg: #ffffff; }
 @media (prefers-color-scheme: dark) {
-  [data-color=orange] { --hl: #ff6b4a; --hl-fg: #2b3238; }
-  [data-color=red] { --hl: #ff6b78; --hl-fg: #2b3238; }
-  [data-color=pink] { --hl: #ff7ab8; --hl-fg: #2b3238; }
-  [data-color=purple] { --hl: #b494ff; --hl-fg: #2b3238; }
-  [data-color=blue] { --hl: #5b9dff; --hl-fg: #2b3238; }
-  [data-color=teal] { --hl: #2ec4bf; --hl-fg: #2b3238; }
-  [data-color=green] { --hl: #4cc36e; --hl-fg: #2b3238; }
-  [data-color=graphite] { --hl: #c3cad4; --hl-fg: #2b3238; }
+  :root:not([data-theme="light"]) [data-color=orange], :root:not([data-theme="light"])[data-color=orange] { --hl: #ff6b4a; --hl-fg: #2b3238; }
+  :root:not([data-theme="light"]) [data-color=red], :root:not([data-theme="light"])[data-color=red] { --hl: #ff6b78; --hl-fg: #2b3238; }
+  :root:not([data-theme="light"]) [data-color=pink], :root:not([data-theme="light"])[data-color=pink] { --hl: #ff7ab8; --hl-fg: #2b3238; }
+  :root:not([data-theme="light"]) [data-color=purple], :root:not([data-theme="light"])[data-color=purple] { --hl: #b494ff; --hl-fg: #2b3238; }
+  :root:not([data-theme="light"]) [data-color=blue], :root:not([data-theme="light"])[data-color=blue] { --hl: #5b9dff; --hl-fg: #2b3238; }
+  :root:not([data-theme="light"]) [data-color=teal], :root:not([data-theme="light"])[data-color=teal] { --hl: #2ec4bf; --hl-fg: #2b3238; }
+  :root:not([data-theme="light"]) [data-color=green], :root:not([data-theme="light"])[data-color=green] { --hl: #4cc36e; --hl-fg: #2b3238; }
+  :root:not([data-theme="light"]) [data-color=graphite], :root:not([data-theme="light"])[data-color=graphite] { --hl: #c3cad4; --hl-fg: #2b3238; }
 }
+:root[data-theme="dark"] [data-color=orange], :root[data-theme="dark"][data-color=orange] { --hl: #ff6b4a; --hl-fg: #2b3238; }
+:root[data-theme="dark"] [data-color=red], :root[data-theme="dark"][data-color=red] { --hl: #ff6b78; --hl-fg: #2b3238; }
+:root[data-theme="dark"] [data-color=pink], :root[data-theme="dark"][data-color=pink] { --hl: #ff7ab8; --hl-fg: #2b3238; }
+:root[data-theme="dark"] [data-color=purple], :root[data-theme="dark"][data-color=purple] { --hl: #b494ff; --hl-fg: #2b3238; }
+:root[data-theme="dark"] [data-color=blue], :root[data-theme="dark"][data-color=blue] { --hl: #5b9dff; --hl-fg: #2b3238; }
+:root[data-theme="dark"] [data-color=teal], :root[data-theme="dark"][data-color=teal] { --hl: #2ec4bf; --hl-fg: #2b3238; }
+:root[data-theme="dark"] [data-color=green], :root[data-theme="dark"][data-color=green] { --hl: #4cc36e; --hl-fg: #2b3238; }
+:root[data-theme="dark"] [data-color=graphite], :root[data-theme="dark"][data-color=graphite] { --hl: #c3cad4; --hl-fg: #2b3238; }
 /* The swatches: a radio group of round dots (the radio buttons are visually hidden, still focusable:
    arrow keys move through the group). Eight in a row, two rows of four on a phone. */
 .swatches { display: grid; grid-template-columns: repeat(8, 44px); gap: 8px; }
@@ -749,7 +878,7 @@ dialog h2 { margin-top: 0; }
 .list-tools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin: 2px 0 6px; }
 .icon-gap { flex: none; width: 44px; height: 44px; }
 .pair.absence .abs-main { cursor: default; }
-.abs-label { font-weight: 600; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.abs-label { font-weight: 600; color: var(--accent); overflow-wrap: anywhere; }
 .abs-src { flex: none; margin-left: 8px; font-size: 0.8rem; color: var(--muted); }
 
 /* Week and month sheet (js/sheet.js): on screen a white page to scroll, printed A4 portrait. */
@@ -792,5 +921,64 @@ dialog h2 { margin-top: 0; }
   .pp-totals, .pp-note { break-inside: avoid; }
 }
 
-/* who is logged in, at the top of the settings */
-.whoami { margin: 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-weight: 600; overflow-wrap: anywhere; }
+
+
+/* Settings: jump buttons on top, the groups divided by a fine line. Scrolling down, the top bar goes
+   away with the page and the jump buttons stay at the top (the jump itself: js/app.js, data-goto). */
+#app[data-view="settings"] .topbar, #app[data-view="nerd"] .topbar { position: static; }
+.set-nav {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 8px;
+  margin: -12px -16px 0;
+  padding: calc(12px + var(--safe-t)) 16px 10px;
+  background: var(--bg);
+  border-bottom: 1px solid transparent;
+}
+.set-nav.stuck { border-bottom-color: var(--line); }
+.set-nav::-webkit-scrollbar { display: none; }
+.set-nav .btn { flex: none; white-space: nowrap; }
+@media (min-width: 720px) {
+  .set-nav { margin-left: -24px; margin-right: -24px; padding-left: 24px; padding-right: 24px; }
+}
+.set-group + .set-group { border-top: 1px solid var(--line); margin-top: 22px; }
+.set-group > h2:first-child { margin-top: 1.1rem; }
+
+/* A day that breaks a rule (break, rest, over 10 h): a quiet red line under its header. */
+.day-warn { margin: -2px 0 6px; font-size: 0.85rem; color: var(--neg); }
+
+/* The nerd view's heatmaps (charts.js matrix): presence in the highlight colour, the day's balance
+   green or red, each in five steps; the value written in. */
+.chart.matrix { width: 100%; height: auto; display: block; }
+.mx { cursor: pointer; }
+.mx:focus { outline: none; }
+.mx:focus-visible .mx-c, .mx.picked .mx-c { stroke: var(--fg); stroke-width: 0.8; }
+.mx-c { fill: var(--surface-2); }
+.mx-t { fill: var(--muted); font-variant-numeric: tabular-nums; pointer-events: none; }
+.mx-t.mx-on { fill: var(--hl-fg); font-weight: 700; }
+.mx-p1 { fill: color-mix(in srgb, var(--hl) 20%, var(--surface-2)); }
+.mx-p2 { fill: color-mix(in srgb, var(--hl) 40%, var(--surface-2)); }
+.mx-p3 { fill: color-mix(in srgb, var(--hl) 60%, var(--surface-2)); }
+.mx-p4 { fill: color-mix(in srgb, var(--hl) 80%, var(--surface-2)); }
+.mx-p5 { fill: var(--hl); }
+.mx-g1 { fill: color-mix(in srgb, var(--pos) 25%, var(--surface-2)); }
+.mx-g2 { fill: color-mix(in srgb, var(--pos) 50%, var(--surface-2)); }
+.mx-g3 { fill: color-mix(in srgb, var(--pos) 80%, var(--surface-2)); }
+.mx-r1 { fill: color-mix(in srgb, var(--neg) 25%, var(--surface-2)); }
+.mx-r2 { fill: color-mix(in srgb, var(--neg) 50%, var(--surface-2)); }
+.mx-r3 { fill: color-mix(in srgb, var(--neg) 80%, var(--surface-2)); }
+.mx-g3 + .mx-t, .mx-r3 + .mx-t { fill: var(--bg); font-weight: 700; }
+.heat-info { min-height: 2.6em; margin: 0; font-weight: 600; }
+.heat-info small { display: block; font-weight: 400; color: var(--muted); }
+.seg.seg4 { grid-template-columns: repeat(4, 1fr); }
+.seg4 .seg-btn { padding-left: 2px; padding-right: 2px; font-size: 0.82rem; }
+.seg.seg-small { grid-template-columns: 1fr 1fr; max-width: 260px; }
+.seg-small .seg-btn { min-height: 36px; }
+/* The nerd view's period, on top: the select and the days it covers. */
+.nerd-period { display: grid; gap: 4px; font-weight: 600; }
+.nerd-period small { font-weight: 400; color: var(--muted); }

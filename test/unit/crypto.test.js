@@ -192,6 +192,8 @@ describe('record length (enforced by the server)', () => {
       badgeAt: '2099-12-31',
       linkPunch: false,
       color: longest(COLORS),
+      holidays: 'CH-AG', // the calendar keys are five characters at most (holidays.test.js)
+      pause: '-5.5-15,9.5-60', // the longest break rule: paid short breaks, two steps with half hours
       mod: 9_999_999_999_999, // a timestamp in ms until the year 2286
     };
     // The record carries every field the app knows, and nothing else.

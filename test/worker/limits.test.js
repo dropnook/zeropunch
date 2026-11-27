@@ -110,8 +110,8 @@ describe('registration limits', () => {
     expect(v.regPerIp.max).toBe(7);
     expect(v.regGlobal.max).toBe(99);
     expect(v.regGlobalMax.max).toBe(999);
-    expect(L.regPerIp.max).toBe(100); // built-in default
-    expect(L.regPerNet48.max).toBe(1000);
+    expect(L.regPerIp.max).toBe(300); // built-in default
+    expect(L.regPerNet48.max).toBe(3000);
     expect(L.probePerIp.max).toBe(200);
     expect(L.probePerNet48.max).toBe(2000);
     expect(L.loginFailIp.max).toBe(300);
@@ -119,7 +119,7 @@ describe('registration limits', () => {
     // per account, unchanged
     expect(L.loginFailAccount.max).toBe(20);
     expect(L.sessionFail.max).toBe(10);
-    expect(L.writesPerDay.max).toBe(100);
+    expect(L.writesPerDay.max).toBe(1000);
     expect(L.settingsPerDay.max).toBe(200);
     expect(L.requestsPerDay.max).toBe(50000);
     expect(L.statsFail.max).toBe(10);
@@ -300,9 +300,9 @@ describe('login limits', () => {
 });
 
 describe('writes', () => {
-  it('server: 100 record writes per account and UTC day (above the 12 a day in the app), then 429 daily_limit', async () => {
+  it('server: 1000 record writes per account and UTC day (room for a CSV import), then 429 daily_limit', async () => {
     const a = await register();
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < L.writesPerDay.max; i++) {
       expect((await call('PUT', `/api/records/${rid()}`, { jar: a.jar, body: { data: fakeRecord() } })).status).toBe(200);
     }
     const r = await call('PUT', `/api/records/${rid()}`, { jar: a.jar, body: { data: fakeRecord() } });
@@ -335,7 +335,7 @@ describe('writes', () => {
       await env.DB.prepare('INSERT INTO limits (key, win, n) VALUES (?, ?, ?)').bind(`${l.name}|${uid}`, win, l.max + 5).run();
     }
     for (let i = 0; i < 3; i++) expect((await call('PUT', `/api/records/${rid()}`, { jar: a.jar, body: { data: fakeRecord() } })).status).toBe(200);
-    expect(L.writesPerDay).toMatchObject({ max: 100, win: DAY });
+    expect(L.writesPerDay).toMatchObject({ max: 1000, win: DAY });
   });
 
   it('the settings record has its own daily budget', async () => {

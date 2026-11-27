@@ -90,31 +90,35 @@ export function monthBars(months) {
 }
 
 /**
- * Stamp heatmap weekday × hour.
- * @param {number[][]} heat 7 × 24
+ * A matrix of coloured cells with their value written in (the nerd view's heatmaps). Colours are classes
+ * (app.css .mx-…), so the themes and the highlight colour apply; a tap or Enter on a cell calls onPick.
+ * @param {{ aria: string, cols: string[], rows: { label: string, cells: ({ cls: string, text: string, title: string, strong?: boolean } | null)[] }[],
+ *   cellW: number, cellH: number, padL?: number, font?: number, onPick?: (cell: { title: string }) => void }} o
  */
-export function heatmap(heat) {
-  const cell = 12, gap = 1, padL = 20, padT = 14;
-  const W = padL + 24 * (cell + gap), Hh = padT + 7 * (cell + gap);
-  const max = Math.max(1, ...heat.flat());
-  const svg = s('svg', { viewBox: `0 0 ${W} ${Hh}`, class: 'chart heat', role: 'img', 'aria-label': t('heat_aria') });
-  for (let hr = 0; hr < 24; hr += 3) {
-    svg.append(s('text', { x: padL + hr * (cell + gap), y: 10, class: 'axis' }, String(hr)));
-  }
-  heat.forEach((row, d) => {
-    svg.append(s('text', { x: 0, y: padT + d * (cell + gap) + cell - 2, class: 'axis' }, weekdayShort(d)));
-    row.forEach((n, hr) => {
-      const level = n === 0 ? 0 : Math.ceil((n / max) * 4); // 0–4
-      const r = s('rect', {
-        x: padL + hr * (cell + gap),
-        y: padT + d * (cell + gap),
-        width: cell,
-        height: cell,
-        rx: 2,
-        class: `hc hc${level}`,
-      });
-      r.append(s('title', {}, tn('heat_title', n, { day: weekdayShort(d), h: hr, h2: hr + 1 })));
-      svg.append(r);
+export function matrix(o) {
+  const gap = 2;
+  const padL = o.padL ?? 22;
+  const padT = 12;
+  const font = o.font ?? 7; // SVG units; a presentation attribute (the CSP allows no inline styles)
+  const W = padL + o.cols.length * (o.cellW + gap);
+  const Hh = padT + o.rows.length * (o.cellH + gap);
+  const svg = s('svg', { viewBox: `0 0 ${W} ${Hh}`, class: 'chart matrix', role: 'img', 'aria-label': o.aria });
+  o.cols.forEach((c, i) => {
+    if (c) svg.append(s('text', { x: padL + i * (o.cellW + gap) + o.cellW / 2, y: 8, class: 'axis', 'font-size': font, 'text-anchor': 'middle' }, c));
+  });
+  o.rows.forEach((r, ri) => {
+    const y = padT + ri * (o.cellH + gap);
+    svg.append(s('text', { x: 0, y: y + o.cellH / 2 + font / 2.6, class: 'axis', 'font-size': font }, r.label));
+    r.cells.forEach((c, ci) => {
+      if (!c) return;
+      const x = padL + ci * (o.cellW + gap);
+      const pick = () => o.onPick && o.onPick(c);
+      const g = s('g', { class: 'mx', tabindex: o.onPick ? '0' : null, onclick: pick, onkeydown: (/** @type {KeyboardEvent} */ e) => e.key === 'Enter' && pick() });
+      const rect = s('rect', { x, y, width: o.cellW, height: o.cellH, rx: 2, class: `mx-c ${c.cls}` });
+      rect.append(s('title', {}, c.title));
+      g.append(rect);
+      if (c.text) g.append(s('text', { x: x + o.cellW / 2, y: y + o.cellH / 2 + font / 2.8, class: c.strong ? 'mx-t mx-on' : 'mx-t', 'font-size': font, 'text-anchor': 'middle' }, c.text));
+      svg.append(g);
     });
   });
   return svg;

@@ -301,3 +301,18 @@ describe('proof of work', () => {
     expect((await r.json()).error).toBe('pow_used');
   });
 });
+
+describe('the nerd view asks for its network info (on a tap)', () => {
+  it('logged in: the public address of this request; logged out: nothing; nothing is stored', async () => {
+    const { jar } = await register();
+    const res = await call('GET', '/api/net', { jar, ip: '198.51.100.7' });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Cache-Control')).toBe('no-store');
+    const body = await res.json();
+    expect(body).toMatchObject({ ip: '198.51.100.7' });
+    expect(Object.keys(body).sort()).toEqual(['colo', 'country', 'http', 'ip', 'org', 'tls']);
+    expect((await call('GET', '/api/net', {})).status).toBe(401);
+    const dump = JSON.stringify((await env.DB.prepare('SELECT * FROM users').all()).results);
+    expect(dump).not.toContain('198.51.100.7');
+  });
+});

@@ -111,7 +111,8 @@ export function renderSheet(sheet, o) {
         'tbody',
         {},
         sheet.rows.map((r) => {
-          const total = r.worked + r.credit;
+          // A holiday lowers the target instead of counting as time (r.off): on 25 December 0:00.
+          const total = r.worked + r.credit - (r.off || 0);
           const has = r.pairs.length || r.absences.length;
           return h(
             'tr',
@@ -131,9 +132,9 @@ export function renderSheet(sheet, o) {
       h('dt', {}, t('sheet_worked')),
       h('dd', {}, `${formatDur(tot.worked)} h`),
       h('dt', {}, t('sheet_credit')),
-      h('dd', {}, `${formatDur(tot.credit)} h`),
+      h('dd', {}, `${formatDur(tot.credit - (tot.off || 0))} h`),
       h('dt', {}, t('sheet_soll')),
-      h('dd', {}, `${formatDur(tot.target)} h`),
+      h('dd', {}, `${formatDur(tot.target - (tot.off || 0))} h`),
       h('dt', { class: 'pp-bal' }, t('sheet_balance')),
       h('dd', { class: 'pp-bal' }, `${signed(tot.diff)} h`),
     ),

@@ -1,6 +1,6 @@
 # Zeropunch – Konzept
 
-Stand 2026-11-27 · Version 2026.11.27
+Stand 2026-11-28 · Version 2026.11.28-1
 
 ## 1. Ziel
 
@@ -110,7 +110,7 @@ Ein Punch, eine Abwesenheit oder die Einstellungen = je ein Paket. Klartext eine
   Aufbewahrung. `del` ist immer `true`, damit ältere Clients sie als Grabstein übergehen; gelöscht ist
   sie, wenn `gone` gesetzt ist.
 - **Einstellungen:** ein Paket mit fester ID (lauter Nullen), z. B. Wochensoll, Tageswechsel,
-  Punch-Link ohne Rückfrage, Badge-Erinnerung.
+  NFC/RFID-Punch ohne Rückfrage, Badge-Erinnerung, Feiertagskalender, Pausenregel, Farbe.
 
 ## 5. Abgleich und Zeitrechnung
 
@@ -136,9 +136,9 @@ Ein Punch, eine Abwesenheit oder die Einstellungen = je ein Paket. Klartext eine
 ## 6. Grenzen und Missbrauchsschutz
 
 - **App:** höchstens 12 Punches pro (logischem) Tag; eine Abwesenheit belegt einen dieser Plätze.
-- **Server:** höchstens 100 Schreibvorgänge pro Konto und UTC-Tag (das Einstellungs-Paket hat ein
+- **Server:** höchstens 1000 Schreibvorgänge pro Konto und UTC-Tag (das Einstellungs-Paket hat ein
   eigenes Budget von 200), sonst `429 daily_limit`; das Paket wartet im Ausgangskorb bis zum nächsten
-  Tag. Bewusst mehr als 12: Nachträge für mehrere Tage müssen in einem Zug gehen.
+  Tag. Bewusst weit mehr als 12: Nachträge und ein CSV-Import mehrerer Monate müssen in einem Zug gehen.
 - 5000 Pakete pro Konto (12 × 396 = 4752 Punches plus Einstellungen passen), Paket genau 379 Zeichen,
   Schlüssel-Paket höchstens 4 KiB, Anfragen höchstens 8 KiB.
 - 50 000 angemeldete Anfragen pro Konto und UTC-Tag (die App gleicht einmal pro Minute ab).

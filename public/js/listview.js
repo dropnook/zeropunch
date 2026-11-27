@@ -1,30 +1,38 @@
 // The list without the DOM: which rows and controls a day gets, and deleting a punch through a
 // confirmation. Pure enough to test in Node (test/unit/listview.test.js); app.js turns it into elements.
 
-import { t, tn } from './i18n.js';
+import { t, tn, getLang } from './i18n.js';
 import { timeOfDay, absenceType, absenceCredit, DEFAULT_TZ } from './time.js';
 
 /**
  * @typedef {{ kind: 'edit' | 'delete', aria: string }} Control
  * @typedef {{ dir: 'in' | 'out', entry: any | null, time: string, controls: Control[] }} PunchRow
  * @typedef {{ status: string, dur: number, rows: PunchRow[], notes: string[] }} PairBlock
- * @typedef {{ absence: any, label: string, credit: number, note: string, controls: Control[] }} AbsenceRow
+ * @typedef {{ absence: any, label: string, credit: number, note: string, cal: boolean, controls: Control[] }} AbsenceRow
  */
 
-/** «Vacation» / «Vacation · half day». @param {{ type: string, half?: boolean }} a */
+/**
+ * «Vacation» / «Vacation · half day»; a day of the holiday calendar (holidays.js) by its name:
+ * «Ascension Day», «Christmas Eve · half day».
+ * @param {{ type: string, half?: boolean, name?: { de: string, en: string } }} a
+ */
 export function absenceLabel(a) {
-  const name = t(`abs_${absenceType(a.type)}`);
+  const name = a.name ? a.name[getLang()] || a.name.en : t(`abs_${absenceType(a.type)}`);
   return a.half ? t('abs_half_label', { name }) : name;
 }
 
 /**
- * The absence rows of a day (usually one): label, the credited time and a delete control.
+ * The absence rows of a day (usually one): label, the credited time and a delete control. A day of the
+ * holiday calendar is marked as such and has no delete control (it is no record: the settings choose it).
  * @param {import('./time.js').Day} d @param {number} weekHours @returns {AbsenceRow[]}
  */
 export function absenceRows(d, weekHours) {
   return (d.absences || []).map((a) => {
     const label = absenceLabel(a);
-    return { absence: a, label, credit: absenceCredit(a, weekHours), note: a.note || '', controls: [{ kind: 'delete', aria: t('delete_absence_aria', { what: label }) }] };
+    const cal = !!a.cal;
+    /** @type {Control[]} */
+    const controls = cal ? [] : [{ kind: 'delete', aria: t('delete_absence_aria', { what: label }) }];
+    return { absence: a, label, credit: absenceCredit(a, weekHours), note: a.note || '', cal, controls };
   });
 }
 

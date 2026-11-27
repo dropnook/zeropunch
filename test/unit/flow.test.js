@@ -126,6 +126,17 @@ describe('punch link', () => {
     expect(close).toMatch(/badge\.addEventListener\('close'/);
   });
 
+  it('other tabs show the punch at once: they re-read the local database, also before rendering when back in front', () => {
+    // a Store that changed the shared records tells the other tabs; they only re-read (no loop)
+    expect(fn('async function enterApp(')).toMatch(/store\.addEventListener\('records', \(\) => store === state\.store && tabs\?\.post\(\{ type: 'records' \}\)\);/);
+    const link = fn('function linkTabs()');
+    expect(link).toMatch(/if \(m\.type === 'records'\) \{\s*(\/\/.*\s*)*void state\.store\?\.refreshFromDb\(\)\.catch\(\(\) => \{\}\);\s*return;\s*\}/);
+    expect(link.indexOf("m.type === 'records'")).toBeLessThan(link.indexOf('location.reload()'));
+    // back in front: the account check first, then the local database, then render, then the server
+    const vis = fn('function startTimers()');
+    expect(vis).toMatch(/if \(!\(await stillOurs\(\)\)\) return location\.reload\(\);\s*(\/\/.*\s*)*await state\.store\?\.refreshFromDb\(\)\.catch\(\(\) => \{\}\);\s*render\(\);\s*state\.store\?\.autoSync\(\);/);
+  });
+
   it('a sticker touched during the re-login or the print view is asked about afterwards', () => {
     const login = fn('async function loginWith(');
     expect(login).toMatch(/state\.store\.sync\(\);\s*showAway\(\);\s*void askLinkPunch\(\);/);

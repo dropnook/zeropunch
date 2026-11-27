@@ -1,12 +1,14 @@
 // Tabs of the same app in one browser share the local database and the session cookie. When one tab
 // logs out, wipes the device or logs in (maybe as someone else), the others must not keep running with
 // what they had in memory: this tells them, through a BroadcastChannel, or through a storage event
-// where there is none. The receiving tab decides (the app reloads).
+// where there is none. The receiving tab decides (the app reloads). A tab that changed the shared
+// records (a punch, a pull that brought something) says so as well: the others re-read them from the
+// local database, so a tab coming to the front never shows what it had in memory before.
 
 const NAME = 'zeropunch-tabs';
 
 /**
- * @typedef {{ type: 'wipe' } | { type: 'account', fp: string | null }} TabMessage
+ * @typedef {{ type: 'wipe' } | { type: 'account', fp: string | null } | { type: 'records' }} TabMessage
  * @param {{ onMessage: (m: TabMessage) => void, Channel?: typeof BroadcastChannel | null,
  *   storage?: Storage | null, win?: { addEventListener: Window['addEventListener'] } | null }} o
  */
@@ -16,7 +18,7 @@ export function createTabLink(o) {
   const win = o.win === undefined ? globalThis.window : o.win;
   /** @param {any} m */
   const accept = (m) => {
-    if (m && (m.type === 'wipe' || m.type === 'account')) o.onMessage(m);
+    if (m && (m.type === 'wipe' || m.type === 'account' || m.type === 'records')) o.onMessage(m);
   };
   /** @type {BroadcastChannel | null} */
   let ch = null;

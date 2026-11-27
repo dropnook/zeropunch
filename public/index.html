@@ -212,6 +212,14 @@
           <label for="i-target" data-i18n="target_label"></label>
           <input id="i-target" type="number" inputmode="decimal" min="0" max="80" step="0.25">
         </form>
+        <div class="row">
+          <label for="s-holidays" data-i18n="holidays_label"></label>
+          <!-- Filled by js/app.js (renderHolidayPicker) from js/holidays.js, loaded only here or when a calendar is set -->
+          <select id="s-holidays" aria-describedby="o-holidays-hint">
+            <option value="" data-i18n="holidays_none"></option>
+          </select>
+          <p class="hint" id="o-holidays-hint" data-i18n="holidays_hint"></p>
+        </div>
         <label class="check"><input type="checkbox" id="c-night"> <span data-i18n="night_shifts"></span></label>
         <div id="night-box" class="row" hidden>
           <label for="i-daystart" data-i18n="day_changes_at"></label>
@@ -232,6 +240,11 @@
           <label class="check"><input type="radio" name="button-label" value="punch"> <span class="choice-sample" data-i18n="punch"></span></label>
           <label class="check"><input type="radio" name="button-label" value="now"> <span class="choice-sample" data-i18n="punch_now"></span></label>
         </div>
+
+        <h2 id="h-color" data-i18n="h_color"></h2>
+        <p class="hint" data-i18n="color_hint"></p>
+        <!-- Filled by js/app.js (bindColorChoice): one round swatch per colour, as one radio group -->
+        <div class="swatches" id="color-choices" role="radiogroup" aria-labelledby="h-color"></div>
 
         <h2 id="h-fx" data-i18n="h_fx"></h2>
         <p class="hint" data-i18n="fx_hint"></p>

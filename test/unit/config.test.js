@@ -4,7 +4,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { SECURITY_HEADERS } from '../../src/headers.js';
 import { DICT, APP_NAME, WORDMARK, fromNavigator, t, tn, wordMatches, setLang, SHY, plain, applyStatic } from '../../public/js/i18n.js';
-import { FX_CHOICES } from '../../public/js/store.js';
+import { FX_CHOICES, COLORS } from '../../public/js/store.js';
 
 const root = new URL('../../', import.meta.url).pathname;
 const read = (p) => readFileSync(join(root, p), 'utf8');
@@ -43,7 +43,7 @@ describe('static delivery', () => {
 
   it('service worker answers only the app itself from the cache (e.g. /about/ goes to the network)', () => {
     const sw = read('public/sw.js');
-    expect(sw).toMatch(/CACHE_VERSION = 'zp-v2026\.11\.25'/);
+    expect(sw).toMatch(/CACHE_VERSION = 'zp-v2026\.11\.27'/);
     expect(sw).toMatch(/url\.pathname !== '\/' && url\.pathname !== '\/index\.html'\) return;/);
     expect(sw).toMatch(/if \(!SHELL_SET\.has\(url\.pathname\)\) return;/);
     // every file in the shell exists
@@ -70,7 +70,7 @@ describe('static delivery', () => {
 
   it('one version everywhere: package.json, app, Worker, service worker cache', async () => {
     const pkg = JSON.parse(read('package.json'));
-    expect(pkg.version).toBe('2026.11.25');
+    expect(pkg.version).toBe('2026.11.27');
     expect(read('public/js/app.js')).toMatch(new RegExp(`APP_VERSION = '${pkg.version.replace(/\./g, '\\.')}'`));
     expect(read('public/sw.js')).toContain(`CACHE_VERSION = 'zp-v${pkg.version}'`);
     expect((await import('../../src/api.js')).VERSION).toBe(pkg.version);
@@ -81,6 +81,81 @@ describe('static delivery', () => {
     const r = read('public/_redirects');
     expect(r).toMatch(/^\/about https:\/\/zeropunch\.dropnook\.app\/ 302$/m);
     expect(r).toMatch(/^\/about\/\* https:\/\/zeropunch\.dropnook\.app\/ 302$/m);
+  });
+});
+
+describe('highlight colours (app.css palette)', () => {
+  /** WCAG relative luminance of "#rrggbb". @param {string} hex */
+  const lum = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    const lin = (/** @type {number} */ c) => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * lin(n >> 16) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+  };
+  /** @param {string} a @param {string} b */
+  const contrast = (a, b) => {
+    const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+    return (hi + 0.05) / (lo + 0.05);
+  };
+  /** The palette from app.css: key → { light, dark } with the button colour and its text colour. */
+  function palette() {
+    const css = read('public/app.css');
+    const start = css.indexOf('[data-color=orange]');
+    const dark = css.indexOf('@media (prefers-color-scheme: dark)', start);
+    expect(start).toBeGreaterThan(0);
+    expect(dark).toBeGreaterThan(start);
+    /** @type {Record<string, { light?: { hl: string, fg: string }, dark?: { hl: string, fg: string } }>} */
+    const out = {};
+    for (const m of css.matchAll(/\[data-color=([a-z]+)\]\s*\{\s*--hl:\s*(#[0-9a-f]{6});\s*--hl-fg:\s*(#[0-9a-f]{6});\s*\}/g)) {
+      const theme = /** @type {number} */ (m.index) > dark ? 'dark' : 'light';
+      const e = (out[m[1]] ??= {});
+      expect(e[theme], `${m[1]} twice in the ${theme} theme`).toBeUndefined();
+      e[theme] = { hl: m[2], fg: m[3] };
+    }
+    return out;
+  }
+
+  it('every colour of COLORS has a light and a dark value, and there are no others', () => {
+    const p = palette();
+    expect(Object.keys(p).sort()).toEqual([...COLORS].sort());
+    for (const c of COLORS) {
+      expect(p[c].light, `${c} light`).toBeDefined();
+      expect(p[c].dark, `${c} dark`).toBeDefined();
+    }
+  });
+
+  it('the button label reaches at least 4.5:1 against the button colour in both themes', () => {
+    const p = palette();
+    for (const c of COLORS) {
+      for (const theme of /** @type {const} */ (['light', 'dark'])) {
+        const v = /** @type {{ hl: string, fg: string }} */ (p[c][theme]);
+        expect(contrast(v.hl, v.fg), `${c} ${theme}: ${v.fg} on ${v.hl}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it('orange is the brand coral with slate text in both themes, and the default without any data-color', () => {
+    const p = palette();
+    expect(p.orange).toEqual({ light: { hl: '#ff6b4a', fg: '#2b3238' }, dark: { hl: '#ff6b4a', fg: '#2b3238' } });
+    expect(read('public/app.css')).toMatch(/:root, \[data-color=orange\] \{ --hl: #ff6b4a; --hl-fg: #2b3238; \}/);
+  });
+
+  it('the punch button and the wordmark take the highlight colour; it is set by attribute, never inline', () => {
+    const css = read('public/app.css');
+    expect(css).toMatch(/\.punch, \.punch\.in, \.punch\.out \{ background: var\(--hl\); color: var\(--hl-fg\); \}/);
+    expect(css).toMatch(/\.wordmark \.wm-b \{ color: var\(--hl\); \}/);
+    expect(read('public/_headers')).toMatch(/style-src 'self';/);
+    const app = read('public/js/app.js');
+    expect(app).toMatch(/document\.documentElement\.dataset\.color = c;/);
+    expect(app).not.toMatch(/\.style\.setProperty\(|setAttribute\('style'/);
+  });
+
+  it('the last colour is shown before the first screen (no orange flash for another colour)', () => {
+    const app = read('public/js/app.js');
+    const boot = app.slice(app.indexOf('async function boot() {'));
+    // the very first thing boot() does, before the language, the events and any view
+    expect(boot.split('\n').slice(1).find((l) => !l.trim().startsWith('//'))?.trim()).toBe('applyColor(savedColor());');
+    // and every render applies the account's colour (a sync may bring another device's choice)
+    expect(app).toMatch(/function render\(\) \{\n {2}if \(!state\.store\) return;\n {2}applyColor\(state\.store\.settings\.color\);/);
   });
 });
 
@@ -142,8 +217,12 @@ describe('texts', () => {
     expect(src).toContain('`fx_${v}`');
     const fxKeys = Object.keys(DICT.en).filter((k) => /^fx_/.test(k) && !['fx_hint', 'fx_reduced'].includes(k));
     expect(fxKeys.map((k) => k.slice(3)).sort()).toEqual([...FX_CHOICES].sort());
+    // The colour names likewise from COLORS (`color_${c}` in app.js).
+    expect(src).toContain('`color_${c}`');
+    const colorKeys = Object.keys(DICT.en).filter((k) => /^color_/.test(k) && k !== 'color_hint');
+    expect(colorKeys.map((k) => k.slice(6)).sort()).toEqual([...COLORS].sort());
     for (const k of Object.keys(DICT.en)) {
-      if (fxKeys.includes(k)) continue;
+      if (fxKeys.includes(k) || colorKeys.includes(k)) continue;
       const base = k.replace(/_(one|other)$/, '');
       expect(src.includes(`'${k}'`) || src.includes(`"${k}"`) || src.includes(`'${base}'`), k).toBe(true);
     }

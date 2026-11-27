@@ -326,10 +326,10 @@ select {
 /* The punch just made glows once, instead of a banner over the screen. */
 .dv-chip.dv-new { animation: dv-glow 1.6s ease-out 1; }
 @keyframes dv-glow {
-  0% { border-color: #ff6b4a; background: color-mix(in srgb, #ff6b4a 34%, var(--surface)); box-shadow: 0 0 0 0 rgb(255 107 74 / 0.75), 0 0 0 rgb(255 107 74 / 0); transform: scale(0.94); }
-  18% { transform: scale(1.05); box-shadow: 0 0 0 3px rgb(255 107 74 / 0.55), 0 0 20px rgb(255 107 74 / 0.6); }
+  0% { border-color: var(--hl); background: color-mix(in srgb, var(--hl) 34%, var(--surface)); box-shadow: 0 0 0 0 color-mix(in srgb, var(--hl) 75%, transparent), 0 0 0 transparent; transform: scale(0.94); }
+  18% { transform: scale(1.05); box-shadow: 0 0 0 3px color-mix(in srgb, var(--hl) 55%, transparent), 0 0 20px color-mix(in srgb, var(--hl) 60%, transparent); }
   40% { transform: none; }
-  100% { border-color: var(--line); background: var(--surface); box-shadow: 0 0 0 3px rgb(255 107 74 / 0), 0 0 20px rgb(255 107 74 / 0); }
+  100% { border-color: var(--line); background: var(--surface); box-shadow: 0 0 0 3px transparent, 0 0 20px transparent; }
 }
 @media (prefers-reduced-motion: reduce) { .dv-chip.dv-new { animation: none; } }
 .vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
@@ -390,16 +390,17 @@ select {
 .fx-pic > svg { display: block; width: 100%; height: 100%; }
 .fx-name { display: flex; align-items: center; justify-content: center; min-height: 2.3em; font-size: 0.72rem;
   line-height: 1.15; text-align: center; hyphens: manual; }
-.fx-tile:has(input:checked) { border-color: #FF6B4A; box-shadow: inset 0 0 0 1px #FF6B4A; }
+.fx-tile:has(input:checked) { border-color: var(--hl); box-shadow: inset 0 0 0 1px var(--hl); }
 .fx-tile:has(input:checked) .fx-name { font-weight: 800; }
 .fx-tile:has(input:checked)::after { content: ''; position: absolute; top: -5px; right: -5px; width: 12px; height: 12px;
-  border-radius: 50%; background: #FF6B4A; border: 2px solid var(--bg); }
+  border-radius: 50%; background: var(--hl); border: 2px solid var(--bg); }
 .fx-tile:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
 .banner-buttons { display: flex; gap: 8px; flex: none; flex-wrap: wrap; justify-content: flex-end; }
 #banner-rejected { flex-wrap: wrap; }
-/* The punch button is the brand element: coral with dark text in both states (contrast ≈ 5:1).
-   The state is shown by the text above and a small dot, not by the button colour. */
-.punch, .punch.in, .punch.out { background: var(--brand-coral, #ff6b4a); color: var(--brand-slate, #2b3238); }
+/* The punch button is the brand element: the highlight colour (coral by default, see «Highlight
+   colours» below) in both states. The state is shown by the text above and a small dot, not by the
+   button colour. */
+.punch, .punch.in, .punch.out { background: var(--hl); color: var(--hl-fg); }
 .punch:disabled { opacity: 0.55; }
 .state-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px;
   vertical-align: 0.05em; background: transparent; border: 2px solid var(--muted); }
@@ -684,15 +685,51 @@ dialog h2 { margin-top: 0; }
   .card { padding: 8px 6px; }
 }
 
-/* Brand: mark and two-tone wordmark. Coral is used for the logo only (the UI accent stays blue so
-   it never competes with the orange of «Gehen»/“Clock out”). */
-:root { --brand-coral: #ff6b4a; --brand-slate: #2b3238; }
+/* Highlight colours (settings «Colour», store.js COLORS): the punch button, the second half of the
+   wordmark and the marks of the chosen animation. app.js sets data-color on <html>; each swatch in the
+   settings carries its own data-color, so it shows its colour from the same table. --hl-fg is the
+   button text: at least 4.5:1 against --hl in both themes (test/unit/config.test.js computes it).
+   Orange is the brand coral, the same in both themes; the others are deeper in the light theme and
+   lighter in the dark one, so the wordmark stays readable on either background.
+   The UI accent stays blue whatever is chosen. */
+:root, [data-color=orange] { --hl: #ff6b4a; --hl-fg: #2b3238; }
+[data-color=red] { --hl: #d32f3c; --hl-fg: #ffffff; }
+[data-color=pink] { --hl: #c42a78; --hl-fg: #ffffff; }
+[data-color=purple] { --hl: #7346d9; --hl-fg: #ffffff; }
+[data-color=blue] { --hl: #1f63d6; --hl-fg: #ffffff; }
+[data-color=teal] { --hl: #0e7a7e; --hl-fg: #ffffff; }
+[data-color=green] { --hl: #24803c; --hl-fg: #ffffff; }
+[data-color=graphite] { --hl: #3d4450; --hl-fg: #ffffff; }
+@media (prefers-color-scheme: dark) {
+  [data-color=orange] { --hl: #ff6b4a; --hl-fg: #2b3238; }
+  [data-color=red] { --hl: #ff6b78; --hl-fg: #2b3238; }
+  [data-color=pink] { --hl: #ff7ab8; --hl-fg: #2b3238; }
+  [data-color=purple] { --hl: #b494ff; --hl-fg: #2b3238; }
+  [data-color=blue] { --hl: #5b9dff; --hl-fg: #2b3238; }
+  [data-color=teal] { --hl: #2ec4bf; --hl-fg: #2b3238; }
+  [data-color=green] { --hl: #4cc36e; --hl-fg: #2b3238; }
+  [data-color=graphite] { --hl: #c3cad4; --hl-fg: #2b3238; }
+}
+/* The swatches: a radio group of round dots (the radio buttons are visually hidden, still focusable:
+   arrow keys move through the group). Eight in a row, two rows of four on a phone. */
+.swatches { display: grid; grid-template-columns: repeat(8, 44px); gap: 8px; }
+@media (max-width: 480px) { .swatches { grid-template-columns: repeat(4, 44px); gap: 12px 16px; } }
+.swatch { position: relative; display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 50%; cursor: pointer; }
+.swatch input { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.sw-dot { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--hl); box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12); }
+.swatch:has(input:checked) .sw-dot { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--fg); }
+.swatch:has(input:checked) .sw-dot::after { content: '✓'; color: var(--hl-fg); font-weight: 800; font-size: 1.1rem; line-height: 1; }
+.swatch:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 4px; }
+
+/* Brand: mark and two-tone wordmark. */
 .brand-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 12px; }
 .brand-block .mark { width: 72px; height: 72px; display: block; }
 .brand-block .brand { margin: 0; }
 .wordmark { font-weight: 700; letter-spacing: -0.01em; }
 .wordmark .wm-a { color: var(--muted); }
-.wordmark .wm-b { color: var(--brand-coral); }
+.wordmark .wm-b { color: var(--hl); }
 
 /* Install help in the settings: two folding step lists. */
 .howto { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 0 14px; }
@@ -713,6 +750,7 @@ dialog h2 { margin-top: 0; }
 .icon-gap { flex: none; width: 44px; height: 44px; }
 .pair.absence .abs-main { cursor: default; }
 .abs-label { font-weight: 600; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.abs-src { flex: none; margin-left: 8px; font-size: 0.8rem; color: var(--muted); }
 
 /* Week and month sheet (js/sheet.js): on screen a white page to scroll, printed A4 portrait. */
 .print-view { width: 100%; max-width: 900px; margin: 0 auto; padding-bottom: 32px; }

@@ -64,6 +64,24 @@ describe('tabs: a wipe or login in one tab reaches the others', () => {
     expect(gotB).toEqual([{ type: 'wipe' }, { type: 'wipe' }]);
   });
 
+  it('carries «records changed» through the channel and through storage events', () => {
+    const Channel = fakeChannelClass();
+    const got = [];
+    const a = createTabLink({ onMessage: () => {}, Channel, storage: null, win: null });
+    createTabLink({ onMessage: (m) => got.push(m), Channel, storage: null, win: null });
+    a.post({ type: 'records' });
+    expect(got).toEqual([{ type: 'records' }]);
+    const bus = fakeStorageBus();
+    const ta = bus.tab();
+    const tb = bus.tab();
+    const gotB = [];
+    const c = createTabLink({ onMessage: () => {}, Channel: null, storage: ta.storage, win: ta.win });
+    createTabLink({ onMessage: (m) => gotB.push(m), Channel: null, storage: tb.storage, win: tb.win });
+    c.post({ type: 'records' });
+    c.post({ type: 'records' });
+    expect(gotB).toEqual([{ type: 'records' }, { type: 'records' }]);
+  });
+
   it('ignores foreign messages', () => {
     const Channel = fakeChannelClass();
     const got = [];
@@ -71,6 +89,11 @@ describe('tabs: a wipe or login in one tab reaches the others', () => {
     const other = new Channel('zeropunch-tabs');
     other.postMessage({ type: 'hello' });
     other.postMessage(null);
+    other.postMessage({ type: 'record' });
+    other.postMessage({ type: 'RECORDS' });
+    other.postMessage('records');
     expect(got).toEqual([]);
+    other.postMessage({ type: 'records' });
+    expect(got).toEqual([{ type: 'records' }]);
   });
 });

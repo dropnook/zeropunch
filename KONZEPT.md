@@ -1,6 +1,6 @@
 # Zeropunch – Konzept
 
-Stand 2026-11-25 · Version 2026.11.25
+Stand 2026-11-27 · Version 2026.11.27
 
 ## 1. Ziel
 

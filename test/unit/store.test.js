@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { Store, MAX_PER_DAY, RETENTION_DAYS, RETENTION_MONTHS, IDLE_DAYS, AWAY_NOTICE_DAYS, awayDays, showAwayNotice, isExpired, oldestDay, oldestLogicalDay, csvCell, buttonLabelKey, buttonLabel, DEFAULT_SETTINGS, badgeDays, badgeDue, badgeNextDay, BADGE_DAYS_DEFAULT, FX_NAMES, FX_CHOICES, fxSetting, pickFx, syncStatus } from '../../public/js/store.js';
+import { Store, MAX_PER_DAY, RETENTION_DAYS, RETENTION_MONTHS, IDLE_DAYS, AWAY_NOTICE_DAYS, awayDays, showAwayNotice, isExpired, oldestDay, oldestLogicalDay, csvCell, buttonLabelKey, buttonLabel, DEFAULT_SETTINGS, badgeDays, badgeDue, badgeNextDay, BADGE_DAYS_DEFAULT, FX_NAMES, FX_CHOICES, fxSetting, pickFx, COLORS, colorSetting, syncStatus } from '../../public/js/store.js';
 import { MAX_RECORDS } from '../../src/api.js';
 import { RETENTION_DAYS as SERVER_RETENTION_DAYS, IDLE_DAYS as SERVER_IDLE_DAYS } from '../../src/retention.js';
 import { limits } from '../../src/limits.js';
@@ -583,6 +583,31 @@ describe('outbox and local writes (B7)', () => {
     expect(a.st.settings).toMatchObject({ fx: 'seal', weekHours: 30 });
   });
 
+  it('highlight colour: orange by default and for anything unknown; syncs to another device; other writes keep it', async () => {
+    expect(DEFAULT_SETTINGS.color).toBe('orange');
+    expect(COLORS[0]).toBe('orange');
+    expect(new Set(COLORS).size).toBe(COLORS.length);
+    for (const c of COLORS) expect(colorSetting(c)).toBe(c);
+    // a newer client's colour, a typo, a value of another type: orange
+    for (const v of [undefined, null, '', 'ORANGE', 'magenta', '#ff0000', 3, {}]) expect(colorSetting(v), String(v)).toBe('orange');
+    const a = setup();
+    await a.st.sync();
+    // a settings record written before the colour existed reads as orange
+    expect(colorSetting(a.st.settings.color)).toBe('orange');
+    await a.st.saveSettings({ color: 'teal' });
+    await idle(a.st);
+    const b = setup({ server: a.server });
+    b.clock.now = a.clock.now + 1000;
+    await b.st.load();
+    await b.st.sync();
+    expect(b.st.settings.color).toBe('teal');
+    // an older client spreads the decrypted record, so the field it does not know survives its writes
+    await b.st.saveSettings({ ...b.st.settings, weekHours: 31 });
+    await idle(b.st);
+    await a.st.sync();
+    expect(a.st.settings).toMatchObject({ color: 'teal', weekHours: 31 });
+  });
+
   it('random never plays the same animation twice in a row; a chosen one always plays; off plays nothing', () => {
     let prev = null;
     let seen = new Set();
@@ -962,4 +987,120 @@ describe('deleting the account needs the passphrase (2.9.4)', () => {
     expect(server.accountDeleted).toBe(true);
   });
 
+});
+
+describe('two tabs on one device: refreshFromDb', () => {
+  /** Two Stores on the same local database (two tabs), each with its own memory. */
+  function twoTabs(o = {}) {
+    const a = setup(o);
+    const b = new Store(USER, KEY, { db: a.db, api: a.server.api, now: () => a.clock.now, tz: () => TZ, guard: o.guardB });
+    return { ...a, a: a.st, b };
+  }
+  /** Counts the events of one type a Store emits. */
+  const count = (st, type) => {
+    const n = { v: 0 };
+    st.addEventListener(type, () => n.v++);
+    return n;
+  };
+
+  it('a punch, an absence and a settings change of tab A show up in tab B without any sync', async () => {
+    const { a, b, server, clock } = twoTabs();
+    server.offline = true; // no sync can carry anything
+    await b.load();
+    const announced = count(a, 'records');
+    const p = await a.punch(clock.now - 3600_000);
+    expect(announced.v).toBe(1); // right after the local write
+    const abs = await a.addAbsence({ day: '2026-11-25', type: 'vacation' });
+    await a.saveSettings({ weekHours: 40 });
+    await idle(a);
+    const gets = server.getCalls;
+    const changes = count(b, 'change');
+    const bAnnounced = count(b, 'records');
+    expect(b.list()).toEqual([]);
+    expect(await b.refreshFromDb()).toBe(true);
+    expect(b.list().map((e) => e.id)).toEqual([p.id]);
+    expect(b.absences().map((e) => e.id)).toEqual([abs.id]);
+    expect(b.settings.weekHours).toBe(40);
+    expect(b.outbox).toBe(a.outbox);
+    expect(changes.v).toBe(1);
+    expect(bAnnounced.v).toBe(0); // receiving never announces again (no loop between tabs)
+    expect(server.getCalls).toBe(gets);
+  });
+
+  it('a refresh with nothing new emits nothing', async () => {
+    const { a, b, clock } = twoTabs();
+    await a.sync();
+    await a.punch(clock.now - 3600_000);
+    await idle(a);
+    await b.load();
+    const changes = count(b, 'change');
+    expect(await b.refreshFromDb()).toBe(false);
+    expect(await b.refreshFromDb()).toBe(false);
+    expect(changes.v).toBe(0);
+  });
+
+  it("the receiving tab's own waiting write is neither overwritten nor dropped", async () => {
+    const { a, b, server, db, clock } = twoTabs();
+    await a.sync();
+    const p = await a.punch(clock.now - 3600_000);
+    await idle(a);
+    await b.load();
+    server.offline = true;
+    await b.write(p.id, { ...b.entries.get(p.id), note: 'tab B' });
+    await idle(b);
+    expect(db.s.outbox.get(p.id).data).toBe(b.raw.get(p.id));
+    // another version of that record lands in the local database while B's write still waits
+    const { id: _id, ...plain } = a.entries.get(p.id);
+    const other = await encryptRecord(KEY, USER, p.id, { ...plain, note: 'elsewhere', mod: plain.mod + 1 });
+    db.s.records.set(p.id, { id: p.id, data: other });
+    expect(await b.refreshFromDb()).toBe(false);
+    expect(b.entries.get(p.id).note).toBe('tab B');
+    db.s.records.delete(p.id);
+    expect(await b.refreshFromDb()).toBe(false);
+    expect(b.entries.get(p.id).note).toBe('tab B');
+  });
+
+  it('a record another tab removed from the database (retention, discard) goes here too', async () => {
+    const { a, b, db, clock } = twoTabs();
+    await a.sync();
+    const p = await a.punch(clock.now - 3600_000);
+    const q = await a.punch(clock.now - 1800_000);
+    await idle(a);
+    await b.load();
+    db.s.records.delete(q.id); // as tab A's purge does, with a hard delete waiting
+    db.s.outbox.set(q.id, { id: q.id, op: 'delete', notBefore: 0 });
+    expect(await b.refreshFromDb()).toBe(true);
+    expect(b.list().map((e) => e.id)).toEqual([p.id]);
+  });
+
+  it('a tab whose account is no longer the one on the device reads nothing', async () => {
+    let owner = 'me';
+    const { a, b, clock, server } = twoTabs({ guardB: async () => owner === 'me' });
+    server.offline = true;
+    await b.load();
+    owner = 'other';
+    await a.punch(clock.now - 3600_000);
+    await idle(a);
+    const stale = count(b, 'stale');
+    expect(await b.refreshFromDb()).toBe(false);
+    expect(b.list()).toEqual([]);
+    expect(stale.v).toBe(1);
+  });
+
+  it("'records' is emitted after a pull that brought something, not after a sync that changed nothing", async () => {
+    const { a, server, clock } = twoTabs();
+    await a.sync();
+    await idle(a);
+    const announced = count(a, 'records');
+    await a.sync();
+    await idle(a);
+    expect(announced.v).toBe(0);
+    const elsewhere = setup({ server });
+    elsewhere.clock.now = clock.now;
+    await elsewhere.st.punch(clock.now - 3600_000);
+    await idle(elsewhere.st);
+    await a.sync();
+    await idle(a);
+    expect(announced.v).toBe(1);
+  });
 });

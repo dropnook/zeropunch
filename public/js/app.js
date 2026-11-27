@@ -19,6 +19,8 @@ import {
   buttonLabelKey,
   BUTTON_LABELS,
   fxSetting,
+  colorSetting,
+  COLORS,
   pickFx,
   FX_CHOICES,
   FX_NAMES,
@@ -86,7 +88,7 @@ import {
   daysBetween,
 } from './time.js';
 
-export const APP_VERSION = '2026.11.25';
+export const APP_VERSION = '2026.11.27';
 const MAIN_TABS = ['start', 'list', 'nerd', 'settings'];
 const FILE_PREFIX = APP_NAME.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
@@ -178,12 +180,21 @@ async function stillOurs() {
   }
 }
 
-/** Other tabs of this app in the browser: a wipe or login there means this tab reloads. */
+/**
+ * Other tabs of this app in the browser: a wipe or login there means this tab reloads; new or changed
+ * records there are read again from the local database (the tab's memory would show the old state).
+ */
 /** @type {ReturnType<typeof createTabLink> | null} */
 let tabs = null;
 function linkTabs() {
   tabs = createTabLink({
     onMessage: (m) => {
+      if (m.type === 'records') {
+        // Re-read only: never posts 'records' again (refreshFromDb writes nothing). The Store's guard
+        // keeps a tab of another account from reading this one's records.
+        void state.store?.refreshFromDb().catch(() => {});
+        return;
+      }
       if (m.type === 'wipe' && !state.username) return; // nothing here to drop
       if (m.type === 'account' && state.username && m.fp === state.fingerprint) return; // the same account (e.g. a re-login)
       location.reload();
@@ -208,6 +219,61 @@ const fx = createFxRunner({
   reduced: () => reducedMotion(),
   vibrate: typeof navigator.vibrate === 'function' ? (p) => navigator.vibrate(p) : null,
 });
+
+// ------------------------------------------------------------ public-holiday calendar (lazy)
+
+/** holidays.js once loaded: only when a calendar is set or the settings open. @type {null | typeof import('./holidays.js')} */
+let holidayMod = null;
+/** @type {Promise<void> | null} */
+let holidayLoading = null;
+
+/** Load holidays.js once; when it arrives, draw again (the calendar's days and the picker appear). */
+function loadHolidays() {
+  if (!holidayLoading) {
+    holidayLoading = import('./holidays.js').then(
+      (m) => {
+        holidayMod = m;
+        render();
+      },
+      () => {
+        // Offline and not cached yet: try again with a drawing a minute later (the start screen draws every second).
+        setTimeout(() => (holidayLoading = null), 60_000);
+      },
+    );
+  }
+  return holidayLoading;
+}
+
+/**
+ * The days of the chosen holiday calendar from `from` to `to` as absences (`cal: true`, never records);
+ * none without a calendar or while holidays.js is still loading (it draws again when it arrives).
+ * @param {Store} st @param {string} from @param {string} to @returns {any[]}
+ */
+function calendarDays(st, from, to) {
+  if (!st.settings.holidays) return [];
+  if (!holidayMod) {
+    void loadHolidays();
+    return [];
+  }
+  return holidayMod.holidayAbsences(String(st.settings.holidays), from, to);
+}
+
+/**
+ * The absences of the list, the charts and the exports: the stored ones plus the calendar's days from
+ * the first day with a punch or an absence (a holiday before it would move the start of the balance;
+ * never before the retention bound) up to ABSENCE_AHEAD_DAYS ahead, like a planned absence. A holiday
+ * on a Saturday or Sunday shows by its name and credits nothing (absenceCredit).
+ * @param {Store} st @param {import('./time.js').Day[]} days from buildDays() @param {string} today
+ */
+function absencesWithCalendar(st, days, today) {
+  const own = st.absences();
+  if (!st.settings.holidays) return own;
+  let first = today;
+  for (const d of days) if (d.day < first) first = d.day;
+  for (const a of own) if (a.day < first) first = a.day;
+  const oldest = oldestLogicalDay(Date.now(), localTz(), st.dayStart);
+  return own.concat(calendarDays(st, first < oldest ? oldest : first, addDays(today, ABSENCE_AHEAD_DAYS)));
+}
 
 // ------------------------------------------------------------ helpers
 
@@ -375,6 +441,8 @@ function applyLanguage() {
 // ------------------------------------------------------------ start
 
 async function boot() {
+  // Before any screen shows: the last colour of this device (the boot screen has no highlight).
+  applyColor(savedColor());
   setLang(detectLang());
   applyLanguage();
   bindEvents();
@@ -434,6 +502,8 @@ async function enterApp(username, key) {
   // Another tab replaced the account on this device: this tab's data is not current any more.
   store.addEventListener('stale', () => store === state.store && location.reload());
   store.addEventListener('change', () => render());
+  // This tab wrote or pulled records into the shared local database: the other tabs re-read them.
+  store.addEventListener('records', () => store === state.store && tabs?.post({ type: 'records' }));
   store.addEventListener('sync', () => {
     renderSync();
     if (!store.syncing) reloadWhenIdle();
@@ -457,6 +527,9 @@ function startTimers() {
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState !== 'visible') return;
     if (!(await stillOurs())) return location.reload();
+    // Another tab may have punched meanwhile (e.g. a punch link tab that closed itself): show what the
+    // local database holds now, not this tab's memory from before, and only then ask the server.
+    await state.store?.refreshFromDb().catch(() => {});
     render();
     state.store?.autoSync();
   });
@@ -729,6 +802,7 @@ async function onPassChange(/** @type {SubmitEvent} */ e) {
 
 function render() {
   if (!state.store) return;
+  applyColor(state.store.settings.color); // also when a sync brings another device's choice
   if ($('#app').dataset.view === 'print') return renderPrint();
   $('#tabs [data-tab=nerd]').hidden = !state.store.settings.nerd;
   if (state.tab === 'nerd' && !state.store.settings.nerd) return show('start');
@@ -828,7 +902,7 @@ function renderDayView(st, now, tz) {
   setText('#o-dv-sum', `${formatDur(v.sum)} h`);
   // An absence on that day: a short label in the header (hidden where the header is narrow, so the
   // area's height never changes), and instead of «No punches» on an otherwise empty day.
-  const abs = st.absencesOn(v.day).map((a) => absenceLabel(a)).join(', ');
+  const abs = [...st.absencesOn(v.day), ...calendarDays(st, v.day, v.day)].map((a) => absenceLabel(a)).join(', ');
   const absEl = $('#o-dv-abs');
   setText('#o-dv-abs', abs);
   absEl.hidden = !abs || !v.punches.length;
@@ -1160,7 +1234,8 @@ function renderList() {
   const st = /** @type {Store} */ (state.store);
   const now = Date.now();
   const target = st.settings.weekHours;
-  const weeks = groupWeeks(withAbsences(buildDays(st.list(), now, st.dayStart, localTz()), st.absences(), target));
+  const days = buildDays(st.list(), now, st.dayStart, localTz());
+  const weeks = groupWeeks(withAbsences(days, absencesWithCalendar(st, days, st.dayOf(now)), target));
   const out = $('#o-list');
   const focus = state.listFocus;
   state.listFocus = null;
@@ -1240,7 +1315,11 @@ function renderDay(d, weekHours) {
   );
 }
 
-/** One absence in the list: its label, the credited time and a bin. @param {import('./listview.js').AbsenceRow} r @param {string} day */
+/**
+ * One absence in the list: its label, the credited time and a bin; a day of the holiday calendar is
+ * marked as such and has no bin (the settings choose the calendar).
+ * @param {import('./listview.js').AbsenceRow} r @param {string} day
+ */
 function renderAbsence(r, day) {
   const c = r.controls[0];
   return h(
@@ -1255,18 +1334,20 @@ function renderAbsence(r, day) {
         h(
           'div',
           { class: 'prow' },
-          h('span', { class: 'pmain abs-main' }, h('span', { class: 'abs-label' }, r.label)),
-          h(
-            'button',
-            {
-              class: 'icon-btn del',
-              type: 'button',
-              'aria-label': c.aria,
-              title: c.aria,
-              onclick: () => state.store && deleteAbsence(state.store, r.absence, longDate(day), { confirm: confirmDialog, toast, message }),
-            },
-            icon('delete'),
-          ),
+          h('span', { class: 'pmain abs-main' }, h('span', { class: 'abs-label' }, r.label), r.cal ? h('span', { class: 'abs-src' }, t('abs_from_cal')) : null),
+          c
+            ? h(
+              'button',
+              {
+                class: 'icon-btn del',
+                type: 'button',
+                'aria-label': c.aria,
+                title: c.aria,
+                onclick: () => state.store && deleteAbsence(state.store, r.absence, longDate(day), { confirm: confirmDialog, toast, message }),
+              },
+              icon('delete'),
+            )
+            : h('span', { class: 'icon-gap', 'aria-hidden': 'true' }),
         ),
       ),
       h('span', { class: 'dur' }, formatDur(r.credit)),
@@ -1357,6 +1438,8 @@ function renderSettings() {
   for (const r of $$('input[name=button-label]')) /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === bl;
   const fv = fxSetting(st.settings.fx);
   for (const r of $$('input[name=punch-fx]')) /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === fv;
+  const cv = colorSetting(st.settings.color);
+  for (const r of $$('input[name=color]')) /** @type {HTMLInputElement} */ (r).checked = /** @type {HTMLInputElement} */ (r).value === cv;
   $('#o-fx-reduced').hidden = !reducedMotion();
   loadFxPics();
   const ds = st.dayStart;
@@ -1385,6 +1468,33 @@ function renderSettings() {
     shownLink = link + getLang();
   }
   $('#o-about').textContent = t('about_version', { version: APP_VERSION });
+  renderHolidayPicker(st);
+}
+
+/**
+ * The holiday calendar picker: «None», then the calendars by group (Switzerland, other countries,
+ * German federal states), filled once holidays.js has loaded (the settings load it).
+ * @param {Store} st
+ */
+function renderHolidayPicker(st) {
+  const sel = /** @type {HTMLSelectElement} */ ($('#s-holidays'));
+  const cur = String(st.settings.holidays || '');
+  if (!holidayMod) {
+    void loadHolidays();
+    sel.disabled = !!cur; // until the list is there, «None» must not stand for a chosen calendar
+    return;
+  }
+  const lang = getLang();
+  if (sel.dataset.lang !== lang) {
+    fill(
+      sel,
+      h('option', { value: '', 'data-i18n': 'holidays_none' }, t('holidays_none')),
+      holidayMod.calendarGroups(lang).map((g) => h('optgroup', { label: g.label }, g.items.map((i) => h('option', { value: i.key }, i.label)))),
+    );
+    sel.dataset.lang = lang;
+  }
+  sel.disabled = false;
+  if (document.activeElement !== sel) sel.value = holidayMod.calendarKey(cur);
 }
 
 async function renderNerd() {
@@ -1395,7 +1505,7 @@ async function renderNerd() {
   const list = st.list();
   const days = buildDays(list, now, st.dayStart, tz);
   const target = st.settings.weekHours;
-  const credits = creditByDay(st.absences(), target);
+  const credits = creditByDay(absencesWithCalendar(st, days, today), target);
   const { y, m } = parseDay(today);
   const periods = [
     [t('period_week'), weekStart(today)],
@@ -1490,6 +1600,59 @@ async function renderNerd() {
       h('button', { class: 'btn', type: 'button', onclick: exportJson }, 'JSON'),
     ),
   );
+}
+
+// ------------------------------------------------------------ highlight colour setting
+
+/** The last colour shown on this device, so the next start shows it at once (like the language). */
+const COLOR_KEY = 'zeropunch-color';
+
+/** The colour shown last on this device, or orange. */
+function savedColor() {
+  try {
+    return colorSetting(localStorage.getItem(COLOR_KEY));
+  } catch {
+    return colorSetting(null); // storage blocked
+  }
+}
+
+/**
+ * Show a highlight colour: `data-color` on <html> picks its values from app.css (no inline styles,
+ * the CSP has style-src 'self'). Remembered on the device for the next start.
+ * @param {unknown} value settings.color
+ */
+function applyColor(value) {
+  const c = colorSetting(value);
+  if (document.documentElement.dataset.color === c) return;
+  document.documentElement.dataset.color = c;
+  try {
+    localStorage.setItem(COLOR_KEY, c);
+  } catch {
+    /* storage blocked */
+  }
+}
+
+/** The «Colour» choice in the settings: a radio group of round swatches (arrow keys move through it). */
+function bindColorChoice() {
+  const box = $('#color-choices');
+  fill(
+    box,
+    COLORS.map((c) =>
+      h(
+        'label',
+        { class: 'swatch', dataset: { color: c } },
+        h('input', { type: 'radio', name: 'color', value: c, 'aria-label': t(`color_${c}`), 'data-i18n-aria': `color_${c}` }),
+        h('span', { class: 'sw-dot', 'aria-hidden': 'true' }),
+      ),
+    ),
+  );
+  box.addEventListener('change', (e) => {
+    const el = /** @type {HTMLInputElement} */ (e.target);
+    if (!el.checked || el.name !== 'color') return;
+    const c = colorSetting(el.value);
+    applyColor(c);
+    state.store?.saveSettings({ color: c });
+  });
 }
 
 // ------------------------------------------------------------ punch animation setting
@@ -1857,7 +2020,9 @@ function renderPrint() {
   const now = Date.now();
   const tz = localTz();
   const weekHours = st.settings.weekHours;
-  const days = withAbsences(buildDays(st.list(), now, st.dayStart, tz), st.absences(), weekHours);
+  // The sheet's target counts every weekday of the period: so do the calendar's days (weekends show their name only).
+  const absences = [...st.absences(), ...calendarDays(st, printing.from, printing.to)];
+  const days = withAbsences(buildDays(st.list(), now, st.dayStart, tz), absences, weekHours);
   const today = st.dayOf(now, tz);
   const sheet = periodSheet(days, printing.from, printing.to, today, weekHours);
   fill($('#o-print'), renderSheet(sheet, { kind: printing.kind, username: /** @type {string} */ (state.username), weekHours, dayStart: st.dayStart, today }));
@@ -1882,7 +2047,8 @@ function exportCsv() {
   const weekHours = st.settings.weekHours;
   // Absences get their own row (first on their day) and the two last columns; punch rows leave them empty.
   const rows = [[t('csv_date'), t('csv_cal_date'), t('csv_time'), t('csv_tz'), t('csv_note'), t('csv_dir'), t('csv_day_total'), t('csv_absence'), t('csv_credit')]];
-  for (const d of withAbsences(buildDays(st.list(), Date.now(), st.dayStart, localTz()), st.absences(), weekHours).reverse()) {
+  const built = buildDays(st.list(), Date.now(), st.dayStart, localTz());
+  for (const d of withAbsences(built, absencesWithCalendar(st, built, st.dayOf(Date.now())), weekHours).reverse()) {
     for (const a of d.absences || []) rows.push([d.day, d.day, '', a.tz || DEFAULT_TZ, a.note || '', '', '', absenceLabel(a), formatDur(absenceCredit(a, weekHours))]);
     d.punches.forEach((p, i) => {
       const tz = p.tz || DEFAULT_TZ;
@@ -1902,7 +2068,9 @@ function exportJson() {
     .map((e) => ({ id: e.id, ts: e.ts, iso: new Date(e.ts).toISOString(), tz: e.tz, note: e.note || '', dir: dir.get(e.id) }));
   const weekHours = st.settings.weekHours;
   const absences = st.absences().map((a) => ({ id: a.id, day: a.day, type: a.type, half: !!a.half, note: a.note || '', creditMs: absenceCredit(a, weekHours) }));
-  const days = withAbsences(buildDays(list, Date.now(), st.dayStart, localTz()), st.absences(), weekHours)
+  const built = buildDays(list, Date.now(), st.dayStart, localTz());
+  // days[].creditMs includes the holiday calendar's days; absences lists the stored ones only.
+  const days = withAbsences(built, absencesWithCalendar(st, built, st.dayOf(Date.now())), weekHours)
     .reverse()
     .map((d) => ({ day: d.day, punches: d.punches.length, totalMs: d.sum, creditMs: d.credit || 0, open: d.open }));
   download(
@@ -2108,6 +2276,9 @@ function bindEvents() {
     else toast(t('err_number'));
   });
   $('#f-target').addEventListener('submit', (e) => e.preventDefault());
+  $('#s-holidays').addEventListener('change', (e) => {
+    state.store?.saveSettings({ holidays: /** @type {HTMLSelectElement} */ (e.target).value });
+  });
   $('#s-lang').addEventListener('change', (e) => {
     setLang(/** @type {'en'|'de'} */ (/** @type {HTMLSelectElement} */ (e.target).value), true);
     applyLanguage();
@@ -2138,6 +2309,7 @@ function bindEvents() {
       if (el.checked) state.store?.saveSettings({ button: buttonLabel(el.value) });
     });
   }
+  bindColorChoice();
   bindFxChoice();
   $('#b-rej-retry').addEventListener('click', () => state.store?.retryRejected());
   $('#b-rej-discard').addEventListener('click', async () => {

@@ -7,8 +7,22 @@ import { encryptRecord, decryptRecord, newId, SETTINGS_ID, jsonSize, PLAINTEXT_S
 import { mergeDecision, nextMod } from './merge.js';
 import { dayKey, logicalDay, addDays, parseDay, zonedToEpoch, isDayKey, absenceType, DEFAULT_TZ } from './time.js';
 
-/** dayStart: minutes after local midnight at which the day changes (0 = midnight; night shifts e.g. 240). */
-export const DEFAULT_SETTINGS = { v: 1, kind: 'settings', weekHours: 42, nerd: false, dayStart: 0, button: 'inout', fx: 'random', badge: 0, badgeAt: '', linkPunch: true, mod: 0 };
+/**
+ * dayStart: minutes after local midnight at which the day changes (0 = midnight; night shifts e.g. 240).
+ * holidays: the key of a public-holiday calendar (holidays.js), '' = none; its days are computed, never stored.
+ */
+export const DEFAULT_SETTINGS = { v: 1, kind: 'settings', weekHours: 42, nerd: false, dayStart: 0, button: 'inout', fx: 'random', badge: 0, badgeAt: '', linkPunch: true, color: 'orange', holidays: '', mod: 0 };
+
+/**
+ * Highlight colours (settings.color): the punch button and the second half of the wordmark. Only the
+ * short key is stored (records have a fixed plaintext size); the values for the light and the dark
+ * theme live in app.css (`[data-color=…]`; a unit test checks the button text's contrast there).
+ * Orange is the brand coral and the default.
+ */
+export const COLORS = /** @type {const} */ (['orange', 'red', 'pink', 'purple', 'blue', 'teal', 'green', 'graphite']);
+
+/** The stored value as one of COLORS: unknown (e.g. from a newer client) or missing is orange. @param {unknown} value settings.color */
+export const colorSetting = (value) => (COLORS.includes(/** @type {any} */ (value)) ? /** @type {(typeof COLORS)[number]} */ (value) : 'orange');
 
 /**
  * Labels for the big button (settings.button): «Punch in/out» (default, both languages), «Punch», or a
@@ -260,6 +274,24 @@ export class Store extends EventTarget {
     this.nextDone = null;
   }
 
+  /** This Store changed the local database (records or outbox) since it last emitted 'records'. */
+  #touched = false;
+  /** The running refreshFromDb(), and whether another one was asked for meanwhile. @type {Promise<boolean> | null} */
+  #refreshing = null;
+  #refreshAgain = false;
+  /** Rows refreshFromDb() could not decrypt (id → data), so they are not tried on every refresh. @type {Map<string, string>} */
+  #unreadableRows = new Map();
+
+  /**
+   * Other tabs of this device share the local database but not this memory: after a change to it,
+   * emit 'records' once (the app tells the other tabs, which call refreshFromDb()).
+   */
+  #announce() {
+    if (!this.#touched) return;
+    this.#touched = false;
+    this.emit('records');
+  }
+
   /** Device time corrected by the server's clock (when known). */
   trueNow() {
     return this.now() + (this.skew ?? 0);
@@ -280,6 +312,7 @@ export class Store extends EventTarget {
    * @param {{ store: string, op: 'put'|'del', value?: any, key?: IDBValidKey }[]} ops
    */
   async #tx(ops) {
+    this.#touched = true;
     if (this.db.tx) return this.db.tx(ops);
     for (const o of ops) {
       if (o.op === 'put') await this.db.put(o.store, o.value, o.key);
@@ -301,6 +334,82 @@ export class Store extends EventTarget {
     for (const r of rows) await this.#absorb(r.id, r.data);
     await this.#countOutbox();
     this.emit();
+  }
+
+  /**
+   * Another tab of this device changed the shared local database (a punch, a pull): take what differs
+   * from this tab's memory, without a sync. Records this tab is still waiting to send (its own outbox
+   * version) are kept, and a write or merge of this tab that runs meanwhile wins. Writes nothing (so it
+   * never makes other tabs refresh in turn) and emits 'change' only when something changed.
+   * @returns {Promise<boolean>} whether anything changed
+   */
+  refreshFromDb() {
+    if (this.#refreshing) {
+      this.#refreshAgain = true;
+      return this.#refreshing;
+    }
+    const run = async () => {
+      let changed = false;
+      try {
+        do {
+          this.#refreshAgain = false;
+          if (await this.#refreshOnce()) changed = true;
+        } while (this.#refreshAgain && !this.stale);
+      } finally {
+        this.#refreshing = null;
+      }
+      if (changed) this.emit();
+      return changed;
+    };
+    this.#refreshing = run();
+    return this.#refreshing;
+  }
+
+  async #refreshOnce() {
+    // A tab of another account (or after a wipe) reads nothing: the local data is not ours any more.
+    if (!(await this.#ours())) return false;
+    const before = new Map(this.raw);
+    const rows = await this.db.all('records');
+    const outbox = new Map((await this.db.all('outbox')).map((i) => [i.id, i]));
+    /** Still waiting to be sent in the version this tab has in memory. @param {string} id */
+    const ownPending = (id) => {
+      const p = outbox.get(id);
+      return !!p && p.op === 'put' && before.has(id) && p.data === before.get(id);
+    };
+    /** @type {{ id: string, data: string, obj: any }[]} */
+    const take = [];
+    const inDb = new Set();
+    for (const r of rows) {
+      inDb.add(r.id);
+      if (before.get(r.id) === r.data || this.#unreadableRows.get(r.id) === r.data) continue;
+      if (ownPending(r.id) || outbox.get(r.id)?.op === 'delete') continue;
+      try {
+        take.push({ id: r.id, data: r.data, obj: await decryptRecord(this.key, this.username, r.id, r.data) });
+      } catch {
+        this.#unreadableRows.set(r.id, r.data); // counted once, by load()
+      }
+    }
+    // Gone from the database (another tab expired or discarded it): forget it here too.
+    const drop = [...before.keys()].filter((id) => !inDb.has(id) && !ownPending(id));
+    let changed = false;
+    for (const { id, data, obj } of take) {
+      if (this.raw.get(id) !== before.get(id)) continue; // this tab changed it meanwhile
+      this.raw.set(id, data);
+      if (id === SETTINGS_ID) this.settings = { ...DEFAULT_SETTINGS, ...obj };
+      else this.entries.set(id, { ...obj, id });
+      changed = true;
+    }
+    for (const id of drop) {
+      if (this.raw.get(id) !== before.get(id)) continue;
+      this.raw.delete(id);
+      if (id === SETTINGS_ID) this.settings = { ...DEFAULT_SETTINGS };
+      else this.entries.delete(id);
+      changed = true;
+    }
+    const counts = [this.outbox, this.rejected, this.rejectedCode];
+    await this.#countOutbox(); // the outbox is shared too: another tab may have sent or added items
+    if (counts[0] !== this.outbox || counts[1] !== this.rejected || counts[2] !== this.rejectedCode) changed = true;
+    return changed;
   }
 
   /** @param {string} id @param {string} data */
@@ -436,6 +545,7 @@ export class Store extends EventTarget {
     else this.entries.set(id, { ...rec, id });
     await this.#countOutbox();
     this.emit();
+    this.#announce();
     this.sync();
     return rec;
   }
@@ -586,6 +696,7 @@ export class Store extends EventTarget {
       this.firstSyncDone = true;
       await this.#countOutbox();
       this.emit();
+      this.#announce();
       this.emit('sync');
       if (this.again) {
         this.again = false;
@@ -641,7 +752,7 @@ export class Store extends EventTarget {
           if (!this.#permanent(e)) throw e;
         }
         const cur = await this.db.get('outbox', item.id);
-        if (cur && cur.op === 'delete') await this.db.del('outbox', item.id);
+        if (cur && cur.op === 'delete') await this.#outboxDel(item.id);
         continue;
       }
       // Daily limit reached on the server: stamps wait for the next UTC day, no retry loop.
@@ -661,7 +772,7 @@ export class Store extends EventTarget {
           const cur = await this.db.get('outbox', item.id);
           if (cur && cur.data === item.data) {
             const err = /** @type {any} */ (e);
-            await this.db.put('outbox', { ...cur, rejected: { status: err.status, code: String(err.body?.error || '') } });
+            await this.#outboxPut({ ...cur, rejected: { status: err.status, code: String(err.body?.error || '') } });
           }
           continue;
         }
@@ -671,8 +782,20 @@ export class Store extends EventTarget {
       if (item.id !== SETTINGS_ID && this.dailyBlocked) await this.#setDailyBlocked(0);
       // Only remove if nothing newer is waiting for this id.
       const cur = await this.db.get('outbox', item.id);
-      if (cur && cur.data === item.data) await this.db.del('outbox', item.id);
+      if (cur && cur.data === item.data) await this.#outboxDel(item.id);
     }
+  }
+
+  /** @param {any} item */
+  async #outboxPut(item) {
+    this.#touched = true;
+    await this.db.put('outbox', item);
+  }
+
+  /** @param {string} id */
+  async #outboxDel(id) {
+    this.#touched = true;
+    await this.db.del('outbox', id);
   }
 
   /** Send the refused writes again (e.g. after making room). */
@@ -680,7 +803,7 @@ export class Store extends EventTarget {
     for (const item of await this.db.all('outbox')) {
       if (!item.rejected) continue;
       const { rejected: _r, ...rest } = item;
-      await this.db.put('outbox', rest);
+      await this.#outboxPut(rest);
     }
     await this.#countOutbox();
     this.emit();
@@ -771,7 +894,7 @@ export class Store extends EventTarget {
       await this.#absorb(id, data);
     } else if (decision === 'repush-local') {
       const mine = this.raw.get(id);
-      if (mine) await this.db.put('outbox', { id, op: 'put', data: mine, notBefore: 0 });
+      if (mine) await this.#outboxPut({ id, op: 'put', data: mine, notBefore: 0 });
     }
   }
 }

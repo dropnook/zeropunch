@@ -176,4 +176,26 @@ describe('record length (enforced by the server)', () => {
     expect(RECORD_LEN).toBe(379);
     expect(PLAINTEXT_SIZE).toBe(256);
   });
+
+  it('the largest possible settings record still fits PLAINTEXT_SIZE (every field at its longest value)', async () => {
+    const { jsonSize, PLAINTEXT_SIZE } = await import('../../public/js/crypto.js');
+    const { DEFAULT_SETTINGS, BUTTON_LABELS, FX_CHOICES, COLORS, BADGE_DAYS_MAX } = await import('../../public/js/store.js');
+    const longest = (/** @type {readonly string[]} */ list) => list.reduce((a, b) => (b.length > a.length ? b : a));
+    const biggest = {
+      ...DEFAULT_SETTINGS,
+      weekHours: 79.75, // parseHours: up to 80 with two decimals
+      nerd: false,
+      dayStart: 1439, // 23:59
+      button: longest(BUTTON_LABELS),
+      fx: longest(FX_CHOICES),
+      badge: BADGE_DAYS_MAX,
+      badgeAt: '2099-12-31',
+      linkPunch: false,
+      color: longest(COLORS),
+      mod: 9_999_999_999_999, // a timestamp in ms until the year 2286
+    };
+    // The record carries every field the app knows, and nothing else.
+    expect(Object.keys(biggest).sort()).toEqual(Object.keys(DEFAULT_SETTINGS).sort());
+    expect(jsonSize(biggest)).toBeLessThanOrEqual(PLAINTEXT_SIZE);
+  });
 });

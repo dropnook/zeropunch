@@ -64,13 +64,19 @@
     "One button, «Punch in/out»: punches pair up in order per day (1st in, 2nd out, …)",
     "A short punch animation, stamping through the ages from a sundial to a phone tap, seventeen of them (random by default, chosen from a grid of pictures, can be switched off), with a short vibration on the impact where the phone has one",
     "The start screen shows one day at a time with its punches and total; swipe to earlier days",
-    "List with day and week totals; every punch can be changed or deleted right in the list, a whole day at once",
+    "List with the newest day on top and day and week totals; every punch can be changed or deleted right in the list, a whole day at once; «+» adds a punch or an absence",
+    "A filter in the list for the holidays ahead and for days that break a rule: break too short, a punch missing, rest under 11 hours, over 10 hours of work",
+    "Break rules of Switzerland and Liechtenstein, Germany or Austria, an own rule, or automatic by the holiday calendar",
     "Time picker with a wheel for hours and minutes",
     "Optional night-shift setting: the day changes at a time you choose",
-    "Absences (vacation, sick, public holiday, other; whole or half day) that count towards the target, and a week or month sheet to print or save as PDF",
+    "Absences (vacation, sick, public holiday, time off in lieu, other; whole or half day): vacation and sick days count towards the target, public holidays lower it, time off in lieu uses up overtime",
+    "The public holidays of your canton or country come by themselves, Monday to Friday",
+    "A week or month sheet to print or save as PDF",
+    "Settings in groups: text size, light, dark or automatic, the wording of the button, eight colours",
     "Punch with an NFC sticker: hold the phone to a sticker on your locker, desk, notebook or bag; punches at once, or asks first if you prefer",
     "Optional badge reminder: at the earliest every 25 calendar days (adjustable), a note with the first punch of the day to validate your badge at the reception",
-    "Nerd mode: balance, hours per week (13 weeks) and per month (13 months), averages, breaks, heatmap",
+    "Nerd mode: balance, hours per week (13 weeks) and per month (13 months); for a period you choose, statistics as medians and records, absences, and heatmaps of presence, breaks, punches and balance; a tech section with the cryptography and, only on a tap, your IP address",
+    "CSV import from Zeropunch’s own export or a simple list of date and time; the file is read on the device only",
     "Works offline and installs as an app; the settings show how on iPhone, iPad and Android",
     "Encrypted in the browser (AES-256-GCM); the server never sees times, notes or settings",
     "No e-mail, no real name: just a username and a password"
@@ -134,7 +140,15 @@
      "name": "Can I record holidays and sick days and print my times?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Yes. Absences are entered as a whole or half day. They count towards your target. For every week and month there is a sheet to print or save as a PDF."
+      "text": "Yes. Absences are entered as a whole or half day, or from–until. Vacation and sick days count towards your target. Public holidays lower it, and those of your canton or country come by themselves. Time off in lieu counts nothing: it uses up overtime. In nerd mode there is a sheet for every week and month to print or save as a PDF."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Can I bring my old times along?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes, as a CSV file: Zeropunch’s own export or a simple list of date and time, for example saved from a spreadsheet. The import is in nerd mode. The file is read on your phone and never sent anywhere. The punches are encrypted like all the others."
      }
     },
     {
@@ -234,7 +248,7 @@
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/></svg>
         <h3>One button: «Punch in/out»</h3>
-        <p>Tap it when you start. Tap it when you stop. The start screen shows whether you are in or out, and today’s total. Swipe sideways for earlier days.</p>
+        <p>Tap it when you start. Tap it when you stop. The start screen shows whether you are in or out, and today’s total. Swipe sideways for earlier days. Four symbols at the bottom lead to the list, nerd mode and the settings.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h12m0 0-3-3m3 3-3 3M20 16H8m0 0 3-3m-3 3 3 3"/></svg>
@@ -244,7 +258,12 @@
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10M17 19.5h3"/></svg>
         <h3>Day and week totals</h3>
-        <p>The list shows every day with its total and every week against your target. Every punch can be changed or deleted. Forgot one? Add it with «+».</p>
+        <p>The list shows every day with its total, the newest on top, and every week against your target. Every punch can be changed or deleted. Forgot one? «+» adds a punch or an absence. The filter button shows the holidays ahead and finds days with a break too short, a punch missing or less than 11 hours of rest.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M9 3.5v2.5M12.5 3.5v2.5"/></svg>
+        <h3>Break rules by country</h3>
+        <p>Did you take the break the law asks for? Choose the rule of Switzerland and Liechtenstein, Germany or Austria, or set your own. By default it follows your holiday calendar.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
@@ -254,12 +273,22 @@
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h4"/><path d="M15.5 16.5l1.5 1.5 2.5-3"/></svg>
         <h3>Absences and a sheet to print</h3>
-        <p>Vacation, sick or a public holiday: mark a whole or half day, or a range of days. Absences count towards your target. For every week and month there is a sheet to print or save as a PDF.</p>
+        <p>Vacation, sick, time off in lieu or a public holiday: mark a whole or half day, or a range of days. Vacation and sick days count towards your target. Time off in lieu counts nothing: it uses up your overtime. In nerd mode there is a sheet for every week and month to print or save as a PDF.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/><circle cx="15" cy="15" r="1.6"/></svg>
+        <h3>Public holidays by themselves</h3>
+        <p>Choose your canton or country, and its public holidays come by themselves. A holiday lowers your target for the day. The list shows only those from Monday to Friday.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/></svg>
         <h3>Nerd mode</h3>
-        <p>Balance for the week, the month and 12 months. Hours per week and per month. Average first and last punch, breaks and a heatmap.</p>
+        <p>Balance for the week, the month and 12 months. Hours per week and per month. For a period you choose: typical times as medians, records, absences and heatmaps of presence, breaks, punches and balance. Your IP address only if you ask. Bring old times along from a CSV file, read on your phone only.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 18 7.5 7l4 11M5 14h5"/><circle cx="17" cy="13" r="4"/><path d="M17 9v8"/></svg>
+        <h3>Your size, your colour</h3>
+        <p>Text size, light, dark or automatic, eight colours and the wording of the button: «Punch in/out» or «Clock in/out». The settings come in groups, with jump buttons on top.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>
@@ -370,7 +399,8 @@
     <details><summary>Do I have to install an app?</summary><p>No. Zeropunch runs in the browser. You can add it to your home screen, and it keeps punching without a connection.</p></details>
     <details><summary>How long are my punches kept?</summary><p>13 months, then they are deleted for good. Export first what you want to keep, as CSV or JSON.</p></details>
     <details><summary>Can I punch with an NFC sticker?</summary><p>Yes. Stick an NFC sticker on your locker, desk, notebook or bag and hold your phone to it. On an iPhone your work badge often does the job too, if it has an NFC chip. The instructions are in the settings.</p></details>
-    <details><summary>Can I record holidays and sick days and print my times?</summary><p>Yes. Absences are entered as a whole or half day. They count towards your target. For every week and month there is a sheet to print or save as a PDF.</p></details>
+    <details><summary>Can I record holidays and sick days and print my times?</summary><p>Yes. Absences are entered as a whole or half day, or from–until. Vacation and sick days count towards your target. Public holidays lower it, and those of your canton or country come by themselves. Time off in lieu counts nothing: it uses up overtime. In nerd mode there is a sheet for every week and month to print or save as a PDF.</p></details>
+    <details><summary>Can I bring my old times along?</summary><p>Yes, as a CSV file: Zeropunch’s own export or a simple list of date and time, for example saved from a spreadsheet. The import is in nerd mode. The file is read on your phone and never sent anywhere. The punches are encrypted like all the others.</p></details>
     <details><summary>I work night shifts. Does that work?</summary><p>Yes. Turn on night shifts in the settings and choose when your day changes, for example at 04:00. A shift over midnight stays one day.</p></details>
     <details><summary>Is it free? Can I run it myself?</summary><p>Yes. Zeropunch is free and open source under the AGPL-3.0. For a copy of your own you need a small serverless backend with a SQL database. The <a href="https://github.com/dropnook/zeropunch#self-hosting">README on GitHub</a> explains the setup.</p></details>
     <p class="ctas center"><a class="btn" href="https://zeropunch.app/">Open Zeropunch</a></p>

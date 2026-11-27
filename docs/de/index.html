@@ -65,13 +65,19 @@
     "Ein Knopf, «Punch in/out»: die Punches eines Tages bilden der Reihe nach Paare (1. drin, 2. draussen, …)",
     "Eine kurze Animation beim Punchen, Stempeln durch die Zeiten von der Sonnenuhr bis zum Funk-Chip, siebzehn davon (zufällig als Vorgabe, aus einem Raster von Bildern wählbar, abschaltbar), mit einem kurzen Vibrieren beim Aufprall, wo das Handy das kann",
     "Der Start zeigt einen Tag auf einmal mit seinen Punches und der Summe; wischen für frühere Tage",
-    "Liste mit Tages- und Wochensummen; jeder Punch lässt sich direkt in der Liste ändern oder löschen, ein ganzer Tag auf einmal",
+    "Liste mit dem neusten Tag zuoberst und Tages- und Wochensummen; jeder Punch lässt sich direkt in der Liste ändern oder löschen, ein ganzer Tag auf einmal; «+» trägt einen Punch oder eine Abwesenheit nach",
+    "Ein Filter in der Liste für die kommenden Feiertage und für Tage, die eine Regel verletzen: Pause zu kurz, Punch fehlt, Ruhezeit unter 11 Stunden, über 10 Stunden gearbeitet",
+    "Pausenregeln der Schweiz und Liechtensteins, Deutschlands oder Österreichs, eine eigene Regel, oder automatisch nach dem Feiertagskalender",
     "Zeitwahl mit einem Rad für Stunden und Minuten",
     "Nachtschichten als Einstellung: der Tag wechselt zu einer Zeit, die du wählst",
-    "Abwesenheiten (Ferien, krank, Feiertag, anderes; ganzer oder halber Tag), die an die Sollzeit zählen, und ein Wochen- oder Monatsblatt zum Drucken oder als PDF",
+    "Abwesenheiten (Ferien, krank, Feiertag, Kompensation, anderes; ganzer oder halber Tag): Ferien und Krankheit zählen an die Sollzeit, Feiertage senken sie, Kompensation baut Überzeit ab",
+    "Die Feiertage deines Kantons oder Landes kommen von selbst, Montag bis Freitag",
+    "Ein Wochen- oder Monatsblatt zum Drucken oder als PDF",
+    "Einstellungen in Gruppen: Schriftgrösse, hell, dunkel oder automatisch, die Wortwahl des Knopfs (auch «Stempeln»), acht Farben",
     "Punchen mit NFC-Kleber: Handy an den Kleber an Spind, Pult, Notebook oder Tasche halten; sofort, oder auf Wunsch mit Rückfrage",
     "Badge-Erinnerung als Einstellung: frühestens alle 25 Kalendertage (wählbar) einmal ein Hinweis beim ersten Punch des Tages, den Badge beim Empfang zu validieren",
-    "Nerd-Modus: Saldo, Stunden pro Woche (13 Wochen) und pro Monat (13 Monate), Durchschnitte, Pausen, Heatmap",
+    "Nerd-Modus: Saldo, Stunden pro Woche (13 Wochen) und pro Monat (13 Monate); für einen Zeitraum deiner Wahl Statistik als Mediane und Rekorde, Abwesenheiten und Heatmaps für Anwesenheit, Pausen, Punches und Saldo; ein Technik-Teil mit der Kryptographie und, nur auf Knopfdruck, deiner IP-Adresse",
+    "CSV-Import aus dem eigenen Export von Zeropunch oder einer einfachen Liste mit Datum und Zeit; die Datei wird nur auf dem Gerät gelesen",
     "Geht offline und lässt sich als App installieren; wie, zeigen die Einstellungen für iPhone, iPad und Android",
     "Im Browser verschlüsselt (AES-256-GCM); der Server sieht nie Zeiten, Notizen oder Einstellungen",
     "Keine Mail, kein echter Name: nur Benutzername und Passwort"
@@ -135,7 +141,15 @@
      "name": "Kann ich Ferien und Krankheit erfassen und meine Zeiten ausdrucken?",
      "acceptedAnswer": {
       "@type": "Answer",
-      "text": "Ja. Abwesenheiten erfasst du als ganzen oder halben Tag. Sie zählen an deine Sollzeit. Für jede Woche und jeden Monat gibt es ein Blatt zum Drucken oder als PDF."
+      "text": "Ja. Abwesenheiten erfasst du als ganzen oder halben Tag, auch von–bis. Ferien und Krankheit zählen an deine Sollzeit. Feiertage senken sie, und die deines Kantons oder Landes kommen von selbst. Kompensation zählt nichts: du baust Überzeit ab. Im Nerd-Modus gibt es für jede Woche und jeden Monat ein Blatt zum Drucken oder als PDF."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Kann ich meine alten Zeiten mitnehmen?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Ja, als CSV-Datei: den eigenen Export von Zeropunch oder eine einfache Liste mit Datum und Zeit, zum Beispiel aus einer Tabelle gespeichert. Der Import ist im Nerd-Modus. Die Datei wird auf deinem Handy gelesen und nirgends hingeschickt. Die Punches werden verschlüsselt wie alle anderen."
      }
     },
     {
@@ -239,7 +253,7 @@
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/></svg>
         <h3>Ein Knopf: «Punch in/out»</h3>
-        <p>Antippen, wenn du anfängst. Antippen, wenn du aufhörst. Der Start zeigt, ob du drin oder draussen bist, und die Summe von heute. Für frühere Tage wischst du zur Seite.</p>
+        <p>Antippen, wenn du anfängst. Antippen, wenn du aufhörst. Der Start zeigt, ob du drin oder draussen bist, und die Summe von heute. Für frühere Tage wischst du zur Seite. Vier Symbole unten führen zur Liste, zum Nerd-Modus und zu den Einstellungen.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h12m0 0-3-3m3 3-3 3M20 16H8m0 0 3-3m-3 3 3 3"/></svg>
@@ -249,7 +263,12 @@
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 11h16M4 16h10M17 19.5h3"/></svg>
         <h3>Tages- und Wochensummen</h3>
-        <p>Die Liste zeigt jeden Tag mit Summe und jede Woche gegen deine Sollzeit. Jeder Punch lässt sich ändern oder löschen. Einen vergessen? Mit «+» nachtragen.</p>
+        <p>Die Liste zeigt jeden Tag mit Summe, den neusten zuoberst, und jede Woche gegen deine Sollzeit. Jeder Punch lässt sich ändern oder löschen. Einen vergessen? Mit «+» trägst du einen Punch oder eine Abwesenheit nach. Der Filterknopf zeigt die kommenden Feiertage und findet Tage mit zu kurzer Pause, fehlendem Punch oder weniger als 11 Stunden Ruhezeit.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M9 3.5v2.5M12.5 3.5v2.5"/></svg>
+        <h3>Pausenregeln nach Land</h3>
+        <p>Hast du die Pause gemacht, die das Gesetz verlangt? Wähl die Regel der Schweiz und Liechtensteins, Deutschlands oder Österreichs, oder stell deine eigene ein. Von Haus aus folgt sie deinem Feiertagskalender.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
@@ -259,12 +278,22 @@
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h4"/><path d="M15.5 16.5l1.5 1.5 2.5-3"/></svg>
         <h3>Abwesenheiten und ein Blatt zum Drucken</h3>
-        <p>Ferien, krank oder Feiertag: als ganzen oder halben Tag erfassen, auch von–bis. Abwesenheiten zählen an deine Sollzeit. Für jede Woche und jeden Monat gibt es ein Blatt zum Drucken oder als PDF.</p>
+        <p>Ferien, krank, Kompensation oder Feiertag: als ganzen oder halben Tag erfassen, auch von–bis. Ferien und Krankheit zählen an deine Sollzeit. Kompensation zählt nichts: du baust Überzeit ab. Im Nerd-Modus gibt es für jede Woche und jeden Monat ein Blatt zum Drucken oder als PDF.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/><circle cx="15" cy="15" r="1.6"/></svg>
+        <h3>Feiertage von selbst</h3>
+        <p>Wähl deinen Kanton oder dein Land, und seine Feiertage kommen von selbst. Ein Feiertag senkt deine Sollzeit für den Tag. Die Liste zeigt nur die von Montag bis Freitag.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M10 20V5M15 20v-6M20 20V9"/></svg>
         <h3>Nerd-Modus</h3>
-        <p>Saldo für Woche, Monat und 12 Monate. Stunden pro Woche und pro Monat. Durchschnittlicher erster und letzter Punch, Pausen und eine Heatmap.</p>
+        <p>Saldo für Woche, Monat und 12 Monate. Stunden pro Woche und pro Monat. Für einen Zeitraum deiner Wahl: typische Zeiten als Mediane, Rekorde, Abwesenheiten und Heatmaps für Anwesenheit, Pausen, Punches und Saldo. Deine IP-Adresse nur, wenn du fragst. Alte Zeiten holst du aus einer CSV-Datei, gelesen nur auf deinem Handy.</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 18 7.5 7l4 11M5 14h5"/><circle cx="17" cy="13" r="4"/><path d="M17 9v8"/></svg>
+        <h3>Deine Grösse, deine Farbe</h3>
+        <p>Schriftgrösse, hell, dunkel oder automatisch, acht Farben und die Wortwahl: «Punch in/out» oder «Stempeln». Mit «Stempeln» sagt die ganze App «Stempel» statt «Punch». Die Einstellungen kommen in Gruppen, mit Sprungknöpfen oben.</p>
       </article>
       <article class="card">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>
@@ -376,7 +405,8 @@
     <details><summary>Muss ich eine App installieren?</summary><p>Nein. Zeropunch läuft im Browser. Du kannst es auf den Home-Bildschirm legen, und es stempelt auch ohne Netz.</p></details>
     <details><summary>Wie lange bleiben meine Punches?</summary><p>13 Monate, dann sind sie endgültig gelöscht. Exportiere vorher, was du behalten willst, als CSV oder JSON.</p></details>
     <details><summary>Kann ich mit einem NFC-Kleber punchen?</summary><p>Ja. Kleb einen NFC-Kleber an Spind, Pult, Notebook oder Tasche und halt das Handy daran. Auf dem iPhone geht oft auch dein Firmenbadge, wenn er einen NFC-Chip hat. Die Anleitung steht in den Einstellungen.</p></details>
-    <details><summary>Kann ich Ferien und Krankheit erfassen und meine Zeiten ausdrucken?</summary><p>Ja. Abwesenheiten erfasst du als ganzen oder halben Tag. Sie zählen an deine Sollzeit. Für jede Woche und jeden Monat gibt es ein Blatt zum Drucken oder als PDF.</p></details>
+    <details><summary>Kann ich Ferien und Krankheit erfassen und meine Zeiten ausdrucken?</summary><p>Ja. Abwesenheiten erfasst du als ganzen oder halben Tag, auch von–bis. Ferien und Krankheit zählen an deine Sollzeit. Feiertage senken sie, und die deines Kantons oder Landes kommen von selbst. Kompensation zählt nichts: du baust Überzeit ab. Im Nerd-Modus gibt es für jede Woche und jeden Monat ein Blatt zum Drucken oder als PDF.</p></details>
+    <details><summary>Kann ich meine alten Zeiten mitnehmen?</summary><p>Ja, als CSV-Datei: den eigenen Export von Zeropunch oder eine einfache Liste mit Datum und Zeit, zum Beispiel aus einer Tabelle gespeichert. Der Import ist im Nerd-Modus. Die Datei wird auf deinem Handy gelesen und nirgends hingeschickt. Die Punches werden verschlüsselt wie alle anderen.</p></details>
     <details><summary>Ich arbeite Nachtschicht. Geht das?</summary><p>Ja. Schalte in den Einstellungen die Nachtschichten ein und wähle, wann dein Tag wechselt, zum Beispiel um 04:00. Eine Schicht über Mitternacht bleibt ein Tag.</p></details>
     <details><summary>Ist es gratis? Kann ich es selbst betreiben?</summary><p>Ja. Zeropunch ist freie, quelloffene Software unter der AGPL-3.0. Für eine eigene Kopie brauchst du ein kleines Serverless-Backend mit einer SQL-Datenbank. Wie es geht, steht im <a href="https://github.com/dropnook/zeropunch#self-hosting">README auf GitHub</a>.</p></details>
     <p class="ctas center"><a class="btn" href="https://zeropunch.app/">Zeropunch öffnen</a></p>

@@ -315,7 +315,7 @@ export function mount(old, lang) {
     clearTimeout(timer);
     tick();
     // The last punch of the time travel is the clock tower's; every other one is picked at random.
-    void fx.punch(st.trip && core.status(st, r.punch.ts).full ? 'tower' : 'random', { anchor: btn, time: r.punch.time });
+    void fx.punch(st.trip && core.status(st, r.punch.ts).full ? 'tower' : 'random', { anchor: btn, time: r.punch.time, out: r.punch.dir === 'out' });
     said.textContent = T('punched', { time: r.punch.time, dir: T(r.punch.dir === 'in' ? 'dir_in' : 'dir_out') });
     if (btn.disabled) again.focus({ preventScroll: true }); // the button is done for the day; keep the focus nearby
   });

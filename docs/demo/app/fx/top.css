@@ -1,0 +1,41 @@
+/* Top: marks every 70, 150, 420 ms (slowing); the first wobble is the impact (27 %), it grows while
+   the city folds; a hard cut to black at 78 %. The line from 34 %. */
+.pfx-top { --pfx-at: 0.2; }
+.pfx-top g { transform-box: view-box; transform-origin: 80px 59px; }
+.pfx-top .pfx-tsc { transform: scale(1.12); }
+.pfx-top .pfx-tw { animation-name: pfx-tp-wob; }
+.pfx-top :is(.pfx-tnu, .pfx-tsl) { animation-duration: 120ms; animation-iteration-count: infinite; }
+.pfx-top .pfx-tnu { animation-name: pfx-tp-nu; animation-direction: alternate; }
+.pfx-top .pfx-tsl { --w: -5.5px; animation-name: pfx-tp-sl; animation-duration: 70ms; animation-timing-function: linear; }
+.pfx-top .pfx-ts2 .pfx-tsl { animation-duration: 150ms; }
+.pfx-top .pfx-ts3 .pfx-tsl { --w: -22px; animation-duration: 420ms; }
+.pfx-top .pfx-tout .pfx-tsl { animation-direction: reverse; }
+.pfx-top .pfx-ts1 { animation-name: pfx-tp-s1; }
+.pfx-top .pfx-ts2 { animation-name: pfx-tp-s2; }
+.pfx-top .pfx-ts3 { animation-name: pfx-tp-s3; }
+.pfx-top .pfx-tl1 { --a: 5deg; transform-origin: 50px 50px; }
+.pfx-top .pfx-tl2 { --a: 12deg; transform-origin: 20px 50px; }
+.pfx-top .pfx-tr1 { --a: -5deg; transform-origin: 110px 50px; }
+.pfx-top .pfx-tr2 { --a: -12deg; transform-origin: 140px 50px; }
+.pfx-top :is(.pfx-tl1, .pfx-tl2, .pfx-tr1, .pfx-tr2) { animation-name: pfx-tp-fold; }
+.pfx-top .pfx-tsky { animation-name: pfx-tp-sky; }
+.pfx-top .pfx-tcut { animation-name: pfx-tp-cut; }
+.pfx-top .pfx-tl { animation-name: pfx-tp-line; }
+/* the picker's tile: the top alone, larger, no line */
+.fx-pic .pfx-top .pfx-tl { display: none; }
+.fx-pic .pfx-top .pfx-tsc { transform: translateY(12px) scale(2.2); }
+@keyframes pfx-tp-nu { 0% { transform: rotate(1.2deg); } 100% { transform: rotate(-1.2deg); } }
+@keyframes pfx-tp-sl { 0% { transform: none; } 100% { transform: translateX(var(--w)); } }
+@keyframes pfx-tp-s1 { 0%, 14% { opacity: 1; } 22%, 100% { opacity: 0; } }
+@keyframes pfx-tp-s2 { 0%, 12%, 42%, 100% { opacity: 0; } 20%, 32% { opacity: 1; } }
+@keyframes pfx-tp-s3 { 0%, 30% { opacity: 0; } 40%, 100% { opacity: 1; } }
+@keyframes pfx-tp-wob {
+  0%, 22% { transform: none; } 27% { transform: rotate(4deg); } 33% { transform: rotate(-6deg); }
+  39% { transform: rotate(8.5deg); } 45% { transform: rotate(-11deg); } 50.5% { transform: rotate(13.5deg); }
+  55.5% { transform: rotate(-16deg); } 60% { transform: rotate(18deg); } 64.5% { transform: rotate(-20deg); }
+  69% { transform: rotate(21deg); } 73.5% { transform: rotate(-22deg); } 78%, 100% { transform: rotate(23deg); }
+}
+@keyframes pfx-tp-fold { 0%, 10% { transform: none; } 100% { transform: rotate(var(--a)); } }
+@keyframes pfx-tp-sky { 0%, 20% { opacity: 0; transform: translateY(-7px); } 100% { opacity: 1; transform: none; } }
+@keyframes pfx-tp-cut { 0%, 77% { opacity: 0; } 78%, 100% { opacity: 1; } }
+@keyframes pfx-tp-line { 0%, 29% { opacity: 0; transform: translateY(1.5px); } 34%, 100% { opacity: 1; transform: none; } }

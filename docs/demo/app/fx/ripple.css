@@ -1,0 +1,55 @@
+/* Ripple: a still night, the first thump at --pfx-hit (30 %): rings run across the water, the glass
+   trembles, the gauges twitch, the stage shakes. The second thump, 404 ms later, does it again a bit
+   harder and jolts the picture. Every .pfx-rp-k keyframe spans both: 0 % and 50 % of 808 ms. */
+.pfx-ripple { --pfx-at: 0.47; }
+.pfx-ripple .pfx-rp-r { animation-name: pfx-rp-ring; animation-duration: 620ms; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+.pfx-ripple .pfx-rp-k { --lag: var(--pfx-hit); animation-duration: 808ms; animation-timing-function: linear; }
+.pfx-ripple .pfx-rp-cup { animation-name: pfx-rp-cup; transform-origin: 50% 100%; }
+.pfx-ripple .pfx-rp-face { animation-name: pfx-rp-face; }
+.pfx-ripple .pfx-rp-n { animation-name: pfx-rp-n; transform-origin: 100% 100%; }
+.pfx-ripple .pfx-rp-n2 { --lag: calc(var(--pfx-hit) + 30ms); }
+.pfx-ripple .pfx-rp-leaf { animation-name: pfx-rp-leaf; }
+.pfx-ripple .pfx-rp-all { animation-name: pfx-rp-all; }
+@keyframes pfx-rp-ring {
+  0% { opacity: 0; transform: scale(0.06); }
+  10% { opacity: 1; }
+  70% { opacity: 0.7; }
+  100% { opacity: 0; transform: scale(1.04); }
+}
+@keyframes pfx-rp-cup {
+  0%, 22%, 50%, 73%, 100% { transform: none; }
+  3% { transform: translate(-0.9px, -0.7px) rotate(-1.3deg); }
+  7% { transform: translate(0.8px, 0) rotate(1deg); }
+  11% { transform: translate(-0.5px, -0.2px) rotate(-0.5deg); }
+  16% { transform: rotate(0.25deg); }
+  53% { transform: translate(1px, -0.9px) rotate(1.6deg); }
+  57% { transform: translate(-1px, 0) rotate(-1.2deg); }
+  61% { transform: translate(0.6px, -0.2px) rotate(0.6deg); }
+  66% { transform: rotate(-0.3deg); }
+}
+@keyframes pfx-rp-face {
+  0%, 22%, 50%, 73%, 100% { transform: none; }
+  4% { transform: translateY(-0.5px) scaleY(1.25); }
+  9% { transform: translateY(0.3px) scaleY(0.85); }
+  15%, 65% { transform: scaleY(1.08); }
+  54% { transform: translateY(-0.6px) scaleY(1.3); }
+  59% { transform: translateY(0.3px) scaleY(0.82); }
+}
+@keyframes pfx-rp-n {
+  0%, 20%, 50%, 72%, 100% { transform: none; }
+  4% { transform: rotate(38deg); }
+  12% { transform: rotate(-8deg); }
+  54% { transform: rotate(48deg); }
+  62% { transform: rotate(-10deg); }
+}
+@keyframes pfx-rp-leaf {
+  0%, 2%, 14%, 52%, 66%, 100% { transform: none; }
+  7% { transform: translateY(0.8px); }
+  57% { transform: translateY(1px); }
+}
+@keyframes pfx-rp-all {
+  0%, 50%, 64%, 100% { transform: none; }
+  52% { transform: translate(1.2px, 1px); }
+  55% { transform: translate(-1px, -0.6px); }
+  59% { transform: translate(0.5px, 0.3px); }
+}

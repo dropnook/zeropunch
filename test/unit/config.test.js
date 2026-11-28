@@ -43,7 +43,7 @@ describe('static delivery', () => {
 
   it('service worker answers only the app itself from the cache (e.g. /about/ goes to the network)', () => {
     const sw = read('public/sw.js');
-    expect(sw).toMatch(/CACHE_VERSION = 'zp-v2026\.11\.28-1'/);
+    expect(sw).toMatch(/CACHE_VERSION = 'zp-v2026\.11\.28-2'/);
     expect(sw).toMatch(/url\.pathname !== '\/' && url\.pathname !== '\/index\.html'\) return;/);
     expect(sw).toMatch(/if \(!SHELL_SET\.has\(url\.pathname\)\) return;/);
     // every file in the shell exists
@@ -64,13 +64,13 @@ describe('static delivery', () => {
     const sw = read('public/sw.js');
     const re = new RegExp(/RELOAD_FROM = \/(.*)\/;/.exec(sw)[1]);
     for (const k of ['zp-v2.3.1', 'zp-v2.3.0', 'zp-v2.0.0', 'zp-v1.4.2']) expect(re.test(k), k).toBe(true);
-    for (const k of ['zp-v2.4.0', 'zp-v2.4.1', 'zp-v2.10.0', 'zp-v3.0.0', 'zp-v2026.11.28-1', 'other']) expect(re.test(k), k).toBe(false);
+    for (const k of ['zp-v2.4.0', 'zp-v2.4.1', 'zp-v2.10.0', 'zp-v3.0.0', 'zp-v2026.11.28-1', 'zp-v2026.11.28-2', 'other']) expect(re.test(k), k).toBe(false);
     expect(sw).toMatch(/navigate\(c\.url\)/);
   });
 
   it('one version everywhere: package.json, app, Worker, service worker cache', async () => {
     const pkg = JSON.parse(read('package.json'));
-    expect(pkg.version).toBe('2026.11.28-1');
+    expect(pkg.version).toBe('2026.11.28-2');
     expect(read('public/js/app.js')).toMatch(new RegExp(`APP_VERSION = '${pkg.version.replace(/\./g, '\\.')}'`));
     expect(read('public/sw.js')).toContain(`CACHE_VERSION = 'zp-v${pkg.version}'`);
     expect((await import('../../src/api.js')).VERSION).toBe(pkg.version);

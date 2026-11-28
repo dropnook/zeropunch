@@ -49,7 +49,8 @@ English and German. Design notes (German): [KONZEPT.md](KONZEPT.md).
   two per device).
 - **Badge reminder** (off by default, every 25 days when on, adjustable): a note with the first punch
   of the day to validate your badge.
-- **17 punch animations** (random by default, or one of them, or off; none with «reduce motion»).
+- **27 punch animations** in two groups, film homages and standard (random by default, random within
+  one group, one of them, or off; none with «reduce motion»).
 - **Nerd mode** (a switch in the settings): balance for week, month and 12 months, hours per week
   (13 weeks) and per month (13 months). One period for the rest (this or last week or month, 90 days,
   this year, everything): statistics as medians (start, end, working time, lunch break, breaks, punches

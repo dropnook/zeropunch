@@ -1,0 +1,56 @@
+/* HAL 9000: a scan line crosses the dark lens, the eye glows up red and is fully lit at --pfx-hit
+   (22 %), then breathes twice, slowly. The two lines of the quote fade in right after and stay until
+   the stage fades (86 %): the scene is long on purpose, to be read. The still keeps it lit. */
+.pfx-hal { --pfx-at: 0.5; }
+.pfx-hal .pfx-heye { animation-name: none; }
+.pfx-hal .pfx-hscan { animation-name: pfx-hl-scan; }
+.pfx-hal .pfx-hlens { animation-name: pfx-hl-lens; }
+.pfx-hal .pfx-hring { animation-name: pfx-hl-ring; }
+.pfx-hal .pfx-hcore { animation-name: pfx-hl-core; }
+.pfx-hal .pfx-hglow { animation-name: pfx-hl-glow; }
+.pfx-hal .pfx-hq1 { animation-name: pfx-hl-q1; }
+.pfx-hal .pfx-hq2 { animation-name: pfx-hl-q2; }
+/* the picker's small tile: the words would be a grey smudge there, so the eye alone, larger */
+.fx-pic .pfx-hal .pfx-hq1, .fx-pic .pfx-hal .pfx-hq2 { display: none; }
+.fx-pic .pfx-hal .pfx-heye { transform: translateY(16px) scale(2); }
+@keyframes pfx-hl-scan {
+  0%, 3% { opacity: 0; transform: translateY(-8.5px); }
+  5% { opacity: 0.9; }
+  17% { opacity: 0.9; transform: translateY(8.5px); }
+  19%, 100% { opacity: 0; transform: translateY(8.5px); }
+}
+@keyframes pfx-hl-lens {
+  0%, 4% { opacity: 0; }
+  10% { opacity: 0.3; animation-timing-function: ease-in; }
+  22%, 100% { opacity: 1; }
+}
+@keyframes pfx-hl-ring {
+  0%, 16% { opacity: 0; }
+  24%, 100% { opacity: 1; }
+}
+@keyframes pfx-hl-core {
+  0%, 13% { opacity: 0; transform: scale(0.4); animation-timing-function: ease-in; }
+  22% { opacity: 1; transform: scale(1.18); }
+  29% { transform: none; }
+  44% { transform: scale(1.12); }
+  57% { transform: none; }
+  70% { transform: scale(1.1); }
+  83%, 100% { opacity: 1; transform: none; }
+}
+@keyframes pfx-hl-glow {
+  0%, 6% { opacity: 0; transform: scale(0.75); animation-timing-function: ease-in; }
+  22% { opacity: 1; transform: scale(1.06); }
+  30% { opacity: 0.7; transform: none; }
+  44% { opacity: 1; transform: scale(1.07); }
+  57% { opacity: 0.7; transform: none; }
+  70% { opacity: 1; transform: scale(1.06); }
+  83%, 100% { opacity: 0.75; transform: none; }
+}
+@keyframes pfx-hl-q1 {
+  0%, 19% { opacity: 0; transform: translateY(2px); animation-timing-function: ease-out; }
+  28%, 100% { opacity: 1; transform: none; }
+}
+@keyframes pfx-hl-q2 {
+  0%, 25% { opacity: 0; transform: translateY(2px); animation-timing-function: ease-out; }
+  34%, 100% { opacity: 1; transform: none; }
+}

@@ -93,22 +93,59 @@ export const FX_NAMES = /** @type {const} */ ([
   'iris',
   'nfc',
   'button',
+  'hal',
+  'hud',
+  'gears',
+  'top',
+  'rain',
+  'ripple',
+  'fuse',
+  'station',
+  'grid',
+  'answer',
 ]);
-/** settings.fx: «random» (default: another one each punch), «off», or one of FX_NAMES (the picker's order). */
-export const FX_CHOICES = /** @type {const} */ (['off', 'random', ...FX_NAMES]);
-
-/** The stored value as one of FX_CHOICES: unknown or missing is «random». @param {unknown} value settings.fx */
-export const fxSetting = (value) => (FX_CHOICES.includes(/** @type {any} */ (value)) ? /** @type {(typeof FX_CHOICES)[number]} */ (value) : 'random');
 
 /**
- * Which animation a punch plays: null for «off», the chosen one, or for «random» one of FX_NAMES that
- * is not the previous one. @param {unknown} value settings.fx @param {string | null} prev @param {() => number} [random]
+ * The homages to films («film»; the clock tower is Doc Brown's). Every other animation is «standard».
+ * The one source for the picker's sections, the group choices and punchfx.js (film scenes may run longer).
+ * @type {ReadonlySet<string>}
+ */
+export const FX_FILM = new Set(['tower', 'hal', 'hud', 'gears', 'top', 'rain', 'ripple', 'fuse', 'station', 'grid', 'answer']);
+
+/** Both groups in the picker's order: film homages, then the standard ones (each in FX_NAMES order). */
+export const FX_GROUPS = /** @type {const} */ ({
+  film: Object.freeze(FX_NAMES.filter((n) => FX_FILM.has(n))),
+  std: Object.freeze(FX_NAMES.filter((n) => !FX_FILM.has(n))),
+});
+
+/** The random choices and the animations each draws from. */
+const FX_RANDOM = /** @type {const} */ ({ random: FX_NAMES, 'random-film': FX_GROUPS.film, 'random-std': FX_GROUPS.std });
+
+/**
+ * settings.fx: «off», «random» (default: another one each punch), «random-film» / «random-std» (the
+ * same within one group), or one of FX_NAMES (the picker's order). Keep values short: the settings
+ * record has a fixed plaintext size (crypto.js PLAINTEXT_SIZE; crypto.test.js checks the longest).
+ */
+export const FX_CHOICES = /** @type {const} */ (['off', 'random', 'random-film', 'random-std', ...FX_NAMES]);
+
+/**
+ * The stored value as one of FX_CHOICES: unknown or missing is «random» (also how a client before the
+ * groups reads «random-film» and «random-std»). @param {unknown} value settings.fx
+ */
+export const fxSetting = (value) => (FX_CHOICES.includes(/** @type {any} */ (value)) ? /** @type {(typeof FX_CHOICES)[number]} */ (value) : 'random');
+
+/** Whether a choice picks at random (all, or within a group). @param {unknown} value settings.fx */
+export const fxIsRandom = (value) => Object.hasOwn(FX_RANDOM, fxSetting(value));
+
+/**
+ * Which animation a punch plays: null for «off», the chosen one, or for a random choice one of its
+ * pool that is not the previous one. @param {unknown} value settings.fx @param {string | null} prev @param {() => number} [random]
  */
 export function pickFx(value, prev, random = Math.random) {
   const v = fxSetting(value);
   if (v === 'off') return null;
-  if (v !== 'random') return v;
-  const pool = FX_NAMES.filter((n) => n !== prev);
+  if (!Object.hasOwn(FX_RANDOM, v)) return v;
+  const pool = FX_RANDOM[/** @type {keyof typeof FX_RANDOM} */ (v)].filter((n) => n !== prev);
   return pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))];
 }
 /** 13 months: a punch lives this many days from its timestamp (server: src/retention.js, same number). */

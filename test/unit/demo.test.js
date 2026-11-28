@@ -6,7 +6,7 @@ import { join, dirname } from 'node:path';
 import { check, copyList, SHIMS } from '../../scripts/sync-demo.mjs';
 import * as core from '../../docs/demo/demo-core.js';
 import * as shim from '../../docs/demo/app/js/store.js';
-import { FX_NAMES, pickFx, MAX_PER_DAY } from '../../public/js/store.js';
+import { FX_NAMES, FX_FILM, pickFx, MAX_PER_DAY } from '../../public/js/store.js';
 import { DICT } from '../../public/js/i18n.js';
 
 const root = new URL('../../', import.meta.url).pathname;
@@ -40,8 +40,10 @@ describe('demo: copies of the app files', () => {
 
   it('the stand-in for store.js picks like the real one (same list, random never repeats)', () => {
     expect([...shim.FX_NAMES]).toEqual([...FX_NAMES]);
-    for (const prev of [null, ...FX_NAMES])
-      for (const r of [0, 0.13, 0.5, 0.77, 0.999]) expect(shim.pickFx('random', prev, () => r)).toBe(pickFx('random', prev, () => r));
+    expect([...shim.FX_FILM].sort()).toEqual([...FX_FILM].sort());
+    for (const v of ['random', 'random-film', 'random-std', 'constructor'])
+      for (const prev of [null, ...FX_NAMES])
+        for (const r of [0, 0.13, 0.5, 0.77, 0.999]) expect(shim.pickFx(v, prev, () => r), `${v} ${prev} ${r}`).toBe(pickFx(v, prev, () => r));
     expect(shim.pickFx('off', null)).toBeNull();
     expect(shim.pickFx('stamp', null)).toBe('stamp');
     expect(shim.pickFx('nonsense', 'stamp', () => 0)).toBe(pickFx('nonsense', 'stamp', () => 0));

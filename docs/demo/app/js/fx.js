@@ -42,7 +42,7 @@ export function createFxRunner(deps) {
     cancel,
     /**
      * After a punch was written: play what the setting says. Resolves to the name played, or null.
-     * @param {unknown} setting settings.fx @param {{ anchor: HTMLElement, time: string }} o
+     * @param {unknown} setting settings.fx @param {{ anchor: HTMLElement, time: string, user?: string }} o
      */
     async punch(setting, o) {
       cancel();

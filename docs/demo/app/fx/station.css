@@ -1,0 +1,37 @@
+/* Interstellar: the capsule docks (in) or lets go (out) at the impact, 30 % */
+.pfx-station { --pfx-at: 0.65; }
+.pfx-station .pfx-sspin { transform-box: view-box; transform-origin: 54px 28px; animation-name: pfx-st-spin; animation-timing-function: linear; }
+.pfx-station .pfx-ssa { animation-name: pfx-st-tw; }
+.pfx-station .pfx-ssb { animation-name: pfx-st-tw; animation-duration: 1700ms; }
+.pfx-station .pfx-sglow { animation-name: pfx-st-glow; }
+.pfx-station .pfx-sfin { animation-name: pfx-st-fin; }
+.pfx-station .pfx-sfin .pfx-sflame { animation-name: pfx-st-flin; }
+.pfx-station .pfx-sdin { animation-name: pfx-st-din; }
+.pfx-station .pfx-sdout { animation-name: pfx-st-dout; }
+.pfx-station .pfx-sfout { animation-name: pfx-st-fout; }
+.pfx-station .pfx-sflash { --lag: var(--pfx-hit); animation-name: pfx-st-flash; animation-duration: 600ms; animation-timing-function: ease-out; }
+.pfx-station .pfx-sring { --lag: var(--pfx-hit); animation-name: pfx-st-ring; animation-duration: 560ms; animation-timing-function: ease-out; }
+.pfx-station .pfx-sq1, .pfx-station .pfx-sq2 { --lag: calc(var(--pfx-d) * 0.31); animation-name: pfx-st-q; animation-duration: 200ms; animation-timing-function: ease-out; }
+.pfx-station .pfx-sq2 { --lag: calc(var(--pfx-d) * 0.37); }
+.fx-pic .pfx-station .pfx-sq1, .fx-pic .pfx-station .pfx-sq2 { display: none; }
+.fx-pic .pfx-station .pfx-sscene { transform: translateY(14px) scale(1.45); }
+@keyframes pfx-st-spin { 0% { transform: none; } 100% { transform: rotate(120deg); } }
+@keyframes pfx-st-tw { 0%, 50%, 100% { opacity: 0.95; } 25% { opacity: 0.45; } 75% { opacity: 0.6; } }
+@keyframes pfx-st-glow { 0% { opacity: 0.8; transform: scale(0.94); } 30% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.85; transform: none; } }
+@keyframes pfx-st-fin {
+  0%, 5% { opacity: 0; transform: translate(-40px, 20px) scale(1.4); animation-timing-function: cubic-bezier(0.3, 0.5, 0.4, 1); }
+  29.8% { opacity: 1; transform: none; }
+  30%, 100% { opacity: 0; transform: none; }
+}
+@keyframes pfx-st-flin { 0%, 20% { opacity: 1; transform: none; } 26%, 100% { opacity: 0; transform: scale(0.3); } }
+@keyframes pfx-st-din { 0%, 29.8% { opacity: 0; } 30%, 100% { opacity: 1; } }
+@keyframes pfx-st-dout { 0%, 29.8% { opacity: 1; } 30%, 100% { opacity: 0; } }
+@keyframes pfx-st-fout {
+  0%, 29.8% { opacity: 0; transform: none; }
+  30% { opacity: 1; transform: none; animation-timing-function: cubic-bezier(0.45, 0, 0.75, 0.6); }
+  56% { opacity: 0.9; transform: translate(42px, -3.6px) scale(0.3); }
+  63%, 100% { opacity: 0; transform: translate(50px, -4.3px) scale(0.15); }
+}
+@keyframes pfx-st-flash { 0% { opacity: 0; transform: scale(0.3); } 12% { opacity: 1; transform: scale(1.25); } 75%, 100% { opacity: 0; } 100% { transform: scale(1.7); } }
+@keyframes pfx-st-ring { 0% { opacity: 0; transform: scale(0.5); } 12% { opacity: 0.9; } 65%, 100% { opacity: 0; } 100% { transform: scale(4.4); } }
+@keyframes pfx-st-q { 0% { opacity: 0; transform: translateY(2px); } 100% { opacity: 1; transform: none; } }

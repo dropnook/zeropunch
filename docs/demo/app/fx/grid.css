@@ -1,0 +1,34 @@
+/* Tron (homage): the floor rises, the trail runs at constant speed (--td from the module), each segment
+   lights as the trail closes it (its own --lag); the last at --pfx-hit (60 %): the digits glow up and
+   the horizon flashes. The still keeps it lit. */
+.pfx-grid { --pfx-at: 0.8; }
+.pfx-grid .pfx-gdig { animation-name: none; }
+.pfx-grid .pfx-gfloor { transform-origin: 50% 0; animation-name: pfx-gr-floor; }
+.pfx-grid .pfx-grun { transform-origin: 50% 0; animation-name: pfx-gr-run; animation-timing-function: linear; }
+.pfx-grid .pfx-gsky, .pfx-grid .pfx-ghz { animation-name: pfx-gr-sky; }
+.pfx-grid .pfx-gs { animation-name: pfx-show; animation-duration: 50ms; }
+.pfx-grid .pfx-gtail, .pfx-grid .pfx-ghead { animation-name: pfx-gr-trail; animation-duration: var(--td); animation-timing-function: linear; }
+.pfx-grid .pfx-gglow { --lag: var(--pfx-hit); animation-name: pfx-gr-glow; animation-duration: 560ms; }
+.pfx-grid .pfx-gcore { --lag: var(--pfx-hit); animation-name: pfx-gr-core; animation-duration: 640ms; }
+/* the picker's small tile: the digits a little larger */
+.fx-pic .pfx-grid .pfx-gdig { transform: translateY(-2px) scale(1.25); }
+@keyframes pfx-gr-floor {
+  0% { opacity: 0; transform: scaleY(0.15); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); }
+  14%, 58% { opacity: 0.75; transform: none; }
+  62% { opacity: 1; }
+  100% { opacity: 0.85; transform: none; }
+}
+@keyframes pfx-gr-run { 0% { transform: none; } 100% { transform: scaleY(1.16); } }
+@keyframes pfx-gr-sky {
+  0% { opacity: 0; }
+  14%, 58% { opacity: 0.55; }
+  61% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+@keyframes pfx-gr-trail { 0% { stroke-dashoffset: var(--a); } 100% { stroke-dashoffset: var(--b); } }
+@keyframes pfx-gr-glow {
+  0% { opacity: 0; transform: scale(0.97); animation-timing-function: ease-out; }
+  22% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0.8; transform: none; }
+}
+@keyframes pfx-gr-core { 0% { opacity: 0; } 14% { opacity: 1; } 100% { opacity: 0.5; } }

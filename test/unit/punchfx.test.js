@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { FX_NAMES } from '../../public/js/store.js';
+import { FX_NAMES, FX_FILM } from '../../public/js/store.js';
 import { installFakeDom, removeFakeDom } from './fakedom.js';
 
 const read = (/** @type {string} */ p) => readFileSync(new URL(`../../public/${p}`, import.meta.url), 'utf8');
@@ -30,13 +30,15 @@ afterEach(() => {
 });
 
 describe('punch animations: the list', () => {
-  it('the core lists seventeen animations, the same as the setting, each 600–1100 ms with its impact inside', async () => {
+  it('the core lists twenty-seven animations, the same as the setting, each 600–1100 ms (film homages up to 3000 ms) with its impact inside', async () => {
     const { NAMES, DURATION, IMPACT, BUZZ } = await import('../../public/js/punchfx.js');
-    expect(NAMES).toHaveLength(17);
+    expect(NAMES).toHaveLength(27);
     expect([...NAMES]).toEqual([...FX_NAMES]);
+    expect(NAMES.at(-1)).toBe('answer'); // the newest idea is last
     for (const n of NAMES) {
       expect(DURATION[n], n).toBeGreaterThanOrEqual(600);
-      expect(DURATION[n], n).toBeLessThanOrEqual(1100);
+      // a film homage may have a line to read (HAL does): it may run longer, still at most 3 s (the punch is never held up)
+      expect(DURATION[n], n).toBeLessThanOrEqual(FX_FILM.has(n) ? 3000 : 1100);
       expect(IMPACT[n], n).toBeGreaterThan(80);
       expect(IMPACT[n], n).toBeLessThan(DURATION[n] * 0.75);
       // a short buzz: a few pulses, nothing that outlasts the animation
@@ -221,6 +223,61 @@ describe('punch animations: playing', () => {
       expect(el?.getAttribute('class'), n).toContain('pfx-still');
       expect(el?.style.getPropertyValue('--pfx-d'), n).toBe(`${m.DURATION[n]}ms`);
     }
+  });
+
+  it('HAL speaks to the user by name: as text nodes, cut to 14 characters, «Dave» without one', async () => {
+    const { m, area, anchor } = await fresh();
+    const said = () => layers(area)[0].all().filter((/** @type {any} */ e) => e.tagName === 'text').map((/** @type {any} */ e) => e.textContent);
+    m.play('hal', { anchor, time: '08:02', user: 'benj' });
+    await settle();
+    expect(said()).toEqual(["I'm sorry, benj.", "I'm afraid I can't do that."]);
+    m.play('hal', { anchor, time: '08:02', user: 'a.very.long.username-32-chars.xx' });
+    await settle();
+    expect(layers(area)).toHaveLength(1);
+    expect(said()[0]).toBe("I'm sorry, a.very.long.us….");
+    m.play('hal', { anchor, time: '08:02' });
+    await settle();
+    expect(said()[0]).toBe("I'm sorry, Dave.");
+    const el = await m.still('hal', { user: '<b>x</b>' });
+    expect(el?.all().filter((/** @type {any} */ e) => e.tagName === 'text')[0].textContent).toBe("I'm sorry, <b>x</b>."); // text, never markup
+    m.cancelAll();
+  });
+
+  it('HAL runs longest, but a punch while it speaks still cancels it like any other (one layer, no late buzz)', async () => {
+    const { m, area, anchor } = await fresh();
+    await m.load('hal');
+    await m.load('stamp');
+    vi.useFakeTimers();
+    const b1 = vi.fn();
+    const first = m.play('hal', { anchor, time: '08:00', user: 'benj', buzz: b1 });
+    await vi.advanceTimersByTimeAsync(m.DURATION.hal - 600); // the quote is up
+    expect(b1).toHaveBeenCalledTimes(1);
+    m.play('stamp', { anchor, time: '08:01' });
+    await expect(first.done).resolves.toBeUndefined();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(layers(area)).toHaveLength(1);
+    expect(layers(area)[0].all().some((/** @type {any} */ e) => e.getAttribute('class')?.includes('pfx-stamp'))).toBe(true);
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(layers(area)).toHaveLength(0);
+    expect(b1).toHaveBeenCalledTimes(1);
+  });
+
+  it('HAL: the name rules and a quote that fits the stage with the widest 14-character name', async () => {
+    installFakeDom();
+    const { quoteName, quote, fitSize, NAME_MAX } = await import('../../public/fx/hal.js');
+    expect(NAME_MAX).toBe(14);
+    expect(quoteName('benj')).toBe('benj');
+    expect(quoteName('  benj ')).toBe('benj');
+    expect(quoteName('abcdefghijklmn')).toBe('abcdefghijklmn'); // exactly 14: whole
+    expect(quoteName('abcdefghijklmno')).toBe('abcdefghijklmn…');
+    for (const v of [undefined, null, '', '   ', 42]) expect(quoteName(v), String(v)).toBe('Dave');
+    expect(quote('dave')).toEqual(["I'm sorry, dave.", "I'm afraid I can't do that."]);
+    // the base size for an ordinary name; smaller for the widest one, never so small it cannot be read
+    expect(fitSize(quote('benj')[0])).toBe(10.5);
+    expect(fitSize(quote('benj')[1])).toBe(10.5);
+    const wide = fitSize(quote('m'.repeat(32))[0]);
+    expect(wide).toBeLessThan(10.5);
+    expect(wide).toBeGreaterThanOrEqual(6.5);
   });
 
   it('the sundial puts the shadow on the hour (night hours rest at the edge)', async () => {

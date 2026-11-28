@@ -268,8 +268,8 @@
           <p class="hint" data-i18n="fx_hint"></p>
           <!-- The chosen animation plays here once; then its still stays (js/app.js showFx) -->
           <div class="fx-show" id="fx-show" aria-hidden="true"></div>
-          <!-- Filled by js/app.js (bindFxChoice): tiles for Random, Off and every animation, as one radio group -->
-          <div class="fx-grid" id="fx-choices" role="radiogroup" aria-labelledby="h-fx"></div>
+          <!-- Filled by js/app.js (bindFxChoice): tiles for Off, the random choices and every animation in two labelled sections, as one radio group -->
+          <div class="fx-groups" id="fx-choices" role="radiogroup" aria-labelledby="h-fx"></div>
           <p class="hint" id="o-fx-reduced" data-i18n="fx_reduced" hidden></p>
 
           <h2 id="h-lang" data-i18n="h_language"></h2>
@@ -475,7 +475,7 @@
       <button type="button" data-tab="start" aria-current="page" data-i18n-aria="tab_start" data-i18n-title="tab_start"><span class="ico" aria-hidden="true">◷</span></button>
       <button type="button" data-tab="list" data-i18n-aria="tab_list" data-i18n-title="tab_list"><span class="ico" aria-hidden="true">☰</span></button>
       <button type="button" data-tab="nerd" hidden data-i18n-aria="tab_nerd" data-i18n-title="tab_nerd"><span class="ico ico-emoji" aria-hidden="true">🤓</span></button>
-      <button type="button" data-tab="settings" data-i18n-aria="tab_settings" data-i18n-title="tab_settings"><span class="ico" aria-hidden="true">⚙</span></button>
+      <button type="button" data-tab="settings" data-i18n-aria="tab_settings" data-i18n-title="tab_settings"><!-- A drawn gear: the ⚙ character turns into a colour emoji on some phones --><svg viewBox="0 0 24 24" class="ico ico-gear" aria-hidden="true" focusable="false"><path d="M19.38 10.17L21.9 10.59L21.9 13.41L19.38 13.83L18.51 15.92L20 18L18 20L15.92 18.51L13.83 19.38L13.41 21.9L10.59 21.9L10.17 19.38L8.08 18.51L6 20L4 18L5.49 15.92L4.62 13.83L2.1 13.41L2.1 10.59L4.62 10.17L5.49 8.08L4 6L6 4L8.08 5.49L10.17 4.62L10.59 2.1L13.41 2.1L13.83 4.62L15.92 5.49L18 4L20 6L18.51 8.08Z"/><circle cx="12" cy="12" r="3.2"/></svg></button>
     </nav>
 
     <!-- Edit one punch / add one -->

@@ -1,0 +1,88 @@
+/* HUD: the crosshair locks onto the time at --pfx-hit (34 %), then the line flickers in. */
+.pfx-hud { --pfx-at: 0.62; }
+.pfx-hud .pfx-hcore { animation-name: none; }
+.pfx-hud .pfx-hscan { animation-name: pfx-uscan; }
+.pfx-hud .pfx-hdata, .pfx-hud .pfx-hbars { animation-name: pfx-udata; }
+.pfx-hud .pfx-hb { animation-name: pfx-ubar; transform-origin: 100% 50%; }
+.pfx-hud .pfx-hx { animation-name: pfx-ux; }
+.pfx-hud .pfx-hdot { animation-name: pfx-udot; }
+.pfx-hud .pfx-htime { animation-name: pfx-utime; }
+.pfx-hud .pfx-hflash { animation-name: pfx-uflash; }
+.pfx-hud .pfx-hbox { animation-name: pfx-ubox; }
+.pfx-hud .pfx-hmatch { animation-name: pfx-umatch; transform-origin: 0 50%; }
+.pfx-hud .pfx-hpct { animation-name: pfx-upct; }
+.pfx-hud .pfx-hline { animation-name: pfx-uline; }
+.pfx-hud .pfx-hquote { animation-name: pfx-uquote; }
+/* picker tile: the locked time alone */
+.fx-pic .pfx-hud :is(.pfx-hdata, .pfx-hbars, .pfx-hline, .pfx-hquote, .pfx-hfoot) { display: none; }
+.fx-pic .pfx-hud .pfx-hcore { transform: translateY(6px) scale(1.75); }
+@keyframes pfx-uscan {
+  0%, 4%, 39%, 48% { opacity: 0; transform: none; }
+  6%, 50% { opacity: 1; }
+  38%, 84% { opacity: 1; transform: translateY(92px); }
+  85%, 100% { opacity: 0; transform: translateY(92px); }
+}
+@keyframes pfx-udata {
+  0%, 6% { opacity: 0; }
+  8%, 10.5%, 100% { opacity: 1; }
+  9% { opacity: 0.2; }
+}
+@keyframes pfx-ubar {
+  0%, 100% { transform: none; }
+  14% { transform: scaleX(0.45); }
+  22% { transform: scaleX(0.8); }
+  37% { transform: scaleX(0.3); }
+  60% { transform: scaleX(0.6); }
+}
+@keyframes pfx-ux {
+  0%, 8% { opacity: 0; transform: translate(-44px, 20px); }
+  12%, 44% { opacity: 1; }
+  19% { transform: translate(36px, -15px); }
+  25% { transform: translate(-16px, 10px); }
+  30% { transform: translate(6px, -4px); }
+  32.5% { transform: translate(-1.5px, 1px); animation-timing-function: ease-out; }
+  34% { transform: none; }
+  52%, 100% { opacity: 0.3; transform: none; }
+}
+@keyframes pfx-udot { 0%, 34% { opacity: 1; } 38%, 100% { opacity: 0; } }
+@keyframes pfx-utime {
+  0%, 10% { opacity: 0; }
+  13% { opacity: 0.35; }
+  20%, 27% { opacity: 0.5; }
+  22% { opacity: 0.2; }
+  33.5% { opacity: 0.4; transform: none; }
+  34% { opacity: 1; transform: scale(1.1); animation-timing-function: ease-out; }
+  39%, 100% { opacity: 1; transform: none; }
+}
+@keyframes pfx-uflash {
+  0%, 33.8%, 46%, 100% { opacity: 0; }
+  34% { opacity: 1; }
+  37% { opacity: 0.15; }
+  38.5% { opacity: 0.6; }
+}
+@keyframes pfx-ubox {
+  0%, 31% { opacity: 0; transform: scale(1.6); animation-timing-function: ease-in; }
+  34% { opacity: 1; transform: scale(0.96); }
+  36% { transform: none; }
+  39%, 45% { opacity: 0.25; }
+  42%, 48%, 100% { opacity: 1; transform: none; }
+}
+@keyframes pfx-umatch {
+  0%, 8% { transform: scaleX(0); }
+  20% { transform: scaleX(0.55); }
+  27% { transform: scaleX(0.68); }
+  34%, 100% { transform: none; }
+}
+@keyframes pfx-upct { 0%, 34% { opacity: 0; } 35%, 37.5%, 100% { opacity: 1; } 36% { opacity: 0.3; } }
+@keyframes pfx-uline {
+  0%, 38% { opacity: 0; }
+  39%, 41%, 44%, 100% { opacity: 1; }
+  40% { opacity: 0.2; }
+  42.5% { opacity: 0.4; }
+}
+@keyframes pfx-uquote {
+  0%, 37% { opacity: 0; transform: scale(1.3); animation-timing-function: ease-out; }
+  40% { opacity: 1; transform: scale(0.98); }
+  42% { opacity: 0.35; }
+  43.5%, 100% { opacity: 1; transform: none; }
+}

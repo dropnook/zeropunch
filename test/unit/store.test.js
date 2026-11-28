@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { Store, MAX_PER_DAY, RETENTION_DAYS, RETENTION_MONTHS, IDLE_DAYS, AWAY_NOTICE_DAYS, awayDays, showAwayNotice, isExpired, oldestDay, oldestLogicalDay, csvCell, buttonLabelKey, buttonLabel, DEFAULT_SETTINGS, badgeDays, badgeDue, badgeNextDay, BADGE_DAYS_DEFAULT, FX_NAMES, FX_CHOICES, fxSetting, pickFx, COLORS, colorSetting, syncStatus } from '../../public/js/store.js';
+import { Store, MAX_PER_DAY, RETENTION_DAYS, RETENTION_MONTHS, IDLE_DAYS, AWAY_NOTICE_DAYS, awayDays, showAwayNotice, isExpired, oldestDay, oldestLogicalDay, csvCell, buttonLabelKey, buttonLabel, DEFAULT_SETTINGS, badgeDays, badgeDue, badgeNextDay, BADGE_DAYS_DEFAULT, FX_NAMES, FX_CHOICES, FX_FILM, FX_GROUPS, fxSetting, fxIsRandom, pickFx, COLORS, colorSetting, syncStatus } from '../../public/js/store.js';
 import { MAX_RECORDS } from '../../src/api.js';
 import { RETENTION_DAYS as SERVER_RETENTION_DAYS, IDLE_DAYS as SERVER_IDLE_DAYS } from '../../src/retention.js';
 import { limits } from '../../src/limits.js';
@@ -550,10 +550,12 @@ describe('outbox and local writes (B7)', () => {
 
   it('punch animation setting: «random» by default, each by name, «off»; unknown → random; survives other writes', async () => {
     expect(DEFAULT_SETTINGS.fx).toBe('random');
-    // the picker's order: «Off» first, «Random» (the default) second
+    // the picker's order: «Off» first, «Random» (the default) second, then random within a group
     expect(FX_CHOICES).toEqual([
       'off',
       'random',
+      'random-film',
+      'random-std',
       'sundial',
       'hourglass',
       'tower',
@@ -571,10 +573,27 @@ describe('outbox and local writes (B7)', () => {
       'iris',
       'nfc',
       'button',
+      'hal',
+      'hud',
+      'gears',
+      'top',
+      'rain',
+      'ripple',
+      'fuse',
+      'station',
+      'grid',
+      'answer',
     ]);
     // every value a 2.4 client could store is still valid (and keeps meaning the same animation)
     for (const v of ['random', 'tally', 'seal', 'card', 'clock', 'stamp', 'badge', 'finger', 'button', 'off']) expect(fxSetting(v), v).toBe(v);
-    for (const v of [undefined, null, '', 'RANDOM', 'laser', 3]) expect(fxSetting(v), String(v)).toBe('random');
+    for (const v of [undefined, null, '', 'RANDOM', 'laser', 3, 'random-x', 'random-', 'constructor', 'toString']) expect(fxSetting(v), String(v)).toBe('random');
+    // a value from a newer client (another group, a scene not here yet) also reads as «random»
+    expect(fxSetting('random-sci-fi')).toBe('random');
+    // a scene that was removed (the clock radio, «radio») also reads as «random»
+    expect(fxSetting('radio')).toBe('random');
+    expect(FX_CHOICES).not.toContain('radio');
+    expect(pickFx('radio', 'hal', () => 0)).toBe(pickFx('random', 'hal', () => 0));
+    expect(pickFx('random-sci-fi', 'hal', () => 0)).toBe(pickFx('random', 'hal', () => 0));
     for (const v of FX_CHOICES) expect(fxSetting(v)).toBe(v);
     const a = setup();
     await a.st.sync();
@@ -636,6 +655,34 @@ describe('outbox and local writes (B7)', () => {
     for (const x of [0, 0.999999]) for (const p of FX_NAMES) expect(pickFx(undefined, p, () => x)).not.toBe(p);
     expect(pickFx('stamp', 'stamp')).toBe('stamp');
     expect(pickFx('off', null)).toBeNull();
+  });
+
+  it('groups: film homages and standard split the animations; random within a group stays in it, never twice in a row', () => {
+    expect([...FX_GROUPS.film]).toEqual(['tower', 'hal', 'hud', 'gears', 'top', 'rain', 'ripple', 'fuse', 'station', 'grid', 'answer']);
+    // every animation in exactly one group, each group in the list's order
+    expect([...FX_GROUPS.film, ...FX_GROUPS.std].sort()).toEqual([...FX_NAMES].sort());
+    expect([...FX_GROUPS.std]).toEqual(FX_NAMES.filter((n) => !FX_FILM.has(n)));
+    for (const n of FX_FILM) expect(FX_NAMES, n).toContain(n);
+    for (const v of ['random', 'random-film', 'random-std']) expect(fxIsRandom(v), v).toBe(true);
+    for (const v of ['off', 'hal', 'stamp']) expect(fxIsRandom(v), v).toBe(false);
+    expect(fxIsRandom('nonsense')).toBe(true); // unknown reads as «random»
+    let r = 7;
+    const rnd = () => ((r = (r * 9301 + 49297) % 233280), r / 233280);
+    for (const [v, pool] of /** @type {const} */ ([['random-film', FX_GROUPS.film], ['random-std', FX_GROUPS.std]])) {
+      let prev = null;
+      const seen = new Set();
+      for (let i = 0; i < 1000; i++) {
+        const n = pickFx(v, prev, rnd);
+        expect(pool, v).toContain(n);
+        expect(n).not.toBe(prev);
+        seen.add(n);
+        prev = n;
+      }
+      expect(seen.size, v).toBe(pool.length);
+      for (const x of [0, 0.999999]) for (const p of pool) expect(pickFx(v, p, () => x)).not.toBe(p);
+    }
+    // the previous one from the other group leaves the whole pool open
+    expect(pickFx('random-film', 'stamp', () => 0)).toBe('tower');
   });
 
   it('a write the server refuses for good stays in a visible «not accepted» state; retry or discard', async () => {

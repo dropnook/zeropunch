@@ -10,8 +10,10 @@
 import { h, s } from './dom.js';
 
 /**
- * Every animation, oldest idea first (the picker's order): duration (600–1100 ms), the impact as a
- * share of it, the vibration pattern played at the impact, and whether the stage shakes there.
+ * Every animation, oldest idea first (the picker's order): duration (600–1100 ms; a film homage may
+ * run up to 3000 ms when it has a line to read, like «hal»), the impact as a share of it, the vibration
+ * pattern played at the impact, and whether the stage shakes there. The groups (film / standard) live
+ * in store.js FX_FILM; this core does not need them.
  * @type {Record<string, { d: number, hit: number, buzz: number[], shake?: false }>}
  */
 const FX = {
@@ -32,6 +34,17 @@ const FX = {
   iris: { d: 1100, hit: 0.6, buzz: [6, 110, 14], shake: false },
   nfc: { d: 900, hit: 0.4, buzz: [8, 60, 8] },
   button: { d: 700, hit: 0.3, buzz: [16] },
+  hal: { d: 2800, hit: 0.22, buzz: [14], shake: false },
+  // film homages (may run up to 3 s: some show a line to read)
+  hud: { d: 2400, hit: 0.34, buzz: [10, 50, 10], shake: false },
+  gears: { d: 2600, hit: 0.2, buzz: [18, 50, 8], shake: false },
+  top: { d: 2800, hit: 0.27, buzz: [14], shake: false },
+  rain: { d: 1800, hit: 0.48, buzz: [12], shake: false },
+  ripple: { d: 1600, hit: 0.3, buzz: [24, 380, 30] },
+  fuse: { d: 2600, hit: 0.24, buzz: [8, 40, 18], shake: false },
+  station: { d: 2600, hit: 0.3, buzz: [12], shake: false },
+  grid: { d: 1600, hit: 0.6, buzz: [12], shake: false },
+  answer: { d: 2800, hit: 0.4, buzz: [6, 50, 6, 50, 16], shake: false },
 };
 
 export const NAMES = Object.freeze(Object.keys(FX));
@@ -123,7 +136,7 @@ function sheet(href) {
   return p;
 }
 
-/** @typedef {(time: string, o: { mini?: boolean }) => any[]} Build */
+/** @typedef {(time: string, o: { mini?: boolean, user?: string, out?: boolean }) => any[]} Build */
 /** @type {Map<string, Promise<Build>>} */
 const scenes = new Map();
 
@@ -144,8 +157,8 @@ export function load(name) {
 /** @param {string} name @param {HTMLElement | SVGElement} el */
 const timing = (name, el) => vars(el, { 'pfx-d': `${FX[name].d}ms`, 'pfx-hit': `${IMPACT[name]}ms` });
 
-/** Scene SVG. @param {string} name @param {Build} build @param {string} time @param {boolean} [mini] */
-const svgFor = (name, build, time, mini = false) =>
+/** Scene SVG. @param {string} name @param {Build} build @param {string} time @param {boolean} [mini] @param {string} [user] */
+const svgFor = (name, build, time, mini = false, user = '', out = false) =>
   s(
     'svg',
     {
@@ -155,7 +168,7 @@ const svgFor = (name, build, time, mini = false) =>
       focusable: 'false',
       preserveAspectRatio: name === 'button' && !mini ? 'xMaxYMid meet' : null,
     },
-    build(time || '', { mini }),
+    build(time || '', { mini, user, out }),
   );
 
 const noop = () => ({ cancel() {}, done: Promise.resolve() });
@@ -168,7 +181,8 @@ let currentPreview = null;
 /**
  * Play one animation over the punch button. Cancels a running one first. Never throws.
  * `buzz` (navigator.vibrate, when there is one) is called once with the pattern at the impact.
- * @param {string} name one of NAMES @param {{ anchor: HTMLElement, time?: string, buzz?: ((p: number[]) => void) | null }} o
+ * `out` is true for a punch out (a scene may say goodbye), false for a punch in. `user` is the username, handed to every scene (hal speaks to the user; each has a fallback without one).
+ * @param {string} name one of NAMES @param {{ anchor: HTMLElement, time?: string, user?: string, out?: boolean, buzz?: ((p: number[]) => void) | null }} o
  * @returns {{ cancel(): void, done: Promise<void> }}
  */
 export function play(name, o) {
@@ -217,7 +231,7 @@ export function play(name, o) {
           ['height', anchor.offsetHeight],
         ]))
           layer.style.setProperty(k, `${v}px`);
-        const svg = svgFor(name, build, o.time || '');
+        const svg = svgFor(name, build, o.time || '', false, o.user || '', !!o.out);
         if (name === 'button') {
           layer.append(svg);
           anchor.classList.remove('pfx-recoil');
@@ -244,7 +258,7 @@ export function play(name, o) {
 /**
  * Play a larger preview once inside `box` (its content is replaced when the scene is ready; the last
  * frame stays, so the settings do not jump). One preview at a time. Never throws.
- * @param {string} name @param {HTMLElement} box @param {{ time?: string }} [o]
+ * @param {string} name @param {HTMLElement} box @param {{ time?: string, user?: string }} [o]
  * @returns {{ cancel(): void, done: Promise<void> }}
  */
 export function preview(name, box, o = {}) {
@@ -275,7 +289,7 @@ export function preview(name, box, o = {}) {
       (build) => {
         if (over) return;
         layer = timing(name, h('div', { class: 'pfx-preview pfx-run', 'aria-hidden': 'true' }));
-        layer.append(h('div', { class: f.shake === false ? 'pfx-shake pfx-calm' : 'pfx-shake' }, svgFor(name, build, o.time || '', true)));
+        layer.append(h('div', { class: f.shake === false ? 'pfx-shake pfx-calm' : 'pfx-shake' }, svgFor(name, build, o.time || '', true, o.user || '')));
         box.replaceChildren(layer);
         timer = setTimeout(end, f.d + 60);
       },
@@ -290,12 +304,12 @@ export function preview(name, box, o = {}) {
 /**
  * A still drawing of one animation (its impact or settle frame), e.g. for the picker's tiles.
  * Resolves to an SVG element, or null when it cannot be drawn.
- * @param {string} name @param {{ time?: string }} [o] @returns {Promise<SVGElement | null>}
+ * @param {string} name @param {{ time?: string, user?: string }} [o] @returns {Promise<SVGElement | null>}
  */
 export async function still(name, o = {}) {
   try {
     const build = await load(name);
-    const svg = timing(name, svgFor(name, build, o.time || '', true));
+    const svg = timing(name, svgFor(name, build, o.time || '', true, o.user || ''));
     svg.classList.add('pfx-still');
     return svg;
   } catch {

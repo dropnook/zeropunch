@@ -199,5 +199,8 @@ describe('record length (enforced by the server)', () => {
     // The record carries every field the app knows, and nothing else.
     expect(Object.keys(biggest).sort()).toEqual(Object.keys(DEFAULT_SETTINGS).sort());
     expect(jsonSize(biggest)).toBeLessThanOrEqual(PLAINTEXT_SIZE);
+    // the longest animation choice is a group's random one; it fits with room to spare
+    expect(biggest.fx).toBe('random-film');
+    expect(PLAINTEXT_SIZE - jsonSize(biggest)).toBeGreaterThanOrEqual(10);
   });
 });

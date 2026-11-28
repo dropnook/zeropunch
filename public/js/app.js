@@ -25,6 +25,8 @@ import {
   pickFx,
   FX_CHOICES,
   FX_NAMES,
+  FX_GROUPS,
+  fxIsRandom,
   syncStatus,
   badgeDays,
   badgeDue,
@@ -97,7 +99,7 @@ import {
   daysBetween,
 } from './time.js';
 
-export const APP_VERSION = '2026.11.28-1';
+export const APP_VERSION = '2026.11.28-2';
 const MAIN_TABS = ['start', 'list', 'nerd', 'settings'];
 const FILE_PREFIX = APP_NAME.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
@@ -305,6 +307,9 @@ function show(view) {
   $('#banner-auth').hidden = !main || !state.store?.authLost;
   $('#banner-clock').hidden = !main || !state.store?.clockBad;
   $('#app').dataset.view = view;
+  // Leaving the start screen ends a punch animation still playing (HAL's runs nearly 3 s): coming
+  // back shows the screen, not the rest of an old scene.
+  if (view !== 'start') fx.cancel();
   if (main) {
     state.tab = view;
     for (const b of $$('#tabs button')) {
@@ -977,7 +982,9 @@ async function doPunch() {
     state.viewDay = null; // the day view goes back to today
     // Decoration after the record is written; never awaited, never fails the punch. It also buzzes:
     // at the animation's impact, or (no animation) right away as a plain short vibration.
-    void fx.punch(state.store.settings.fx, { anchor: btn, time: timeOfDay(entry.ts, entry.tz) });
+    const now = Date.now();
+    const out = !currentState(state.store.list(), now, localTz(), state.store.dayStart).in;
+    void fx.punch(state.store.settings.fx, { anchor: btn, time: timeOfDay(entry.ts, entry.tz), user: state.username || '', out });
     const dir = directions(state.store.list(), state.store.dayStart).get(entry.id) === 'out' ? t('dir_out') : t('dir_in');
     // No banner: the new chip in the day view glows for a moment. Screen readers hear the same line.
     $('#o-punched').textContent = t('punched', { time: timeOfDay(entry.ts, entry.tz), dir });
@@ -1514,7 +1521,12 @@ function renderSettings() {
   if (document.activeElement !== bdEl) bdEl.value = String(bd || BADGE_DAYS_DEFAULT);
   const bNext = badgeNextDay(st.settings);
   const bToday = logicalDay(Date.now(), localTz(), st.dayStart);
-  $('#o-badge-next').textContent = bd ? (bNext && bNext > bToday ? t('badge_next', { date: longDate(bNext) }) : t('badge_next_now')) : '';
+  // «Letzte Erinnerung: Mi. 25. Nov. · Nächste: beim ersten Punch ab Mo. 30. Nov.»: the day it counts
+  // from (the last reminder, or the day it was switched on), so the next day makes sense.
+  const bLast = String(st.settings.badgeAt || '');
+  const lastText = /^\d{4}-\d{2}-\d{2}$/.test(bLast) && bLast <= bToday ? `${t('badge_last', { date: longDate(bLast) })} · ` : '';
+  const nextText = bNext && bNext > bToday ? t('badge_next', { date: longDate(bNext) }) : t('badge_next_now');
+  $('#o-badge-next').textContent = bd ? lastText + nextText : '';
   const dsEl = input('#i-daystart');
   if (document.activeElement !== dsEl) dsEl.value = ds ? minutesToClock(ds) : '04:00';
   /** @type {HTMLSelectElement} */ ($('#s-lang')).value = getLang();
@@ -2357,7 +2369,10 @@ function bindColorChoice() {
 
 // ------------------------------------------------------------ punch animation setting
 
-/** The tile drawings of Random (two dice) and Off (a crossed circle), in the scenes' 160 × 80 box. @param {string} v */
+/**
+ * The tile drawings of Off (a crossed circle) and the random choices (two dice; for a group smaller,
+ * beside a film strip or a clock face), in the scenes' 160 × 80 box. @param {string} v
+ */
 function fxIcon(v) {
   const ink = '#2B3238';
   /** A die at (x, y), turned by `deg`, with pips at the given offsets. @param {number} x @param {number} y @param {number} deg @param {string} face @param {number[][]} pips */
@@ -2368,38 +2383,58 @@ function fxIcon(v) {
       svg('rect', { x, y, width: 36, height: 36, rx: 7, fill: face, stroke: ink, 'stroke-width': 3.5 }),
       pips.map(([a, b]) => svg('circle', { cx: x + a, cy: y + b, r: 3.2, fill: ink })),
     );
+  const dice = [
+    die(40, 22, -12, '#ffffff', [[10, 10], [18, 18], [26, 26]]),
+    die(84, 22, 10, '#FF6B4A', [[10, 10], [26, 10], [10, 26], [26, 26]]),
+  ];
+  // the group's mark on the right: sprocket holes along a strip with one coral frame, or a plain clock
+  const holes = [102, 110, 118, 126, 134].flatMap((x) => [21, 55].map((y) => svg('rect', { x, y, width: 4.5, height: 4, rx: 1, fill: '#ffffff' })));
+  const mark =
+    v === 'random-film'
+      ? [svg('rect', { x: 98, y: 17, width: 45, height: 46, rx: 4, fill: ink }), ...holes, svg('rect', { x: 103, y: 28, width: 35, height: 24, rx: 2, fill: '#FF6B4A' })]
+      : [
+          svg('circle', { cx: 120, cy: 40, r: 21, fill: '#ffffff', stroke: ink, 'stroke-width': 3.5 }),
+          svg('path', { d: 'M120 40 V26 M120 40 L130 46', stroke: ink, 'stroke-width': 3.5, 'stroke-linecap': 'round' }),
+          svg('circle', { cx: 120, cy: 40, r: 3, fill: '#FF6B4A' }),
+        ];
   const kids =
     v === 'off'
       ? [svg('circle', { cx: 80, cy: 40, r: 24, fill: 'none', stroke: ink, 'stroke-width': 6 }), svg('path', { d: 'M63 57 L97 23', stroke: ink, 'stroke-width': 6, 'stroke-linecap': 'round' })]
-      : [
-          die(40, 22, -12, '#ffffff', [[10, 10], [18, 18], [26, 26]]),
-          die(84, 22, 10, '#FF6B4A', [[10, 10], [26, 10], [10, 26], [26, 26]]),
-        ];
+      : v === 'random'
+        ? dice
+        : [svg('g', { transform: 'translate(-18 6) scale(0.85)' }, dice), ...mark];
   return svg('svg', { viewBox: '0 0 160 80', 'aria-hidden': 'true', focusable: 'false' }, kids);
 }
 
+/** One tile of the picker: its radio button, the drawing (an icon or, later, the still) and the name. @param {string} v one of FX_CHOICES */
+const fxTile = (v) =>
+  h(
+    'label',
+    { class: 'fx-tile', dataset: { fx: v } },
+    h('input', { type: 'radio', name: 'punch-fx', value: v, 'aria-label': plain(t(`fx_${v}`)), 'data-i18n-aria': `fx_${v}` }),
+    h('span', { class: 'fx-pic', 'aria-hidden': 'true' }, fxIsRandom(v) || v === 'off' ? fxIcon(v) : null),
+    // The visible name may carry soft hyphens (see i18n.js SHY); the radio button has the plain one.
+    h('span', { class: 'fx-name', 'aria-hidden': 'true', 'data-i18n': `fx_${v}` }, t(`fx_${v}`)),
+  );
+
 /**
- * The «Animation» choice in the settings: a radio group laid out as a grid of small tiles (a still
- * drawing and the name each; Random and Off first; a name breaks only between words or at its soft
- * hyphens). Arrow keys move through it as in any radio group. The chosen one plays once in the
- * larger preview area above (Random plays one of them; with reduced motion only the still is shown).
- * The drawings load with the animation module, the first time the settings are shown.
+ * The «Animation» choice in the settings: one radio group laid out as grids of small tiles (a still
+ * drawing and the name each; a name breaks only between words or at its soft hyphens). Off and the
+ * three random choices first, then the animations in two labelled sections, film homages and
+ * standard (store.js FX_GROUPS). All tiles share one name, so arrow keys move through every section
+ * as in any radio group. The chosen one plays once in the larger preview area above (a random choice
+ * plays one of its pool; with reduced motion only the still is shown). The drawings load with the
+ * animation module, the first time the settings are shown.
  */
 function bindFxChoice() {
   const box = $('#fx-choices');
-  fill(
-    box,
-    FX_CHOICES.map((v) =>
-      h(
-        'label',
-        { class: 'fx-tile', dataset: { fx: v } },
-        h('input', { type: 'radio', name: 'punch-fx', value: v, 'aria-label': plain(t(`fx_${v}`)), 'data-i18n-aria': `fx_${v}` }),
-        h('span', { class: 'fx-pic', 'aria-hidden': 'true' }, v === 'random' || v === 'off' ? fxIcon(v) : null),
-        // The visible name may carry soft hyphens (see i18n.js SHY); the radio button has the plain one.
-        h('span', { class: 'fx-name', 'aria-hidden': 'true', 'data-i18n': `fx_${v}` }, t(`fx_${v}`)),
-      ),
-    ),
-  );
+  /** A labelled section of tiles. @param {'film' | 'std'} group */
+  const section = (group) => [
+    h('h3', { class: 'fx-sub', id: `h-fx-${group}`, 'data-i18n': group === 'film' ? 'h_fx_film' : 'h_fx_std' }, t(group === 'film' ? 'h_fx_film' : 'h_fx_std')),
+    h('div', { class: 'fx-grid', role: 'group', 'aria-labelledby': `h-fx-${group}` }, FX_GROUPS[group].map(fxTile)),
+  ];
+  const top = FX_CHOICES.filter((v) => !(/** @type {readonly string[]} */ (FX_NAMES)).includes(v));
+  fill(box, h('div', { class: 'fx-grid' }, top.map(fxTile)), ...section('film'), ...section('std'));
   box.addEventListener('change', (e) => {
     const el = /** @type {HTMLInputElement} */ (e.target);
     if (!el.checked || el.name !== 'punch-fx') return;
@@ -2421,7 +2456,7 @@ function loadFxPics() {
   fxPics = import('./punchfx.js').then(
     (m) => {
       for (const v of FX_NAMES)
-        void m.still(v, { time }).then((/** @type {Element | null} */ el) => {
+        void m.still(v, { time, user: state.username || '' }).then((/** @type {Element | null} */ el) => {
           const pic = $(`.fx-tile[data-fx="${v}"] .fx-pic`);
           if (el && pic) pic.replaceChildren(el);
         });
@@ -2445,17 +2480,18 @@ async function showFx(v, play) {
     const m = await (fxPics || import('./punchfx.js'));
     if (!m) return;
     const time = timeOfDay(Date.now(), localTz());
-    if (v === 'off' || (v === 'random' && !(play && !reducedMotion()))) {
+    if (v === 'off' || (fxIsRandom(v) && !(play && !reducedMotion()))) {
       m.cancelPreview();
       area.replaceChildren(fxIcon(v));
       return;
     }
-    const name = v === 'random' ? /** @type {string} */ (pickFx('random', fxShown)) : v;
+    const name = fxIsRandom(v) ? /** @type {string} */ (pickFx(v, fxShown)) : v;
     fxShown = name;
-    if (play && !reducedMotion()) m.preview(name, area, { time });
+    const user = state.username || '';
+    if (play && !reducedMotion()) m.preview(name, area, { time, user });
     else {
       m.cancelPreview();
-      const el = await m.still(name, { time });
+      const el = await m.still(name, { time, user });
       if (el) area.replaceChildren(el);
     }
   } catch {

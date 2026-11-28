@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { holidays, holidayAbsences, easter, ruleDay, calendarKey, calendarGroups, CALENDAR_KEYS } from '../../public/js/holidays.js';
 import { creditByDay, offByDay, withAbsences, workdays, balance, periodSheet } from '../../public/js/time.js';
 import { absenceRows, absenceLabel } from '../../public/js/listview.js';
-import { DEFAULT_SETTINGS, FX_NAMES } from '../../public/js/store.js';
+import { DEFAULT_SETTINGS, FX_CHOICES } from '../../public/js/store.js';
 import { jsonSize, PLAINTEXT_SIZE } from '../../public/js/crypto.js';
 import { setLang } from '../../public/js/i18n.js';
 
@@ -284,7 +284,7 @@ describe('settings and loading', () => {
   it('the calendar is a short key in the settings record (none by default); the largest settings record fits', () => {
     expect(DEFAULT_SETTINGS.holidays).toBe('');
     const longestKey = CALENDAR_KEYS.reduce((a, b) => (b.length > a.length ? b : a));
-    const longestFx = FX_NAMES.reduce((a, b) => (b.length > a.length ? b : a));
+    const longestFx = FX_CHOICES.reduce((a, b) => (b.length > a.length ? b : a));
     const largest = {
       ...DEFAULT_SETTINGS,
       weekHours: 79.75,

@@ -1,0 +1,43 @@
+/* Digital rain: the columns fall fast and slow down until --pfx-hit (48 %), then drift; two scrambles
+   flicker where the time will be just before it, the time locks in bright at the impact, the rain
+   dims behind it. The still shows the time over the dimmed rain. */
+.pfx-rain { --pfx-at: 0.66; }
+.pfx-rain .pfx-rcol { animation-name: pfx-rn-fall; animation-timing-function: linear; }
+.pfx-rain .pfx-rrain { animation-name: pfx-rn-dim; }
+.pfx-rain .pfx-rhush { animation-name: pfx-rn-hush; }
+.pfx-rain .pfx-rs1 { --lag: calc(var(--pfx-hit) - 320ms); animation-name: pfx-rn-f1; animation-duration: 320ms; }
+.pfx-rain .pfx-rs2 { --lag: calc(var(--pfx-hit) - 320ms); animation-name: pfx-rn-f2; animation-duration: 320ms; }
+.pfx-rain .pfx-rtime { --lag: var(--pfx-hit); animation-name: pfx-rn-lock; animation-duration: 360ms; }
+@keyframes pfx-rn-fall {
+  0% { transform: translateY(var(--a)); animation-timing-function: cubic-bezier(0.3, 0.45, 0.55, 1); }
+  48% { transform: translateY(var(--m)); animation-timing-function: linear; }
+  100% { transform: translateY(var(--b)); }
+}
+@keyframes pfx-rn-dim {
+  0%, 40% { opacity: 1; }
+  52%, 100% { opacity: 0.5; }
+}
+@keyframes pfx-rn-hush {
+  0%, 34% { opacity: 0; }
+  48%, 100% { opacity: 1; }
+}
+@keyframes pfx-rn-f1 {
+  0% { opacity: 0; animation-timing-function: step-end; }
+  8% { opacity: 0.85; animation-timing-function: step-end; }
+  30% { opacity: 0; animation-timing-function: step-end; }
+  58% { opacity: 0.9; animation-timing-function: step-end; }
+  78%, 100% { opacity: 0; }
+}
+@keyframes pfx-rn-f2 {
+  0% { opacity: 0; animation-timing-function: step-end; }
+  30% { opacity: 0.9; animation-timing-function: step-end; }
+  58% { opacity: 0; animation-timing-function: step-end; }
+  78% { opacity: 1; animation-timing-function: step-end; }
+  100% { opacity: 0; }
+}
+@keyframes pfx-rn-lock {
+  0% { opacity: 0; transform: scale(1.12); animation-timing-function: linear; }
+  10% { opacity: 1; transform: scale(1.08); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); }
+  38% { transform: scale(0.97); }
+  64%, 100% { opacity: 1; transform: none; }
+}

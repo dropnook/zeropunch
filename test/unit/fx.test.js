@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createFxRunner } from '../../public/js/fx.js';
-import { FX_NAMES } from '../../public/js/store.js';
+import { FX_NAMES, FX_FILM } from '../../public/js/store.js';
 import { NAMES } from '../../public/js/punchfx.js';
 
 /** A stand-in for punchfx.js that records what it was asked to do. */
@@ -53,6 +53,21 @@ describe('punch animation runner', () => {
     expect(await run.punch('stamp', opts)).toBe('stamp');
     expect(m.loads).toBe(1);
     expect(m.log.map((h) => h.name)).toEqual(['stamp']);
+  });
+
+  it('hands the username through to the animation (HAL says it)', async () => {
+    const { m, run } = setup();
+    expect(await run.punch('hal', { ...opts, user: 'benj' })).toBe('hal');
+    expect(m.log[0].o.user).toBe('benj');
+    expect(m.log[0].o.time).toBe('08:02');
+  });
+
+  it('random within a group plays only that group', async () => {
+    const { m, run } = setup({ random: () => 0.5 });
+    for (let i = 0; i < 6; i++) await run.punch('random-film', opts);
+    for (const h of m.log) expect(FX_FILM.has(h.name), h.name).toBe(true);
+    for (let i = 0; i < 6; i++) await run.punch('random-std', opts);
+    for (const h of m.log.slice(6)) expect(FX_FILM.has(h.name), h.name).toBe(false);
   });
 
   it('random never repeats the previous one', async () => {

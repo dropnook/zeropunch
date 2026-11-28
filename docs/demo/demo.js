@@ -5,7 +5,7 @@
 // ./app/ by scripts/sync-demo.mjs and loaded only when one plays. No inline styles (CSP): classes and
 // CSSOM custom properties only.
 
-import { h, fill } from './app/js/dom.js';
+import { h, s as svg, fill } from './app/js/dom.js';
 import { createFxRunner } from './app/js/fx.js';
 import * as core from './demo-core.js';
 
@@ -108,12 +108,20 @@ export function mount(old, lang) {
   const tabs = h(
     'div',
     { class: 'zd-tabs', 'aria-hidden': 'true' },
-    ...[
-      ['◷', 'tab_start'],
-      ['☰', 'tab_list'],
-      ['∑', 'tab_nerd'],
-      ['⚙', 'tab_settings'],
-    ].map(([ico, k], i) => h('span', { class: i ? 'zd-tab' : 'zd-tab zd-on' }, h('span', { class: 'zd-ico' }, ico), h('span', {}, T(k)))),
+    // Symbols only, like the app's tab bar (public/index.html); the gear is drawn there too.
+    h('span', { class: 'zd-tab zd-on' }, h('span', { class: 'zd-ico' }, '◷')),
+    h('span', { class: 'zd-tab' }, h('span', { class: 'zd-ico' }, '☰')),
+    h('span', { class: 'zd-tab' }, h('span', { class: 'zd-ico zd-emoji' }, '🤓')),
+    h(
+      'span',
+      { class: 'zd-tab' },
+      svg(
+        'svg',
+        { viewBox: '0 0 24 24', class: 'zd-gear' },
+        svg('path', { d: 'M19.38 10.17L21.9 10.59L21.9 13.41L19.38 13.83L18.51 15.92L20 18L18 20L15.92 18.51L13.83 19.38L13.41 21.9L10.59 21.9L10.17 19.38L8.08 18.51L6 20L4 18L5.49 15.92L4.62 13.83L2.1 13.41L2.1 10.59L4.62 10.17L5.49 8.08L4 6L6 4L8.08 5.49L10.17 4.62L10.59 2.1L13.41 2.1L13.83 4.62L15.92 5.49L18 4L20 6L18.51 8.08Z' }),
+        svg('circle', { cx: '12', cy: '12', r: '3.2' }),
+      ),
+    ),
   );
   const screen = h(
     'div',

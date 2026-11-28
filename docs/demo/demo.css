@@ -126,7 +126,9 @@
 .zd-tab { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(2 * var(--u));
   font-size: calc(11.6 * var(--u)); letter-spacing: -0.02em; color: var(--muted); overflow: hidden; white-space: nowrap; }
 .zd-tab.zd-on { color: var(--accent); font-weight: 700; }
-.zd-ico { font-size: calc(21 * var(--u)); line-height: 1; }
+.zd-ico { font-size: calc(28 * var(--u)); line-height: 1; }
+.zd-emoji { font-size: calc(26 * var(--u)); filter: grayscale(1); opacity: 0.75; }
+.zd-gear { width: calc(25 * var(--u)); height: calc(25 * var(--u)); fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; }
 
 .zd-vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 /* the punch just made glows once */
